@@ -16,6 +16,8 @@ from email.mime.text import MIMEText
 from functools import wraps
 from logging.handlers import TimedRotatingFileHandler
 from typing import Any, Callable
+
+import tomli
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 
 import requests
@@ -28,18 +30,32 @@ from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
 
 LOG_NAME_PS = 'ps'
 LOG_LEVEL_DEBUG = 'debug'
-
-conf_path = os.getenv("BASE_DIR") if os.getenv("BASE_DIR") is not None else os.getcwd()
-
-settings = Dynaconf(root_path=f'{os.getenv("BASE_DIR", os.getcwd())}/conf', settings_files=["*.toml"],
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
+settings = Dynaconf(root_path=f'{base_dir}/conf', settings_files=["*.toml"],
                     environments=True)
+
+def get_version():
+    with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
+        package_details = tomli.load(file)
+    return package_details['tool']['poetry']['version']
+
+def get_name():
+    with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
+        package_details = tomli.load(file)
+    return package_details['tool']['poetry']['name']
 
 data = {}
 
-db_manager = DatabaseManager(db_dialect=settings.DB_DIALECT, db_url=settings.DB_URL, encryption_key='Jum@t#10&h@yy1hdr@M%12@maL2004In')
+db_manager = DatabaseManager(db_dialect=settings.DB_DIALECT, db_url=settings.DB_URL, encryption_key=settings.DB_ENCRYPTION_KEY)
 
 transformer_headers = {
     'Content-Type': 'application/json',
+    'Authorization': f'Bearer {settings.DANS_TRANSFORMER_SERVICE_API_KEY}'
+}
+
+transformer_headers_xml = {
+    'Content-Type': 'application/xml',
     'Authorization': f'Bearer {settings.DANS_TRANSFORMER_SERVICE_API_KEY}'
 }
 
@@ -128,6 +144,22 @@ def transform(transformer_url: str, str_tobe_transformed: str) -> str:
         raise ValueError(f"Error - str_tobe_transformed is not a string. It is : {type(str_tobe_transformed)}")
 
     transformer_response = requests.post(transformer_url, headers=transformer_headers, data=str_tobe_transformed)
+    if transformer_response.status_code == 200:
+        transformed_metadata = transformer_response.json()
+        str_transformed_metadata = transformed_metadata.get('result')
+        # logger(f'Transformer result: {str_transformed_metadata}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        return str_transformed_metadata
+
+    logger(f'transformer_response.status_code: {transformer_response.status_code}', 'error', LOG_NAME_PS)
+    raise ValueError(f"Error - Transformer response status code: {transformer_response.status_code}")
+
+def transform_xml(transformer_url: str, str_tobe_transformed: str) -> str:
+    logger(f'transformer_url: {transformer_url}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+    # logger(f'str_tobe_transformed: {str_tobe_transformed}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+    if type(str_tobe_transformed) is not str:
+        raise ValueError(f"Error - str_tobe_transformed is not a string. It is : {type(str_tobe_transformed)}")
+
+    transformer_response = requests.post(transformer_url, headers=transformer_headers_xml, data=str_tobe_transformed)
     if transformer_response.status_code == 200:
         transformed_metadata = transformer_response.json()
         str_transformed_metadata = transformed_metadata.get('result')

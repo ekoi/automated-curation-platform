@@ -41,14 +41,13 @@ import platform
 from datetime import datetime, timezone
 
 
-__version__ = importlib.metadata.metadata("packaging-service")["version"]
 
 from starlette import status
 from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, tus_files
 from src.commons import settings, setup_logger, data, db_manager, logger, send_mail, inspect_bridge_module, \
-    LOG_LEVEL_DEBUG, LOG_NAME_PS
+    LOG_LEVEL_DEBUG, LOG_NAME_PS, get_version, get_name
 
 from src.tus_files import upload_files
 
@@ -151,7 +150,6 @@ def pre_startup_routine(app: FastAPI) -> None:
     app.include_router(public.router, tags=["Public"], prefix="")
     app.include_router(protected.router, tags=["Protected"], prefix="", dependencies=[Depends(auth_header)])
 
-    # if settings.DEPLOYMENT in ['demo', 'local']:
     app.include_router(upload_files, prefix="/files", include_in_schema=True, dependencies=[Depends(auth_header)])
     # app.include_router(tus_files.router, prefix="", include_in_schema=False)
 
@@ -178,7 +176,7 @@ def enable_otel(app):
 app = FastAPI(
     title=settings.FASTAPI_TITLE,
     description=settings.FASTAPI_DESCRIPTION,
-    version=__version__,
+    version= get_version(),
     lifespan=lifespan
 )
 
@@ -194,8 +192,7 @@ def info():
         dict: A dictionary containing the name and version of the packaging service.
 
     """
-    # dispatch("cat ok", payload={"name": "EKO INDarto"})
-    return {"name": "packaging-service", "version": __version__}
+    return {"name": get_name(), "version": get_version()}
 
 
 def iterate_saved_bridge_module_dir():

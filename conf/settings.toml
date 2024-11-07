@@ -3,11 +3,11 @@ dynaconf_merge = true
 loggers = [{"name"="ps", "log_file"="@format {env[BASE_DIR]}/logs/ps.log", "log_level"=10, "log_format" = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s" }]
 
 #FastAPI
-fastapi_title = "Packaging Service"
-fastapi_description = "The Packaging Service is a Python-based application developed by DANS. It is designed to create deposit packages based on user input, which consist of metadata, files, and repository targets. The service streamlines and simplifies the creation of deposit packages by harmonizing user input, repository configurations, bridge modules, and transformers to create deposit packages tailored to the specific needs of each repository target."
+fastapi_title = "Automated Curation Platform"
+fastapi_description = "The Automated Curation Platform is a Python-based application developed by DANS. It is designed to create deposit packages based on user input, which consist of metadata, files, and repository targets. The service streamlines and simplifies the creation of deposit packages by harmonizing user input, repository configurations, bridge modules, and transformers to create deposit packages tailored to the specific needs of each repository target."
 db_dialect="sqlite"
-db_url = "@format ///{env[BASE_DIR]}/data/db/dans_packaging.db"
-data_db_file = "sqlite:{@format {env[BASE_DIR]}/data/db/dans_packaging.db}"
+db_url = "@format ///{env[BASE_DIR]}/data/db/acp.db"
+data_db_file = "sqlite:{@format {env[BASE_DIR]}/data/db/acp.db}"
 data_tmp_base_dir = "@format {env[BASE_DIR]}/data/tmp"
 data_tmp_base_tus_files_dir = "@format {env[BASE_DIR]}/data/tmp/tus-files"
 tus_base_url = "http://localhost:10124"
@@ -15,7 +15,6 @@ languages_path = "@format {env[BASE_DIR]}/resources/utils/languageList.json"
 
 # In the implementation, APP_NAME will be replaced by app_name from Metadata record using str.replace(old, new)
 #data_tmp_base_dir_inbox =  "@format {env[BASE_DIR]}/data/tmp/-APP_NAME-/inbox"
-prefix_generated_file = "__generated__"
 modules_dir = "@format {env[BASE_DIR]}/src/modules"
 tus_files_dir = "@format {env[BASE_DIR]}/data/tmp/tus"
 
@@ -26,7 +25,6 @@ melt_agent_host_name = "localhost" #On dans:demo: meltservice (container name)
 multiple_workers_enable = false
 assistant_config_url = "http://localhost:2810" #"https://repository-assistant.labs.dansdemo.nl" #http://localhost:2810"
 transformer_url = "http://localhost:1745/transform" #"https://transformer.labs.dans.knaw.nl/transform" #http://localhost:1745l/transform"
-deployment= "demo"
 #send_mail = false
 max_ingest_size_using_python = 1073741824
 shell_script_path = "@format {env[BASE_DIR]}/resources/utils/ingest.sh"
