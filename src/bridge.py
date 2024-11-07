@@ -4,7 +4,7 @@ import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from src.commons import settings, db_manager, logger, LOG_LEVEL_DEBUG
+from src.commons import settings, db_manager, logger
 from src.dbz import TargetRepo, DepositStatus, DatabaseManager, Dataset, DataFile
 from src.models.assistant_datamodel import Target
 from src.models.bridge_output_model import BridgeOutputDataModel
@@ -63,7 +63,7 @@ class Bridge(ABC):
 
     @classmethod
     @abstractmethod
-    def deposit(cls) -> BridgeOutputDataModel:
+    def execute(cls) -> BridgeOutputDataModel:
         """
         Abstract method to deposit data into the target repository.
 
@@ -88,7 +88,7 @@ class Bridge(ABC):
         output = output_data_model.model_dump_json() if output_data_model else ''
         if output_data_model:
             logger(f'Save state for dataset_id: {self.dataset_id}. Target: {self.target.repo_name}',
-                   LOG_LEVEL_DEBUG, self.app_name)
+                   settings.LOG_LEVEL, self.app_name)
         db_manager.update_target_repo_deposit_status(TargetRepo(ds_id=self.dataset_id, name=self.target.repo_name,
                                                                 deposit_status=deposit_status, target_output=output,
                                                                 duration=duration))

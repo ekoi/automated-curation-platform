@@ -32,11 +32,6 @@ class IdentifierItem(BaseModel):
     url: Optional[str] = None
 
 
-# ii = IdentifierProtocol("urn:nbn")
-# print(ii)
-# i = IdentifierItem(value="eko", protocol=IdentifierProtocol.URN_NBN, url="https://googl" )
-# print(i.protocol.value)
-
 class TargetResponse(BaseModel):
     url: Optional[str] = None
     status_code: int = Field(default=-10122004, alias='status-code')
@@ -47,12 +42,6 @@ class TargetResponse(BaseModel):
     identifiers: Optional[List[IdentifierItem]] = None
     content: str = None
     content_type: ResponseContentType = Field(None, alias='content-type')
-
-
-# # it = IdentifierItem()
-#
-# y = TargetResponse(content="eko", message="", identifiers=[])
-# print(y.model_dump_json())
 
 
 class BridgeOutputDataModel(BaseModel):

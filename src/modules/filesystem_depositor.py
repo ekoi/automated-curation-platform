@@ -6,7 +6,7 @@ from src.models.bridge_output_model import BridgeOutputDataModel
 
 class FileSystem(Bridge):
 
-    def deposit(self) -> BridgeOutputDataModel:
+    def execute(self) -> BridgeOutputDataModel:
 
         bridge_output_model = BridgeOutputDataModel()
 

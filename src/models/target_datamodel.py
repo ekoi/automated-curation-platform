@@ -30,7 +30,7 @@ json_data={"targets-credentials":
         "target-repo-name": "dans.sword.ssh.local",
         "credentials": {
             "username": "eko",
-            "password": "01bd92cf-de58-4389-942d-ebaec52fc073"
+            "password": "lamaKMI"
         }
     },
     {
@@ -44,6 +44,3 @@ json_data={"targets-credentials":
     }
 ]
 }
-# y = TargetsCredentialsModel(**json_data)
-# for x in y.targets_credentials:
-#     print(x.target_repo_name)

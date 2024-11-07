@@ -9,13 +9,13 @@ import sword2.deposit_receipt as dr
 from requests.auth import HTTPBasicAuth
 
 from src.bridge import Bridge
-from src.commons import settings, DepositStatus, transform, logger, db_manager, LOG_LEVEL_DEBUG
+from src.commons import settings, DepositStatus, transform, logger, db_manager
 from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
 
 
 class SwhSwordDepositor(Bridge):
 
-    def deposit(self) -> BridgeOutputDataModel:
+    def execute(self) -> BridgeOutputDataModel:
 
         bridge_output_model = BridgeOutputDataModel()
         # create_sword_payload(self):
@@ -24,12 +24,13 @@ class SwhSwordDepositor(Bridge):
         if dv_target:
             swh_form_md.update({"doi": json.loads(dv_target.target_output)['response']['identifiers'][0]['value']})
         logger(f"SwhSwordDepositor- swh_form_md - after update (doi): {json.dumps(swh_form_md)}",
-               LOG_LEVEL_DEBUG, self.app_name)
+               settings.LOG_LEVEL, self.app_name)
         str_sword_payload = transform(
             transformer_url=self.target.metadata.transformed_metadata[0].transformer_url,
             str_tobe_transformed=json.dumps(swh_form_md)
         )
         logger(f'deposit to "{self.target.target_url}"', "debug", self.app_name)
+        logger(f'payload: "{str_sword_payload}"', "debug", self.app_name)
         headers = {
             'Content-Type': 'application/atom+xml;type=entry',
         }
@@ -38,10 +39,13 @@ class SwhSwordDepositor(Bridge):
         logger(f'status_code: {response.status_code}. Response: {response.text}', "debug", self.app_name)
         if response.status_code == 200 or response.status_code == 201:  # TODO: remove 200, use only 201
             rt = response.text
-            logger(f'sword response: {rt}', LOG_LEVEL_DEBUG, self.app_name)
+            logger(f'sword response: {rt}', settings.LOG_LEVEL, self.app_name)
+
             deposit_response = dr.Deposit_Receipt(xml_deposit_receipt=rt)
+            if deposit_response.metadata['atom_deposit_status'][0] == 'deposited':
+                return BridgeOutputDataModel(deposit_status=DepositStatus.DEPOSITED, notes=rt)
             status_url = deposit_response.alternate
-            logger(f'Status request send to {status_url}', LOG_LEVEL_DEBUG, self.app_name)
+            logger(f'Status request send to {status_url}', settings.LOG_LEVEL, self.app_name)
             counter = 0
             while True and (counter < settings.swh_api_max_retries):
                 counter += 1
@@ -49,12 +53,14 @@ class SwhSwordDepositor(Bridge):
                 rsp = requests.get(status_url, headers=headers, auth=auth)
                 if rsp.status_code == 200:
                     rsp_text = rsp.text
-                    logger(f'response from {status_url} is {rsp_text}', LOG_LEVEL_DEBUG, self.app_name)
+                    logger(f'response from {status_url} is {rsp_text}', settings.LOG_LEVEL, self.app_name)
                     rsp_dep = dr.Deposit_Receipt(xml_deposit_receipt=rsp_text)
                     print(rsp_dep.metadata)
                     swh_metadata = rsp_dep.metadata
                     swh_deposit_status = swh_metadata.get('atom_deposit_status')
-                    if swh_deposit_status and swh_deposit_status[0] == DepositStatus.DEPOSITED:
+                    if swh_deposit_status and swh_deposit_status[0] == 'rejected':
+                        return BridgeOutputDataModel(deposit_status=DepositStatus.FAILED, notes=rsp_text)
+                    if swh_deposit_status and swh_deposit_status[0] in [DepositStatus.DEPOSITED, "done"]:
                         target_repo = TargetResponse(url=self.target.target_url, status=DepositStatus.FINISH,
                                                      message=rsp_text, content=rsp_text)
                         target_repo.url = status_url

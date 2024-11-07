@@ -23,9 +23,6 @@ logger.setLevel(logging.DEBUG)
 # run sqlmodel code after this
 '''
 
-LOG_NAME_PS = 'ps'
-LOG_LEVEL_DEBUG = 'debug'
-
 class ReleaseVersion(StrEnum):
     DRAFT = 'DRAFT'
     PUBLISH = 'PUBLISH'
@@ -142,8 +139,6 @@ class DatabaseManager:
         # TODO use self.engine
         self.db_file = self.conn_url.split("///")[1]  # sqlite:////
         self.cipher_suite = Fernet(base64.urlsafe_b64encode(encryption_key.encode()))
-        # self.engine = create_engine("sqlite:////Users/akmi/git/ekoi/poc-4-wim/packaging-service/data/db/abc.db")
-        # self.session_local = sessionmaker(autocommit=False, autoflush=False, bind=self.engine)
 
     # def get_db(self):
     #     database = self.session_local()
@@ -166,7 +161,7 @@ class DatabaseManager:
             SQLModel.metadata.create_all(self.engine, checkfirst=True)
         else:
             from src.commons import logger
-            logger('TABLES ALREADY CREATED', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+            logger('TABLES ALREADY CREATED', "info", "acp")
 
     def insert_dataset_and_target_repo(self, ds_record: Dataset, repo_records: List[TargetRepo]) -> None:
         # Encrypt the md field of the Dataset
@@ -225,8 +220,9 @@ class DatabaseManager:
         return Session(self.engine).exec(select(Dataset).where(Dataset.id == dataset_id)).first() is not None
 
     def is_dataset_published(self, dataset_id: str) -> bool:
-        return Session(self.engine).exec(select(Dataset).where(Dataset.id == dataset_id,
-                                                               Dataset.release_version == ReleaseVersion.PUBLISHED)).first() is not None
+        return (Session(self.engine).exec(select(Dataset).where(Dataset.id == dataset_id,
+                                                               Dataset.release_version == ReleaseVersion.PUBLISHED))
+                                                            .first() is not None)
 
     def find_dataset(self, ds_id: str) -> Dataset:
         with Session(self.engine) as session:
@@ -323,8 +319,6 @@ class DatabaseManager:
             statement = select(DataFile).where(DataFile.ds_id == dataset_id, DataFile.name == file_name)
             results = session.exec(statement)
             result = results.one_or_none()
-            print(dataset_id)
-            print(file_name)
         return result
 
     def find_registered_files(self, dataset_id: str) -> [DataFile]:
@@ -436,6 +430,18 @@ class DatabaseManager:
                 ds_record.release_version = dataset.release_version
                 ds_record.saved_date = datetime.utcnow()
                 ds_record.state = dataset.state
+                ds_record.encrypt_md(self.cipher_suite)
+                session.add(ds_record)
+                session.commit()
+                session.refresh(ds_record)
+
+    def update_dataset_md(self, id: str, md: str) -> type(None):
+        with Session(self.engine) as session:
+            statement = select(Dataset).where(Dataset.id == id)
+            results = session.exec(statement)
+            ds_record = results.one_or_none()
+            if ds_record:
+                ds_record.md = md
                 ds_record.encrypt_md(self.cipher_suite)
                 session.add(ds_record)
                 session.commit()

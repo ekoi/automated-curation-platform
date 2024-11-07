@@ -1,5 +1,5 @@
 """
-Packaging Service FastAPI Application
+Automated Curation Platform FastAPI Application
 
 This FastAPI application provides endpoints for file uploads, public access, and protected access.
 It integrates Keycloak for OAuth2-based authentication and supports token-based authentication with API keys.
@@ -47,7 +47,7 @@ from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, tus_files
 from src.commons import settings, setup_logger, data, db_manager, logger, send_mail, inspect_bridge_module, \
-    LOG_LEVEL_DEBUG, LOG_NAME_PS, get_version, get_name
+   LOG_NAME_ACP, get_version, get_name
 
 from src.tus_files import upload_files
 
@@ -80,10 +80,10 @@ async def lifespan(application: FastAPI):
     """
     print('start up')
     if not os.path.exists(settings.DB_URL):
-        logger('Creating database', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        logger('Creating database', settings.LOG_LEVEL, LOG_NAME_ACP)
         db_manager.create_db_and_tables()
     else:
-        logger('Database already exists', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        logger('Database already exists', settings.LOG_LEVEL, LOG_NAME_ACP)
     iterate_saved_bridge_module_dir()
     print(f'Available bridge classes: {sorted(list(data.keys()))}')
     print(emoji.emojize(':thumbs_up:'))
@@ -95,6 +95,7 @@ api_keys = [settings.DANS_PACKAGING_SERVICE_API_KEY]
 
 security = HTTPBearer()
 
+PORT=10124
 
 def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
     """
@@ -125,7 +126,7 @@ def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredenti
 
 def pre_startup_routine(app: FastAPI) -> None:
     setup_logger()
-    logger(f'MELT_ENABLE = {settings.get("MELT_ENABLE")}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+    logger(f'MELT_ENABLE = {settings.get("MELT_ENABLE")}', settings.LOG_LEVEL, LOG_NAME_ACP)
     # add middlewares
     if settings.get("MELT_ENABLE", False):
         enable_otel(app)
@@ -158,7 +159,7 @@ def enable_otel(app):
     melt_agent_host_name = settings.get("MELT_AGENT_HOST_NAME", "localhost")
     # Set up the tracer provider
     trace.set_tracer_provider(
-        TracerProvider(resource=Resource.create({SERVICE_NAME: "Packaging Service"}))
+        TracerProvider(resource=Resource.create({SERVICE_NAME: "Automated Curation Platform"}))
     )
     tracer_provider = trace.get_tracer_provider()
     # Configure Jaeger exporter
@@ -186,10 +187,10 @@ pre_startup_routine(app)
 @app.get('/')
 def info():
     """
-    Root endpoint to retrieve information about the packaging service.
+    Root endpoint to retrieve information about the automated curation platform.
 
     Returns:
-        dict: A dictionary containing the name and version of the packaging service.
+        dict: A dictionary containing the name and version of the automated curation platform.
 
     """
     return {"name": get_name(), "version": get_version()}
@@ -213,18 +214,18 @@ def iterate_saved_bridge_module_dir():
 def run_server():
     """Configures and runs the server based on the environment settings."""
     if settings.get("MULTIPLE_WORKERS_ENABLE", False):
-        uvicorn.run("src.main:app", host="0.0.0.0", port=10124, reload=False,
+        uvicorn.run("src.main:app", host="0.0.0.0", port=PORT, reload=False,
                     workers=(multiprocessing.cpu_count() * 2) + 1,
                     # worker_class="uvicorn.workers.UvicornWorker",
                     timeout_keep_alive= 300,
                     # preload=True
                     )
     else:
-        uvicorn.run("src.main:app", host="0.0.0.0", port=10124, reload=False, workers=1)
+        uvicorn.run("src.main:app", host="0.0.0.0", port=PORT, reload=False, workers=1)
 
 if __name__ == "__main__":
-    logger('START Packaging Service', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+    logger('START Automated Curation Platform', settings.LOG_LEVEL, LOG_NAME_ACP)
     if settings.get("SENDMAIL_ENABLE"):
-        send_mail('Starting the packaging service',
+        send_mail('Starting the automated curation platform',
                   f'Started at {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")}')
     run_server()

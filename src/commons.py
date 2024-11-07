@@ -18,6 +18,7 @@ from logging.handlers import TimedRotatingFileHandler
 from typing import Any, Callable
 
 import tomli
+from hypothesis import settings
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 
 import requests
@@ -28,8 +29,7 @@ from starlette import status
 from src.dbz import DatabaseManager, DepositStatus
 from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
 
-LOG_NAME_PS = 'ps'
-LOG_LEVEL_DEBUG = 'debug'
+LOG_NAME_ACP = 'acp'
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
 settings = Dynaconf(root_path=f'{base_dir}/conf', settings_files=["*.toml"],
@@ -133,42 +133,30 @@ def get_class(kls) -> Any:
         return m
     except ModuleNotFoundError as e:
         print(f'error: {kls}')
-        logger(f'ModuleNotFoundError: {e}', 'error', LOG_NAME_PS)
+        logger(f'ModuleNotFoundError: {e}', 'error', LOG_NAME_ACP)
     return None
 
-
-def transform(transformer_url: str, str_tobe_transformed: str) -> str:
-    logger(f'transformer_url: {transformer_url}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
-    # logger(f'str_tobe_transformed: {str_tobe_transformed}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
-    if type(str_tobe_transformed) is not str:
+def transform(transformer_url: str, str_tobe_transformed: str, headers: {} = None) -> str:
+    logger(f'transformer_url: {transformer_url}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    if not isinstance(str_tobe_transformed, str):
         raise ValueError(f"Error - str_tobe_transformed is not a string. It is : {type(str_tobe_transformed)}")
+    if headers is None:
+        headers = transformer_headers
 
-    transformer_response = requests.post(transformer_url, headers=transformer_headers, data=str_tobe_transformed)
-    if transformer_response.status_code == 200:
-        transformed_metadata = transformer_response.json()
-        str_transformed_metadata = transformed_metadata.get('result')
-        # logger(f'Transformer result: {str_transformed_metadata}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
-        return str_transformed_metadata
+    response = requests.post(transformer_url, headers=headers, data=str_tobe_transformed)
+    if response.status_code == 200:
+        return response.json().get('result')
 
-    logger(f'transformer_response.status_code: {transformer_response.status_code}', 'error', LOG_NAME_PS)
-    raise ValueError(f"Error - Transformer response status code: {transformer_response.status_code}")
+    logger(f'transformer_response.status_code: {response.status_code}', 'error', LOG_NAME_ACP)
+    raise ValueError(f"Error - Transformer response status code: {response.status_code}")
+
+def transform_json(transformer_url: str, str_tobe_transformed: str) -> str:
+   transform(transformer_url, str_tobe_transformed, transformer_headers)
+
+
 
 def transform_xml(transformer_url: str, str_tobe_transformed: str) -> str:
-    logger(f'transformer_url: {transformer_url}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
-    # logger(f'str_tobe_transformed: {str_tobe_transformed}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
-    if type(str_tobe_transformed) is not str:
-        raise ValueError(f"Error - str_tobe_transformed is not a string. It is : {type(str_tobe_transformed)}")
-
-    transformer_response = requests.post(transformer_url, headers=transformer_headers_xml, data=str_tobe_transformed)
-    if transformer_response.status_code == 200:
-        transformed_metadata = transformer_response.json()
-        str_transformed_metadata = transformed_metadata.get('result')
-        # logger(f'Transformer result: {str_transformed_metadata}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
-        return str_transformed_metadata
-
-    logger(f'transformer_response.status_code: {transformer_response.status_code}', 'error', LOG_NAME_PS)
-    raise ValueError(f"Error - Transformer response status code: {transformer_response.status_code}")
-
+    transform(transformer_url, str_tobe_transformed, transformer_headers_xml)
 
 # def transform(transformer_url: str, input: str) -> str:
 #     logger(transformer_url: {transformer_url}', LOGGER_LEVEL_DEBUG, LOG_NAME_PS)
@@ -220,22 +208,6 @@ def transform_xml(transformer_url: str, str_tobe_transformed: str) -> str:
 #     return decorator
 
 
-def save_duration(target_id: int) -> type(None):
-    def decorator(func):
-        @wraps(func)
-        def wrapper(*args, **kwargs):
-            start = time.time()
-            print(f'kwargs: {kwargs}')
-            print(f'args: {args}')
-            rv = func(*args, **kwargs)
-            duration = time.time() - start
-            print(duration)
-            return rv
-
-        return wrapper
-
-    return decorator
-
 
 def handle_deposit_exceptions(
         func) -> Callable[[tuple[Any, ...], dict[str, Any]], BridgeOutputDataModel | Any]:
@@ -257,13 +229,13 @@ def handle_deposit_exceptions(
 
     @wraps(func)
     def wrapper(*args, **kwargs):
-        #logger(f'Enter to handle_deposit_exceptions for {func.__name__}. args: {args}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        #logger(f'Enter to handle_deposit_exceptions for {func.__name__}. args: {args}', settings.LOG_LEVEL, LOG_NAME_PS)
         try:
             rv = func(*args, **kwargs)
             return rv
         except Exception as ex:
             logger(f'Errors in {func.__name__}: {ex} - {ex.with_traceback(ex.__traceback__)}',
-                   LOG_LEVEL_DEBUG, LOG_NAME_PS)
+                   settings.LOG_LEVEL, LOG_NAME_ACP)
             target = args[0].target
             bom = BridgeOutputDataModel()
             bom.deposit_status = DepositStatus.ERROR
@@ -298,7 +270,7 @@ def handle_ps_exceptions(func) -> Any:
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            logger(f'Enter to handle_ps_exceptions:: {func.__name__}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+            logger(f'Enter to handle_ps_exceptions:: {func.__name__}', settings.LOG_LEVEL, LOG_NAME_ACP)
             rv = func(*args, **kwargs)
             return rv
         except HTTPException as ex:
@@ -306,19 +278,19 @@ def handle_ps_exceptions(func) -> Any:
             #                                                               f'\nDetails: {ex.detail}.')
             logger(
                 f'handle_ps_exceptions: Errors in {func.__name__}. status code: {ex.status_code}. Details: {ex.detail}. '
-                f'args: {args}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+                f'args: {args}', settings.LOG_LEVEL, LOG_NAME_ACP)
             raise ex
         except Exception as ex:
             send_mail(f'handle_ps_exceptions: Errors in {func.__name__}', f'{ex} - '
                                                                           f'{ex.with_traceback(ex.__traceback__)}.')
             logger(f'handle_ps_exceptions: Errors in {func.__name__}: {ex} - {ex.with_traceback(ex.__traceback__)}',
-                   LOG_LEVEL_DEBUG, LOG_NAME_PS)
+                   settings.LOG_LEVEL, LOG_NAME_ACP)
             raise ex
         except BaseException as ex:
             send_mail(f'handle_ps_exceptions: Errors in {func.__name__}', f'{ex} - '
                                                                           f'{ex.with_traceback(ex.__traceback__)}.')
             logger(f'handle_ps_exceptions: Errors in {func.__name__}:  {ex} - {ex.with_traceback(ex.__traceback__)}',
-                   LOG_LEVEL_DEBUG, LOG_NAME_PS)
+                   settings.LOG_LEVEL, LOG_NAME_ACP)
             raise ex
 
     return wrapper
@@ -355,7 +327,7 @@ def inspect_bridge_module(py_file_path: str):
     return results
 
 
-# class PackagingServiceException(Exception):
+# class ACPeException(Exception):
 #     def __init__(self, bom: BridgeOutputDataModel, message: str):
 #         self.bom = bom
 #         self.message = message
@@ -377,13 +349,12 @@ def send_mail(subject: str, text: str):
                 server.starttls()
                 server.login(sender_email, app_password)
                 server.sendmail(sender_email, recipient_email, message.as_string())
-            print("Email sent successfully!")
-            logger(f"Email sent successfully to {recipient_email}", "debug", "ps")
+            logger(f"Email sent successfully to {recipient_email}", "debug", LOG_NAME_ACP)
         except Exception as e:
             print(f"Error: {e}")
-            logger(f"Unsuccessful sent email to {recipient_email}", "error", "ps")
+            logger(f"Unsuccessful sent email to {recipient_email}", "error", LOG_NAME_ACP)
     else:
-        logger("Sending email is disabled.", LOG_LEVEL_DEBUG, "ps")
+        logger("Sending email is disabled.", settings.LOG_LEVEL, LOG_NAME_ACP)
 
 
 def dmz_dataverse_headers(username, password) -> dict:
@@ -405,7 +376,7 @@ def upload_large_file(url, file_path, json_data, api_key, file_name=None):
             if progress >= last_reported_progress + 5 or progress > 95:
                 memory_usage_msg = f", Memory usage: {psutil.Process().memory_info().rss / (1024 * 1024):.2f} MB" \
                     if progress >= last_reported_progress + 5 else ""
-                logger(f"Upload Progress: {progress:.2f}%{memory_usage_msg}", LOG_LEVEL_DEBUG, LOG_NAME_PS)
+                logger(f"Upload Progress: {progress:.2f}%{memory_usage_msg}", settings.LOG_LEVEL, LOG_NAME_ACP)
                 last_reported_progress = progress if progress >= last_reported_progress + 5 else last_reported_progress
 
         return callback
@@ -417,14 +388,14 @@ def upload_large_file(url, file_path, json_data, api_key, file_name=None):
         )
         callback = create_callback(encoder)
         monitor = MultipartEncoderMonitor(encoder, callback)
-        logger(f'upload_large_file  api_key: {api_key}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        logger(f'upload_large_file  api_key: {api_key}', settings.LOG_LEVEL, LOG_NAME_ACP)
         response = requests.post(url, data=monitor, headers={"X-Dataverse-key": api_key,
                                                              'X-Authorization': settings.dmz_x_authorization_value,
                                                              'Content-Type': monitor.content_type})
 
-        logger(f'upload_large_file response: {response.status_code}', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        logger(f'upload_large_file response: {response.status_code}', settings.LOG_LEVEL, LOG_NAME_ACP)
         if response.status_code == status.HTTP_502_BAD_GATEWAY:
-            logger(f'ERROR 502 upload_large_file response: {response.text}', 'error', LOG_NAME_PS)
+            logger(f'ERROR 502 upload_large_file response: {response.text}', 'error', LOG_NAME_ACP)
 
     return response
 
@@ -460,13 +431,13 @@ def zip_with_progress(file_path, zip_path):
                 processed_size += len(chunk)
                 progress = processed_size / file_size * 100
                 if progress - last_printed_progress >= 10:
-                    logger(f"Zipping Progress of {arcname}: {progress:.0f}%", LOG_LEVEL_DEBUG, LOG_NAME_PS)
+                    logger(f"Zipping Progress of {arcname}: {progress:.0f}%", settings.LOG_LEVEL, LOG_NAME_ACP)
                     last_printed_progress += 10
 
                 # Remove the temporary file
                 os.remove(temp_chunk_path)
 
-    logger(f"Zipping completed.", LOG_LEVEL_DEBUG, LOG_NAME_PS)
+    logger(f"Zipping completed.", settings.LOG_LEVEL, LOG_NAME_ACP)
 
 
 def delete_symlink_and_target(link_name):
@@ -477,7 +448,7 @@ def delete_symlink_and_target(link_name):
         else:
             os.remove(target)
         os.remove(link_name)
-        logger(f'{link_name} and its target {target} DELETED successfully.', LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        logger(f'{link_name} and its target {target} DELETED successfully.', settings.LOG_LEVEL, LOG_NAME_ACP)
 
 
 def compress_zip_file(original_zip_path):
@@ -523,7 +494,7 @@ def zip_a_zipfile_with_progress(original_zip_path, new_zip_path):
         progress = 100  # In a real-world scenario, you'd calculate this based on bytes written vs total size
 
         # Print the progress
-        logger(f"Zipping Progress of {arcname} : {progress}%", LOG_LEVEL_DEBUG, LOG_NAME_PS)
+        logger(f"Zipping Progress of {arcname} : {progress}%", settings.LOG_LEVEL, LOG_NAME_ACP)
 
 
 
