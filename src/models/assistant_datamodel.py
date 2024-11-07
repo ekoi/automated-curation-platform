@@ -45,7 +45,7 @@ class Metadata(BaseModel):
     - specification (List[str]): A list of specifications associated with the repository.
     - transformed_metadata (List[TransformedMetadata]): A list of transformed metadata instances.
     """
-    specification: List[str]
+    specification: Optional[List[str]] = None
     transformed_metadata: List[TransformedMetadata] = Field(..., alias='transformed-metadata')
 
 
@@ -72,9 +72,10 @@ class Target(BaseModel):
     bridge_module_class: str = Field(..., alias='bridge-module-class')
     base_url: str = Field(..., alias='base-url')
     target_url: str = Field(..., alias='target-url')
-    username: str
-    password: str
-    metadata: Metadata
+    target_url_params: Optional[str] = Field(default=None, alias='target-url-params')
+    username: Optional[str] = None
+    password: Optional[str] = None
+    metadata: Optional[Metadata] = None
     initial_release_version: Optional[str] = Field(default=None, alias='initial-release-version')
     input: Optional[Input] = None
 
@@ -106,9 +107,9 @@ class RepoAssistantDataModel(BaseModel):
     - file_conversions (Optional[List[FileConversion]]): A list of file conversion configurations, if applicable.
     """
     assistant_config_name: str = Field(..., alias='assistant-config-name')
-    description: str
+    description: Optional[str] = None
     app_name: str = Field(..., alias='app-name')
-    app_config_url: str = Field(..., alias='app-config-url')
+    app_config_url: Optional[str] = Field(None, alias='app-config-url')
     targets: List[Target]
     file_conversions: Optional[List[FileConversion]] = Field(None, alias='file-conversions')
 
