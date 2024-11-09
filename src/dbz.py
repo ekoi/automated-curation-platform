@@ -205,16 +205,19 @@ class DatabaseManager:
             session.commit()
         return tabs
 
-    def delete_by_dataset_id(self, dataset_id) -> type(None):
+    def delete_by_dataset_id(self, dataset_id) -> type(int):
         with Session(self.engine) as session:
-            # Delete DataFiles and TargetRepos in a single transaction
-            for model in [DataFile, TargetRepo]:
-                session.exec(delete(model).where(model.ds_id == dataset_id))
-            session.commit()
+            ds = session.exec(select(Dataset).where(Dataset.id == dataset_id)).one_or_none()
+            if ds:
+                # Delete DataFiles and TargetRepos in a single transaction
+                for model in [DataFile, TargetRepo]:
+                    session.exec(delete(model).where(model.ds_id == dataset_id))
 
-            # Delete Dataset
-            session.delete(session.exec(select(Dataset).where(Dataset.id == dataset_id)).one_or_none())
-            session.commit()
+                # Delete Dataset
+                session.delete(session.exec(select(Dataset).where(Dataset.id == dataset_id)).one_or_none())
+                session.commit()
+                return 1
+            return 0
 
     def is_dataset_exist(self, dataset_id: str) -> bool:
         return Session(self.engine).exec(select(Dataset).where(Dataset.id == dataset_id)).first() is not None

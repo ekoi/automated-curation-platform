@@ -545,7 +545,7 @@ async def resubmit(datasetId: str):
 #
 @router.delete("/inbox/{datasetId}", include_in_schema=False)
 def delete_inbox(datasetId: str):
-    num_rows_deleted = db_manager.delete_metadata_record(datasetId)
+    num_rows_deleted = db_manager.delete_by_dataset_id(datasetId)
     return {"Deleted": "OK", "num-row-deleted": num_rows_deleted}
 
 
