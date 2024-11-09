@@ -48,7 +48,7 @@ class BridgeOutputDataModel(BaseModel):
     deposit_time: Optional[str] = Field(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f"), alias='deposit-time')
     deposit_status: DepositStatus = Field(DepositStatus.UNDEFINED, alias='deposit-status')
     notes: Optional[str] = "" # This is for any message/text
-    response: TargetResponse = None
+    response: TargetResponse =  Field(default_factory=TargetResponse)
 
 
 json_output_model = {

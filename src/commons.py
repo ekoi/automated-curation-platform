@@ -34,17 +34,6 @@ base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
 settings = Dynaconf(root_path=f'{base_dir}/conf', settings_files=["*.toml"],
                     environments=True)
-
-def get_version():
-    with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
-        package_details = tomli.load(file)
-    return package_details['tool']['poetry']['version']
-
-def get_name():
-    with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
-        package_details = tomli.load(file)
-    return package_details['tool']['poetry']['name']
-
 data = {}
 
 db_manager = DatabaseManager(db_dialect=settings.DB_DIALECT, db_url=settings.DB_URL, encryption_key=settings.DB_ENCRYPTION_KEY)
@@ -64,6 +53,15 @@ assistant_repo_headers = {
     'Authorization': f'Bearer {settings.DANS_REPO_ASSISTANT_SERVICE_API_KEY}'
 }
 
+def get_version():
+    with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
+        package_details = tomli.load(file)
+    return package_details['tool']['poetry']['version']
+
+def get_name():
+    with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
+        package_details = tomli.load(file)
+    return package_details['tool']['poetry']['name']
 
 def setup_logger():
     """
@@ -340,7 +338,7 @@ def send_mail(subject: str, text: str):
     message = MIMEMultipart()
     message['From'] = sender_email
     message['To'] = recipient_email
-    message['Subject'] = f'{settings.DEPLOYMENT}: {subject}'
+    message['Subject'] = f'{settings.get("MAIL_SUBJECT_PREFIX", "mail_subject_prefix not set")}: {subject}'
     message.attach(MIMEText(text, 'plain'))
 
     if settings.get('send_mail', True):
