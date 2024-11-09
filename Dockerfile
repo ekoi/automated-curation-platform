@@ -24,8 +24,6 @@ COPY ./dist/*.* .
 
 RUN mkdir -p ${BASE_DIR} && \
     mkdir -p ${BASE_DIR}/data/db  && \
-    mkdir -p ${BASE_DIR}/data/tmp/bags && \
-    mkdir -p ${BASE_DIR}/data/tmp/zips  && \
     mkdir -p ${BASE_DIR}/data/tmp/tus-files  && \
     pip install --no-cache-dir *.whl && rm -rf *.whl && \
     tar xf automated_curation_platform-${VERSION}.tar.gz -C ${BASE_DIR} --strip-components 1 && \
