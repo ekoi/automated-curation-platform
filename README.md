@@ -7,16 +7,30 @@ The ACP core function is to “curate” content by identifying high-quality, re
 
 ![Data Flow diagram](./resources/images/ps-flow.png)
 
-The curation process is dynamically adapted to each repository target as specified by the user. ACP automatically retrieves configuration details from the repository assistant service, based on the provided configuration name. This configuration is essential, containing details like the repository URL, bridge module, and transformers, all of which empower ACP to seamlessly accommodate varying repository standards.
-
+The curation process is dynamically adapted to each repository target as specified by the user. ACP automatically retrieves configuration details from the [repository assistant service](https://github.com/ekoi/repository-assistant-service), based on the provided configuration name. This configuration is essential, containing details like the repository URL, bridge module, and transformers, all of which empower ACP to seamlessly accommodate varying repository standards.
 Repository URL: This URL acts as a direct link to the designated storage location within the repository, enabling seamless data exchange and interaction.
 
 Bridge Module: Serving as a pivotal component, the bridge module is responsible for structuring the deposit package in the desired target format (e.g., SWORD). This module is adaptable, ensuring that curated content adheres to the specific formatting requirements of each chosen repository.
 
-Transformers: These components play a vital role in translating metadata to fit the standards of the destination repository, guaranteeing that deposited content is both accurately packaged and fully compliant with the repository’s metadata standards.
+Transformers: These components play a vital role in translating metadata to fit the standards of the destination repository, guaranteeing that deposited content is both accurately packaged and fully compliant with the repository’s metadata standards. More details can be found in the [transformer service](https://github.com/ekoi/dans-transformer-service).
 
 By centralizing and automating these crucial components, ACP provides an efficient, scalable, and adaptable solution for deposit package generation. This design makes it significantly easier for users to manage, curate, and deliver content that meets precise repository standards, promoting streamlined workflows and enhancing the quality of digital content management.
 
+## Implementations of the Automated Curation Platform (ACP)
+
+At DANS, we have developed several implementations of the Automated Curation Platform (ACP) to cater to different curation needs and repository targets:
+
+- **Single Target Implementations**: These instances of ACP are designed to curate and deposit content to a specific repository target.
+  - [OH-SMART](https://ohsmart.dans.knaw.nl.nl/). Target repository: [DANS SSH Datastations](https://ssh.datastations.nl/)
+  - [RDA](https://rda.dansdemo.nl/). Target repository: [Zenodo](https://zenodo.org/)
+
+- **Multiple Target Implementation**: This version of ACP supports curation and deposition to multiple repository targets, providing greater flexibility and scalability.
+  - [Software Heritage](https://swh.dansdemo.nl/). Targets: [Software Heritage - API & SWORD2](https://www.softwareheritage.org/) and [Dataverse](https://dataverse.eosc.dansdemo.nl/dataverse/eosc) 
+
+- **Rule-Engines Pre-Processing**: This implementation leverages rule engines for pre-processing data, ensuring that the content meets specific criteria before curation and deposition.
+  - [4TU.ResearchData](https://4tu.dansdemo.nl/)
+
+By offering these diverse implementations, DANS ensures that the ACP can meet a wide range of curation requirements, enhancing the efficiency and accuracy of digital content management across various repositories.
  ## Database Schema
 ![Database Schema](./resources/images/db-schema.png)
     
