@@ -29,9 +29,21 @@ from src.models.bridge_output_model import IdentifierItem, IdentifierProtocol, T
 
 
 class DataverseIngester(Bridge):
+    """
+    Class for ingesting metadata and files into Dataverse.
+
+    Methods:
+        execute(): Executes the ingestion process and returns the result as a BridgeOutputDataModel.
+    """
 
     @handle_deposit_exceptions
     def execute(self) -> BridgeOutputDataModel:
+        """
+        Executes the ingestion process.
+
+        Returns:
+            BridgeOutputDataModel: The result of the ingestion process.
+        """
         md_json = json.loads(self.metadata_rec.md)
 
         if self.target.input:

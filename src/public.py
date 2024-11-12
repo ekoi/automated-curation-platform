@@ -13,11 +13,29 @@ router = APIRouter()
 
 @router.get("/available-modules")
 async def get_modules_list():
-    return sorted(list(data.keys()))
+    """
+    Endpoint to retrieve a list of available modules.
 
+    This endpoint returns a sorted list of keys from the `data` dictionary,
+    which represents the available modules in the system.
+
+    Returns:
+        list: A sorted list of available module names.
+    """
+    return sorted(list(data.keys()))
 
 @router.get("/progress-state/{owner_id}")
 async def progress_state(owner_id: str):
+    """
+    Endpoint to retrieve the progress state of assets owned by a specific owner.
+
+    Args:
+        owner_id (str): The ID of the owner whose assets' progress state is to be retrieved.
+
+    Returns:
+        list: A list of rows representing the progress state of the owner's assets.
+              If no assets are found, an empty list is returned.
+    """
     rows = db_manager.find_owner_assets(owner_id)
     if rows:
         return rows
@@ -26,23 +44,19 @@ async def progress_state(owner_id: str):
 
 @router.get("/dataset/{datasetId}")
 async def find_dataset(datasetId: str):
+    """
+    Endpoint to retrieve a dataset and its associated targets by dataset ID.
+
+    Args:
+        datasetId (str): The ID of the dataset to be retrieved.
+
+    Returns:
+        Response: A JSON response containing the dataset and its associated targets if found,
+                  otherwise an empty dictionary.
+    """
     # logging.debug(f'find_metadata_by_metadata_id - metadata_id: {metadata_id}')
     logger(f'find_metadata_by_metadata_id - metadata_id: {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
     dataset = db_manager.find_dataset_and_targets(datasetId)
-    # metadata_json = json.loads(db_manager.find_dataset_by_id(datasetId))
-    # files_metadata = metadata_json.get("file-metadata")
-    # if files_metadata:
-    #     for file_metadata in files_metadata:
-    #         filename = file_metadata["name"]
-    #         uploaded_status = db_manager.find_file_upload_status_by_dataset_id_and_filename(metadata_id, filename)
-    #         if uploaded_status:
-    #             file_metadata.update({"uploaded": True})
-    #         else:
-    #             # logging.error(f"No file for metadata_id: {metadata_id} and filename: {filename}")
-    #             logger(f'input: {input}', 'error', LOG_NAME_PS)
-    #
-
-    # y =
     if dataset.dataset_id:
         dataset.md = json.loads(dataset.md)
         return Response(content=dataset.model_dump_json(by_alias=True), media_type="application/json")
@@ -51,6 +65,26 @@ async def find_dataset(datasetId: str):
 
 @router.get("/utils/languages")
 async def get_languages():
+    """
+    Endpoint to retrieve the list of supported languages.
+
+    This endpoint reads a JSON file specified by the `LANGUAGES_PATH` setting
+    and returns its contents, which represent the supported languages.
+
+    Returns:
+        dict: A dictionary containing the supported languages.
+
+    Example:
+        Request:
+            GET /utils/languages
+
+        Response:
+            {
+                "en": "English",
+                "fr": "French",
+                "es": "Spanish"
+            }
+    """
     with open(settings.LANGUAGES_PATH, "r") as f:
-        j = json.load(f)
-    return j
+        languages = json.load(f)
+    return languages

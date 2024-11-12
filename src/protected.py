@@ -17,6 +17,7 @@ import requests
 from fastapi import APIRouter, Request, UploadFile, Form, File, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.responses import FileResponse
+from werkzeug.http import HTTP_STATUS_CODES
 
 from src.commons import settings, logger, data, db_manager, get_class, assistant_repo_headers, handle_ps_exceptions, \
     send_mail,  LOG_NAME_ACP, delete_symlink_and_target
@@ -34,6 +35,26 @@ router = APIRouter()
 # Endpoint to register a bridge module
 @router.post("/register-bridge-module/{name}/{overwrite}")
 async def register_module(name: str, bridge_file: Request, overwrite: bool | None = False) -> {}:
+    """
+    Endpoint to register a bridge module.
+
+    This endpoint registers a new bridge module by saving the provided Python file
+    to the specified modules directory. If the module already exists and overwrite
+    is not specified, an error is raised.
+
+    Args:
+        name (str): The name of the bridge module to be registered.
+        bridge_file (Request): The request containing the bridge module file.
+        overwrite (bool, optional): Flag to indicate if the existing module should be overwritten. Defaults to False.
+
+    Returns:
+        dict: A dictionary containing the status and the name of the registered bridge module.
+
+    Raises:
+        HTTPException: If the module already exists and overwrite is not specified.
+        HTTPException: If the content type of the provided file is not 'text/x-python'.
+        HTTPException: If the file type of the provided file is not 'text/x-python'.
+    """
     logger(f'Registering {name}', settings.LOG_LEVEL, LOG_NAME_ACP)
     if not overwrite and name in data["bridge-modules"]:
         raise HTTPException(status_code=400,
@@ -51,7 +72,7 @@ async def register_module(name: str, bridge_file: Request, overwrite: bool | Non
         os.remove(bridge_path)
         raise HTTPException(status_code=400, detail='Unsupported file type')
 
-    return {"status": "ok", "bridge-module-name": name}
+    return {"status": "OK", "bridge-module-name": name}
 
 
 # Helper function to process inbox dataset metadata
@@ -68,12 +89,41 @@ async def get_inbox_dataset_dc(request: Request, release_version: ReleaseVersion
 # Endpoint to process inbox dataset metadata
 @router.post("/inbox/dataset")
 async def process_inbox_dataset_publish(request: Request) -> {}:  # ReleaseVersion
+    """
+    Endpoint to process and publish inbox dataset metadata.
+
+    This endpoint processes the metadata of an inbox dataset and publishes it.
+
+    Args:
+        request (Request): The request object containing the dataset metadata.
+
+    Returns:
+        dict: A dictionary representation of the processed dataset metadata.
+
+    Raises:
+        HTTPException: If there is an error during the processing of the dataset metadata.
+    """
     logger(f'Process inbox dataset metadata', settings.LOG_LEVEL, LOG_NAME_ACP)
     rdm = await process_inbox(ReleaseVersion.PUBLISH, request)
     return rdm.model_dump(by_alias=True)
 
 @router.post("/inbox/dataset/{release_version}")
 async def process_inbox_dataset_metadata(request: Request, release_version: Optional[ReleaseVersion] = None) -> {}:
+    """
+    Endpoint to process inbox dataset metadata for a specific release version.
+
+    This endpoint processes the metadata of an inbox dataset for the given release version.
+
+    Args:
+        request (Request): The request object containing the dataset metadata.
+        release_version (Optional[ReleaseVersion]): The release version of the dataset. Defaults to None.
+
+    Returns:
+        dict: A dictionary representation of the processed dataset metadata.
+
+    Raises:
+        HTTPException: If there is an error during the processing of the dataset metadata.
+    """
     logger(f'Process inbox dataset metadata for release version: {release_version}', settings.LOG_LEVEL,
            LOG_NAME_ACP)
     rdm = await process_inbox(release_version, request)
@@ -114,6 +164,24 @@ async def process_inbox(release_version, request):
 
 @router.delete("/inbox/dataset/{metadata_id}")
 def delete_dataset_metadata(request: Request, metadata_id: str):
+    """
+    Endpoint to delete dataset metadata.
+
+    This endpoint deletes the metadata of a dataset identified by the given metadata ID.
+    It checks if the user is authorized and if the dataset can be deleted based on its deposit status.
+
+    Args:
+        request (Request): The request object containing headers with user information.
+        metadata_id (str): The ID of the dataset metadata to be deleted.
+
+    Returns:
+        dict: A dictionary containing the status of the deletion.
+
+    Raises:
+        HTTPException: If the user ID is not provided in the request headers.
+        HTTPException: If the dataset is not found for the given user ID.
+        HTTPException: If the dataset cannot be deleted based on its deposit status.
+    """
     logger(f'Delete dataset: {metadata_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
     user_id = request.headers.get('user-id')
     if not user_id:
@@ -370,6 +438,24 @@ async def delete_file(file_id: str):
 
 @router.patch("/inbox/files/{metadata_id}/{file_uuid}")
 async def update_file_metadata(metadata_id: str, file_uuid: str) -> {}:
+    """
+    Endpoint to update file metadata.
+
+    This endpoint updates the metadata of a file identified by the given metadata ID and file UUID.
+    It processes the file, creates a symlink, and updates the database with the new file information.
+
+    Args:
+        metadata_id (str): The ID of the dataset metadata.
+        file_uuid (str): The UUID of the file.
+
+    Returns:
+        dict: A dictionary containing the status and the dataset ID.
+
+    Raises:
+        HTTPException: If the file info or file is not found.
+        HTTPException: If the file size is 0.
+        HTTPException: If there is a file size mismatch.
+    """
     logger(f'PATCH file metadata for metadata_id: {metadata_id} and file_uuid: {file_uuid}', settings.LOG_LEVEL,
            LOG_NAME_ACP)
     tus_file = os.path.join(settings.DATA_TMP_BASE_TUS_FILES_DIR, file_uuid)
@@ -527,6 +613,21 @@ def retrieve_targets_configuration(assistant_config_name: str) -> str:
 
 @router.post("/inbox/resubmit/{datasetId}")
 async def resubmit(datasetId: str):
+    """
+    Endpoint to resubmit a dataset.
+
+    This endpoint resubmits a dataset identified by the given dataset ID. It finds unfinished target repositories
+    associated with the dataset and attempts to resubmit them.
+
+    Args:
+        datasetId (str): The ID of the dataset to be resubmitted.
+
+    Returns:
+        str: A message indicating whether there are targets to resubmit or not.
+
+    Raises:
+        Exception: If there is an error starting the resubmission thread.
+    """
     logger(f'Resubmit {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
     targets = db_manager.find_unfinished_target_repo(datasetId)
     if not targets:
@@ -545,11 +646,31 @@ async def resubmit(datasetId: str):
 #
 @router.delete("/inbox/{datasetId}", include_in_schema=False)
 def delete_inbox(datasetId: str):
+    """
+    Endpoint to delete an inbox dataset.
+
+    This endpoint deletes the dataset identified by the given dataset ID from the database.
+
+    Args:
+        datasetId (str): The ID of the dataset to be deleted.
+
+    Returns:
+        dict: A dictionary containing the status of the deletion and the number of rows deleted.
+    """
     num_rows_deleted = db_manager.delete_by_dataset_id(datasetId)
     return {"Deleted": "OK", "num-row-deleted": num_rows_deleted}
 
 
 def remove_files_and_directories(dir_path):
+    """
+    Remove all files and directories within the specified directory.
+
+    This function iterates through all items in the given directory path and removes them.
+    It logs the removal of each file and directory.
+
+    Args:
+        dir_path (str): The path of the directory to be cleaned.
+    """
     for item in os.listdir(dir_path):
         item_path = os.path.join(dir_path, item)
         if os.path.isfile(item_path):
@@ -562,6 +683,20 @@ def remove_files_and_directories(dir_path):
 
 @router.delete("/delete-dir/{dir}", include_in_schema=False)
 def delete_inbox(dir: str):
+    """
+    Endpoint to delete a directory.
+
+    This endpoint deletes the specified directory and all its contents.
+
+    Args:
+        dir (str): The name of the directory to be deleted.
+
+    Returns:
+        dict: A dictionary containing the status of the deletion and the name of the deleted directory.
+
+    Raises:
+        HTTPException: If the specified directory is not found.
+    """
     directory = f"{settings.DATA_TMP_BASE_DIR}/{dir}"
     if not os.path.exists(directory):
         return HTTPException(status_code=404, detail=f"{directory} not found")
@@ -608,5 +743,13 @@ def delete_all_recs():
 
 @router.get("/datasets", include_in_schema=False)
 async def get_db():
+    """
+    Endpoint to retrieve datasets.
+
+    This endpoint retrieves datasets from the database by executing a raw SQL query.
+
+    Returns:
+        JSONResponse: A JSON response containing the datasets retrieved from the database.
+    """
     logger("Finding datasets", "debug", LOG_NAME_ACP)
     return JSONResponse(content=db_manager.execute_raw_sql())

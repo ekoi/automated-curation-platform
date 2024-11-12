@@ -332,6 +332,20 @@ def inspect_bridge_module(py_file_path: str):
 #         super().__init__(self.message)
 
 def send_mail(subject: str, text: str):
+    """
+    Send an email with the specified subject and text.
+
+    This function sends an email using the SMTP protocol. The email is sent from the sender's email address
+    to the recipient's email address, with the specified subject and text. The email settings (sender email,
+    app password, recipient email, and mail subject prefix) are read from the application's configuration.
+
+    Args:
+        subject (str): The subject of the email.
+        text (str): The text content of the email.
+
+    Raises:
+        Exception: If there is an error sending the email.
+    """
     sender_email = settings.MAIL_USR
     app_password = settings.MAIL_PASS
     recipient_email = settings.MAIL_TO
