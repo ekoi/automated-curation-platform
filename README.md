@@ -21,7 +21,7 @@ By centralizing and automating these crucial components, ACP provides an efficie
 At DANS, we have developed several implementations of the Automated Curation Platform (ACP) to cater to different curation needs and repository targets:
 
 - **Single Target Implementations**: These instances of ACP are designed to curate and deposit content to a specific repository target.
-  - [OH-SMART](https://ohsmart.dans.knaw.nl.nl/). Target repository: [DANS SSH Datastations](https://ssh.datastations.nl/)
+  - [OH-SMART](https://ohsmart.datastations.nl/). Target repository: [DANS SSH Datastations](https://ssh.datastations.nl/)
   - [RDA](https://rda.dansdemo.nl/). Target repository: [Zenodo](https://zenodo.org/)
 
 - **Multiple Target Implementation**: This version of ACP supports curation and deposition to multiple repository targets, providing greater flexibility and scalability.
