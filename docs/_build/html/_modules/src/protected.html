@@ -1,0 +1,931 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.protected &mdash; Automated Curation Platform 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Automated Curation Platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Automated Curation Platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.protected</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.protected</h1><div class="highlight"><pre>
+<span></span><span class="c1"># Import necessary modules and packages</span>
+<span class="c1"># Import necessary libraries and modules</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">mimetypes</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">shutil</span>
+<span class="kn">from</span> <span class="nn">pathlib</span> <span class="kn">import</span> <span class="n">Path</span>
+<span class="kn">import</span> <span class="nn">threading</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Awaitable</span><span class="p">,</span> <span class="n">Optional</span>
+<span class="kn">import</span> <span class="nn">httpx</span>
+
+<span class="kn">import</span> <span class="nn">jmespath</span>
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">from</span> <span class="nn">fastapi</span> <span class="kn">import</span> <span class="n">APIRouter</span><span class="p">,</span> <span class="n">Request</span><span class="p">,</span> <span class="n">UploadFile</span><span class="p">,</span> <span class="n">Form</span><span class="p">,</span> <span class="n">File</span><span class="p">,</span> <span class="n">HTTPException</span>
+<span class="kn">from</span> <span class="nn">fastapi.responses</span> <span class="kn">import</span> <span class="n">JSONResponse</span>
+<span class="kn">from</span> <span class="nn">starlette.responses</span> <span class="kn">import</span> <span class="n">FileResponse</span>
+<span class="kn">from</span> <span class="nn">werkzeug.http</span> <span class="kn">import</span> <span class="n">HTTP_STATUS_CODES</span>
+
+<span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">settings</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">,</span> <span class="n">get_class</span><span class="p">,</span> <span class="n">assistant_repo_headers</span><span class="p">,</span> <span class="n">handle_ps_exceptions</span><span class="p">,</span> \
+    <span class="n">send_mail</span><span class="p">,</span>  <span class="n">LOG_NAME_ACP</span><span class="p">,</span> <span class="n">delete_symlink_and_target</span>
+<span class="kn">from</span> <span class="nn">src.dbz</span> <span class="kn">import</span> <span class="n">TargetRepo</span><span class="p">,</span> <span class="n">DataFile</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">ReleaseVersion</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="p">,</span> <span class="n">FilePermissions</span><span class="p">,</span> \
+    <span class="n">DatasetWorkState</span><span class="p">,</span> <span class="n">DataFileWorkState</span>
+<span class="kn">from</span> <span class="nn">src.models.app_model</span> <span class="kn">import</span> <span class="n">ResponseDataModel</span><span class="p">,</span> <span class="n">InboxDatasetDataModel</span>
+<span class="c1"># Import custom modules and classes</span>
+<span class="kn">from</span> <span class="nn">src.models.assistant_datamodel</span> <span class="kn">import</span> <span class="n">RepoAssistantDataModel</span><span class="p">,</span> <span class="n">Target</span>
+<span class="kn">from</span> <span class="nn">src.models.target_datamodel</span> <span class="kn">import</span> <span class="n">TargetsCredentialsModel</span>
+
+<span class="c1"># Create an API router instance</span>
+<span class="n">router</span> <span class="o">=</span> <span class="n">APIRouter</span><span class="p">()</span>
+
+
+<span class="c1"># Endpoint to register a bridge module</span>
+<div class="viewcode-block" id="register_module">
+<a class="viewcode-back" href="../../source/src.html#src.protected.register_module">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/register-bridge-module/</span><span class="si">{name}</span><span class="s2">/</span><span class="si">{overwrite}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">register_module</span><span class="p">(</span><span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">bridge_file</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">overwrite</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">False</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{}:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to register a bridge module.</span>
+
+<span class="sd">    This endpoint registers a new bridge module by saving the provided Python file</span>
+<span class="sd">    to the specified modules directory. If the module already exists and overwrite</span>
+<span class="sd">    is not specified, an error is raised.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        name (str): The name of the bridge module to be registered.</span>
+<span class="sd">        bridge_file (Request): The request containing the bridge module file.</span>
+<span class="sd">        overwrite (bool, optional): Flag to indicate if the existing module should be overwritten. Defaults to False.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary containing the status and the name of the registered bridge module.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        HTTPException: If the module already exists and overwrite is not specified.</span>
+<span class="sd">        HTTPException: If the content type of the provided file is not &#39;text/x-python&#39;.</span>
+<span class="sd">        HTTPException: If the file type of the provided file is not &#39;text/x-python&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Registering </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">overwrite</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;bridge-modules&quot;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span>
+                            <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;The </span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1"> is already exist. Consider /register-bridge-module/</span><span class="si">{</span><span class="n">name</span><span class="si">}</span><span class="s1">/true&#39;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">bridge_file</span><span class="o">.</span><span class="n">headers</span><span class="p">[</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;text/x-python&#39;</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s2">&quot;Unsupported content type&quot;</span><span class="p">)</span>
+
+    <span class="n">m_file</span> <span class="o">=</span> <span class="k">await</span> <span class="n">bridge_file</span><span class="o">.</span><span class="n">body</span><span class="p">()</span>
+    <span class="n">bridge_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">MODULES_DIR</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">bridge_path</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">m_file</span><span class="o">.</span><span class="n">decode</span><span class="p">())</span>
+
+    <span class="k">if</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">bridge_path</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s1">&#39;text/x-python&#39;</span><span class="p">:</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">bridge_path</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;Unsupported file type&#39;</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;bridge-module-name&quot;</span><span class="p">:</span> <span class="n">name</span><span class="p">}</span></div>
+
+
+
+<span class="c1"># Helper function to process inbox dataset metadata</span>
+<div class="viewcode-block" id="get_inbox_dataset_dc">
+<a class="viewcode-back" href="../../source/src.html#src.protected.get_inbox_dataset_dc">[docs]</a>
+<span class="nd">@handle_ps_exceptions</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_inbox_dataset_dc</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">release_version</span><span class="p">:</span> <span class="n">ReleaseVersion</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">(</span>
+        <span class="n">Callable</span><span class="p">)[[</span><span class="n">Request</span><span class="p">,</span> <span class="n">ReleaseVersion</span><span class="p">],</span> <span class="n">Awaitable</span><span class="p">[</span><span class="n">InboxDatasetDataModel</span><span class="p">]]:</span>
+    <span class="n">req_body</span> <span class="o">=</span> <span class="k">await</span> <span class="n">request</span><span class="o">.</span><span class="n">json</span><span class="p">()</span>
+    <span class="k">return</span> <span class="n">InboxDatasetDataModel</span><span class="p">(</span><span class="n">assistant_name</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;assistant-config-name&#39;</span><span class="p">),</span>
+                                 <span class="n">release_version</span><span class="o">=</span><span class="n">release_version</span><span class="p">,</span> <span class="n">owner_id</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user-id&#39;</span><span class="p">),</span>
+                                 <span class="n">title</span><span class="o">=</span><span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;title&#39;</span><span class="p">,</span> <span class="n">req_body</span><span class="p">),</span>
+                                 <span class="n">target_creds</span><span class="o">=</span><span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;targets-credentials&#39;</span><span class="p">),</span> <span class="n">metadata</span><span class="o">=</span><span class="n">req_body</span><span class="p">)</span></div>
+
+
+
+<span class="c1"># Endpoint to process inbox dataset metadata</span>
+<div class="viewcode-block" id="process_inbox_dataset_publish">
+<a class="viewcode-back" href="../../source/src.html#src.protected.process_inbox_dataset_publish">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/inbox/dataset&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">process_inbox_dataset_publish</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{}:</span>  <span class="c1"># ReleaseVersion</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to process and publish inbox dataset metadata.</span>
+
+<span class="sd">    This endpoint processes the metadata of an inbox dataset and publishes it.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        request (Request): The request object containing the dataset metadata.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary representation of the processed dataset metadata.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        HTTPException: If there is an error during the processing of the dataset metadata.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Process inbox dataset metadata&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">rdm</span> <span class="o">=</span> <span class="k">await</span> <span class="n">process_inbox</span><span class="p">(</span><span class="n">ReleaseVersion</span><span class="o">.</span><span class="n">PUBLISH</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rdm</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="process_inbox_dataset_metadata">
+<a class="viewcode-back" href="../../source/src.html#src.protected.process_inbox_dataset_metadata">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/inbox/dataset/</span><span class="si">{release_version}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">process_inbox_dataset_metadata</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">release_version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">ReleaseVersion</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{}:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to process inbox dataset metadata for a specific release version.</span>
+
+<span class="sd">    This endpoint processes the metadata of an inbox dataset for the given release version.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        request (Request): The request object containing the dataset metadata.</span>
+<span class="sd">        release_version (Optional[ReleaseVersion]): The release version of the dataset. Defaults to None.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary representation of the processed dataset metadata.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        HTTPException: If there is an error during the processing of the dataset metadata.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Process inbox dataset metadata for release version: </span><span class="si">{</span><span class="n">release_version</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span>
+           <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">rdm</span> <span class="o">=</span> <span class="k">await</span> <span class="n">process_inbox</span><span class="p">(</span><span class="n">release_version</span><span class="p">,</span> <span class="n">request</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rdm</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="process_inbox">
+<a class="viewcode-back" href="../../source/src.html#src.protected.process_inbox">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">process_inbox</span><span class="p">(</span><span class="n">release_version</span><span class="p">,</span> <span class="n">request</span><span class="p">):</span>
+    <span class="n">idh</span> <span class="o">=</span> <span class="k">await</span> <span class="n">get_inbox_dataset_dc</span><span class="p">(</span><span class="n">request</span><span class="p">,</span> <span class="n">release_version</span><span class="p">)</span>
+    <span class="n">file_metadata</span> <span class="o">=</span> <span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;&quot;file-metadata&quot;[*]&#39;</span><span class="p">,</span> <span class="n">idh</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">file_metadata</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number of file_metadata: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">file_metadata</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">dataset_id</span> <span class="o">=</span> <span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">,</span> <span class="n">idh</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Start inbox for metadata id: </span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1"> - release version: </span><span class="si">{</span><span class="n">release_version</span><span class="si">}</span><span class="s1"> - assistant name: &#39;</span>
+           <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">idh</span><span class="o">.</span><span class="n">assistant_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">is_dataset_published</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;Dataset is already published.&#39;</span><span class="p">)</span>
+    <span class="n">repo_config</span> <span class="o">=</span> <span class="n">retrieve_targets_configuration</span><span class="p">(</span><span class="n">idh</span><span class="o">.</span><span class="n">assistant_name</span><span class="p">)</span>
+    <span class="n">repo_assistant</span> <span class="o">=</span> <span class="n">RepoAssistantDataModel</span><span class="o">.</span><span class="n">model_validate_json</span><span class="p">(</span><span class="n">repo_config</span><span class="p">)</span>
+    <span class="n">dataset_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATA_TMP_BASE_DIR</span><span class="p">,</span> <span class="n">repo_assistant</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">):</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">)</span>
+    <span class="n">db_recs_target_repo</span> <span class="o">=</span> <span class="n">process_target_repos</span><span class="p">(</span><span class="n">repo_assistant</span><span class="p">,</span> <span class="n">idh</span><span class="o">.</span><span class="n">target_creds</span><span class="p">)</span>
+    <span class="n">db_record_metadata</span><span class="p">,</span> <span class="n">registered_files</span> <span class="o">=</span> <span class="n">process_metadata_record</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="n">idh</span><span class="p">,</span> <span class="n">repo_assistant</span><span class="p">,</span> <span class="n">dataset_folder</span><span class="p">)</span>
+    <span class="n">process_db_records</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="n">db_record_metadata</span><span class="p">,</span> <span class="n">db_recs_target_repo</span><span class="p">,</span> <span class="n">registered_files</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">is_dataset_ready</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">)</span> <span class="ow">and</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">are_files_uploaded</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">):</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SUBMIT DATASET with version </span><span class="si">{</span><span class="n">release_version</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> is_dataset_ready </span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span>
+               <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">bridge_task</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;/inbox/dataset/</span><span class="si">{</span><span class="n">idh</span><span class="o">.</span><span class="n">release_version</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;NOT READY to submit dataset with version </span><span class="si">{</span><span class="n">release_version</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s1"> dataset_id: </span><span class="si">{</span><span class="n">dataset_id</span><span class="si">}</span><span class="s1"> &#39;</span>
+               <span class="sa">f</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">Number still registered: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">db_manager</span><span class="o">.</span><span class="n">find_registered_files</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">))</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span>
+               <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">rdm</span> <span class="o">=</span> <span class="n">ResponseDataModel</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+    <span class="n">rdm</span><span class="o">.</span><span class="n">dataset_id</span> <span class="o">=</span> <span class="n">dataset_id</span>
+    <span class="n">rdm</span><span class="o">.</span><span class="n">start_process</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">is_dataset_ready</span><span class="p">(</span><span class="n">dataset_id</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rdm</span></div>
+
+
+
+<div class="viewcode-block" id="delete_dataset_metadata">
+<a class="viewcode-back" href="../../source/src.html#src.protected.delete_dataset_metadata">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/inbox/dataset/</span><span class="si">{metadata_id}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">delete_dataset_metadata</span><span class="p">(</span><span class="n">request</span><span class="p">:</span> <span class="n">Request</span><span class="p">,</span> <span class="n">metadata_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to delete dataset metadata.</span>
+
+<span class="sd">    This endpoint deletes the metadata of a dataset identified by the given metadata ID.</span>
+<span class="sd">    It checks if the user is authorized and if the dataset can be deleted based on its deposit status.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        request (Request): The request object containing headers with user information.</span>
+<span class="sd">        metadata_id (str): The ID of the dataset metadata to be deleted.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary containing the status of the deletion.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        HTTPException: If the user ID is not provided in the request headers.</span>
+<span class="sd">        HTTPException: If the dataset is not found for the given user ID.</span>
+<span class="sd">        HTTPException: If the dataset cannot be deleted based on its deposit status.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delete dataset: </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">user_id</span> <span class="o">=</span> <span class="n">request</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;user-id&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">user_id</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">401</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;No user id provided&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">metadata_id</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_dataset_ids_by_owner</span><span class="p">(</span><span class="n">user_id</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;No Dataset found&#39;</span><span class="p">)</span>
+    <span class="n">target_repos</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_target_repos_by_dataset_id</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">target_repos</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delete dataset: </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1">, NOT target_repos&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">delete_dataset_and_its_folder</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">target_repos</span><span class="p">:</span>
+        <span class="n">can_be_deleted</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">for</span> <span class="n">target_repo</span> <span class="ow">in</span> <span class="n">target_repos</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_status</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">ACCEPTED</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">DEPOSITED</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span><span class="p">):</span>
+                <span class="n">can_be_deleted</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delete of </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1"> is allowed. Deposit status: </span><span class="si">{</span><span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_status</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span>
+                       <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">can_be_deleted</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">delete_dataset_and_its_folder</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Delete of </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1"> is not allowed.&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="delete_dataset_and_its_folder">
+<a class="viewcode-back" href="../../source/src.html#src.protected.delete_dataset_and_its_folder">[docs]</a>
+<span class="k">def</span> <span class="nf">delete_dataset_and_its_folder</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">):</span>
+    <span class="n">dataset_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATA_TMP_BASE_DIR</span><span class="p">,</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_dataset</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span>
+                                  <span class="n">metadata_id</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delete dataset folder: </span><span class="si">{</span><span class="n">dataset_folder</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">):</span>
+        <span class="n">delete_symlink_and_target</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Dataset folder: </span><span class="si">{</span><span class="n">dataset_folder</span><span class="si">}</span><span class="s1"> not found&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">db_manager</span><span class="o">.</span><span class="n">delete_by_dataset_id</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">):</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delete dataset folder: </span><span class="si">{</span><span class="n">dataset_folder</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Dataset folder: </span><span class="si">{</span><span class="n">dataset_folder</span><span class="si">}</span><span class="s1"> not found&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;ok&quot;</span><span class="p">,</span> <span class="s2">&quot;metadata-id&quot;</span><span class="p">:</span> <span class="n">metadata_id</span><span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="process_db_records">
+<a class="viewcode-back" href="../../source/src.html#src.protected.process_db_records">[docs]</a>
+<span class="nd">@handle_ps_exceptions</span>
+<span class="k">def</span> <span class="nf">process_db_records</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">db_record_metadata</span><span class="p">,</span> <span class="n">db_recs_target_repo</span><span class="p">,</span> <span class="n">registered_files</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">is_dataset_exist</span><span class="p">(</span><span class="n">datasetId</span><span class="p">):</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Insert dataset and target repo records for </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">db_manager</span><span class="o">.</span><span class="n">insert_dataset_and_target_repo</span><span class="p">(</span><span class="n">db_record_metadata</span><span class="p">,</span> <span class="n">db_recs_target_repo</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Update dataset and target repo records for </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">db_manager</span><span class="o">.</span><span class="n">update_metadata</span><span class="p">(</span><span class="n">db_record_metadata</span><span class="p">)</span>
+        <span class="n">db_manager</span><span class="o">.</span><span class="n">replace_targets_record</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">db_recs_target_repo</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">registered_files</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Insert datafiles records for </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number registered_files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">registered_files</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">db_manager</span><span class="o">.</span><span class="n">insert_datafiles</span><span class="p">(</span><span class="n">registered_files</span><span class="p">)</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;SUCCESSFUL  INSERT datafiles records for </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s1">, number of files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">registered_files</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+                   <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error inserting datafiles: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="process_metadata_record">
+<a class="viewcode-back" href="../../source/src.html#src.protected.process_metadata_record">[docs]</a>
+<span class="nd">@handle_ps_exceptions</span>
+<span class="k">def</span> <span class="nf">process_metadata_record</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">idh</span><span class="p">,</span> <span class="n">repo_assistant</span><span class="p">,</span> <span class="n">tmp_dir</span><span class="p">):</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Processing metadata record for </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">registered_files</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">file_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">file_names_from_input</span> <span class="o">=</span> <span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s1">&#39;&quot;file-metadata&quot;[*].name&#39;</span><span class="p">,</span> <span class="n">idh</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">file_names_from_input</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">file_name</span> <span class="ow">in</span> <span class="n">file_names_from_input</span><span class="p">:</span>
+            <span class="n">data_file</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_file_by_name</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">data_file</span><span class="p">:</span>
+                <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1"> already exist&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+                <span class="n">escaped_file_name</span> <span class="o">=</span> <span class="n">file_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+                <span class="n">f_permission</span> <span class="o">=</span> <span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;file-metadata&quot;[?name == `</span><span class="si">{</span><span class="n">escaped_file_name</span><span class="si">}</span><span class="s1">`].private&#39;</span><span class="p">,</span> <span class="n">idh</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+                <span class="n">permission</span> <span class="o">=</span> <span class="n">FilePermissions</span><span class="o">.</span><span class="n">PRIVATE</span> <span class="k">if</span> <span class="n">f_permission</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">FilePermissions</span><span class="o">.</span><span class="n">PUBLIC</span>
+                <span class="n">db_manager</span><span class="o">.</span><span class="n">update_file_permission</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">permission</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">file_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">file_names_from_input</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number of file_names: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">file_names</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">already_uploaded_files_name</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">execute_l</span><span class="p">(</span><span class="n">datasetId</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number of already_uploaded_files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">already_uploaded_files_name</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+    <span class="n">files_name_to_be_deleted</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">already_uploaded_files_name</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">file_names_from_input</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s1">&#39;Number of files_name_to_be_deleted: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files_name_to_be_deleted</span><span class="p">)</span><span class="si">}</span><span class="s1"> --LIST:  </span><span class="si">{</span><span class="n">files_name_to_be_deleted</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
+        <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">files_name_to_be_added</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">file_names</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">already_uploaded_files_name</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number of files_name_to_be_added: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">files_name_to_be_added</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span>
+           <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">f_name</span> <span class="ow">in</span> <span class="n">files_name_to_be_deleted</span><span class="p">:</span>
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="n">f_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
+            <span class="n">delete_symlink_and_target</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s1"> is deleted&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s1"> not found&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">db_manager</span><span class="o">.</span><span class="n">delete_datafile</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">f_name</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">f_name</span> <span class="ow">in</span> <span class="n">files_name_to_be_added</span><span class="p">:</span>
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">tmp_dir</span><span class="p">,</span> <span class="n">f_name</span><span class="p">)</span>
+        <span class="c1"># Escape special characters in the filename</span>
+        <span class="n">escaped_filename</span> <span class="o">=</span> <span class="n">f_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s1">&#39;</span><span class="se">\\</span><span class="s1">&quot;&#39;</span><span class="p">)</span>
+
+        <span class="n">f_permission</span> <span class="o">=</span> <span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;&quot;file-metadata&quot;[?name == `</span><span class="si">{</span><span class="n">escaped_filename</span><span class="si">}</span><span class="s1">`].private&#39;</span><span class="p">,</span> <span class="n">idh</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+        <span class="n">permission</span> <span class="o">=</span> <span class="n">FilePermissions</span><span class="o">.</span><span class="n">PRIVATE</span> <span class="k">if</span> <span class="n">f_permission</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">else</span> <span class="n">FilePermissions</span><span class="o">.</span><span class="n">PUBLIC</span>
+        <span class="n">registered_files</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">DataFile</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">f_name</span><span class="p">,</span> <span class="n">path</span><span class="o">=</span><span class="n">file_path</span><span class="p">,</span> <span class="n">ds_id</span><span class="o">=</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">permissions</span><span class="o">=</span><span class="n">permission</span><span class="p">))</span>
+
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;registered_files: </span><span class="si">{</span><span class="n">registered_files</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+    <span class="c1"># Update file permission</span>
+    <span class="n">already_uploaded_files</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_uploaded_files</span><span class="p">(</span><span class="n">datasetId</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number of already_uploaded_files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">already_uploaded_files</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+    <span class="n">dataset_state</span> <span class="o">=</span> <span class="n">DatasetWorkState</span><span class="o">.</span><span class="n">READY</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">files_name_to_be_added</span> <span class="k">else</span> <span class="n">DatasetWorkState</span><span class="o">.</span><span class="n">NOT_READY</span>
+    <span class="n">db_record_metadata</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="nb">id</span><span class="o">=</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">title</span><span class="o">=</span><span class="n">idh</span><span class="o">.</span><span class="n">title</span><span class="p">,</span> <span class="n">owner_id</span><span class="o">=</span><span class="n">idh</span><span class="o">.</span><span class="n">owner_id</span><span class="p">,</span>
+                                 <span class="n">app_name</span><span class="o">=</span><span class="n">repo_assistant</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span> <span class="n">release_version</span><span class="o">=</span><span class="n">idh</span><span class="o">.</span><span class="n">release_version</span><span class="p">,</span>
+                                 <span class="n">state</span><span class="o">=</span><span class="n">dataset_state</span><span class="p">,</span> <span class="n">md</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">idh</span><span class="o">.</span><span class="n">metadata</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">db_record_metadata</span><span class="p">,</span> <span class="n">registered_files</span></div>
+
+
+
+<div class="viewcode-block" id="process_target_repos">
+<a class="viewcode-back" href="../../source/src.html#src.protected.process_target_repos">[docs]</a>
+<span class="nd">@handle_ps_exceptions</span>
+<span class="k">def</span> <span class="nf">process_target_repos</span><span class="p">(</span><span class="n">repo_assistant</span><span class="p">,</span> <span class="n">target_creds</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">TargetRepo</span><span class="p">]:</span>
+    <span class="n">db_recs_target_repo</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">tgc</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;targets-credentials&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">target_creds</span><span class="p">)}</span>
+    <span class="n">input_target_cred_model</span> <span class="o">=</span> <span class="n">TargetsCredentialsModel</span><span class="o">.</span><span class="n">model_validate</span><span class="p">(</span><span class="n">tgc</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">repo_target</span> <span class="ow">in</span> <span class="n">repo_assistant</span><span class="o">.</span><span class="n">targets</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">repo_target</span><span class="o">.</span><span class="n">bridge_module_class</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s1">&#39;Module &quot;</span><span class="si">{</span><span class="n">repo_target</span><span class="o">.</span><span class="n">bridge_module_class</span><span class="si">}</span><span class="s1">&quot; not found.&#39;</span><span class="p">,</span>
+                                <span class="n">headers</span><span class="o">=</span><span class="p">{})</span>
+        <span class="n">target_repo_name</span> <span class="o">=</span> <span class="n">repo_target</span><span class="o">.</span><span class="n">repo_name</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;target_repo_name: </span><span class="si">{</span><span class="n">target_repo_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">depositor_cred</span> <span class="ow">in</span> <span class="n">input_target_cred_model</span><span class="o">.</span><span class="n">targets_credentials</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">depositor_cred</span><span class="o">.</span><span class="n">target_repo_name</span> <span class="o">==</span> <span class="n">repo_target</span><span class="o">.</span><span class="n">repo_name</span> <span class="ow">and</span> <span class="n">depositor_cred</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">username</span><span class="p">:</span>
+                <span class="n">repo_target</span><span class="o">.</span><span class="n">username</span> <span class="o">=</span> <span class="n">depositor_cred</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">username</span>
+            <span class="k">if</span> <span class="n">depositor_cred</span><span class="o">.</span><span class="n">target_repo_name</span> <span class="o">==</span> <span class="n">repo_target</span><span class="o">.</span><span class="n">repo_name</span> <span class="ow">and</span> <span class="n">depositor_cred</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">password</span><span class="p">:</span>
+                <span class="n">repo_target</span><span class="o">.</span><span class="n">password</span> <span class="o">=</span> <span class="n">depositor_cred</span><span class="o">.</span><span class="n">credentials</span><span class="o">.</span><span class="n">password</span>
+
+        <span class="n">db_recs_target_repo</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">repo_target</span><span class="o">.</span><span class="n">repo_name</span><span class="p">,</span> <span class="n">url</span><span class="o">=</span><span class="n">repo_target</span><span class="o">.</span><span class="n">target_url</span><span class="p">,</span>
+                                              <span class="n">display_name</span><span class="o">=</span><span class="n">repo_target</span><span class="o">.</span><span class="n">repo_display_name</span><span class="p">,</span>
+                                              <span class="n">config</span><span class="o">=</span><span class="n">repo_target</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">exclude_none</span><span class="o">=</span><span class="kc">True</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">db_recs_target_repo</span></div>
+
+
+
+<div class="viewcode-block" id="count_files_in_directory">
+<a class="viewcode-back" href="../../source/src.html#src.protected.count_files_in_directory">[docs]</a>
+<span class="k">def</span> <span class="nf">count_files_in_directory</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="c1"># List all items in the directory</span>
+        <span class="n">items</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+        <span class="c1"># Filter the list to include only files</span>
+        <span class="n">files</span> <span class="o">=</span> <span class="p">[</span><span class="n">item</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">items</span> <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">item</span><span class="p">))]</span>
+        <span class="c1"># Return the count of files</span>
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">files</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The directory </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;An error occurred: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="mi">0</span></div>
+
+
+
+<div class="viewcode-block" id="list_files_with_suffix">
+<a class="viewcode-back" href="../../source/src.html#src.protected.list_files_with_suffix">[docs]</a>
+<span class="k">def</span> <span class="nf">list_files_with_suffix</span><span class="p">(</span><span class="n">directory</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">suffix</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    List all files in the given directory that end with the specified suffix.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    directory (str): The directory to search in.</span>
+<span class="sd">    suffix (str): The suffix to filter files by.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    list: A list of file names that end with the given suffix.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">file</span> <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span> <span class="k">if</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">directory</span><span class="p">,</span> <span class="n">file</span><span class="p">))</span> <span class="ow">and</span> <span class="n">file</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="n">suffix</span><span class="p">)]</span></div>
+
+
+
+<span class="c1"># @router.post(&quot;/inbox/file&quot;)</span>
+<span class="c1"># async def process_inbox_dataset_file(datasetId: str = Form(), fileName: str = Form(),</span>
+<span class="c1">#                                      file: UploadFile = File(...)) -&gt; {}:</span>
+<span class="c1">#     files_name = []</span>
+<span class="c1">#     submitted_filename = fileName</span>
+<span class="c1">#     logger(f&quot;submitted_filename: {submitted_filename} from metadataid: {datasetId}&quot;, settings.LOG_LEVEL, LOG_NAME_PS)</span>
+<span class="c1">#     db_record_metadata = db_manager.find_dataset(datasetId)</span>
+<span class="c1">#     dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, db_record_metadata.app_name, datasetId)</span>
+<span class="c1">#</span>
+<span class="c1">#     db_records_uploaded_file = db_manager.find_files(datasetId)</span>
+<span class="c1">#     # Process the files</span>
+<span class="c1">#     f_upload_st = []</span>
+<span class="c1">#     for db_rec_uploaded_f in db_records_uploaded_file:</span>
+<span class="c1">#         # Save the uploaded file</span>
+<span class="c1">#         if submitted_filename == db_rec_uploaded_f.name:</span>
+<span class="c1">#             file_contents = await file.read()</span>
+<span class="c1">#             md5_hash = hashlib.md5(file_contents).hexdigest()</span>
+<span class="c1">#             file_path = os.path.join(str(dataset_folder), submitted_filename)</span>
+<span class="c1">#             with open(file_path, &quot;wb&quot;) as f:</span>
+<span class="c1">#                 f.write(file_contents)</span>
+<span class="c1">#</span>
+<span class="c1">#             # NOTES: There are many way to get the mime type of file, This rather the simplest then the best.</span>
+<span class="c1">#             file_mimetype = mimetypes.guess_type(file_path)[0]</span>
+<span class="c1">#             db_manager.update_file(df=DataFile(ds_id=datasetId, name=submitted_filename, checksum_value=md5_hash,</span>
+<span class="c1">#                                                size=os.path.getsize(file_path), mime_type=file_mimetype, path=file_path,</span>
+<span class="c1">#                                                date_added=datetime.utcnow(), state=DataFileWorkState.UPLOADED))</span>
+<span class="c1">#             f_upload_st.append({&quot;name&quot;: db_rec_uploaded_f.name, &quot;uploaded&quot;: True})</span>
+<span class="c1">#         else:</span>
+<span class="c1">#             f_upload_st.append(</span>
+<span class="c1">#                 {&quot;name&quot;: db_rec_uploaded_f.name, &quot;uploaded&quot;: False}) if db_rec_uploaded_f.date_added is None \</span>
+<span class="c1">#                 else f_upload_st.append({&quot;name&quot;: db_rec_uploaded_f.name, &quot;uploaded&quot;: True})</span>
+<span class="c1">#</span>
+<span class="c1">#     all_files_uploaded = True</span>
+<span class="c1">#     for fus in f_upload_st:</span>
+<span class="c1">#         if fus[&#39;uploaded&#39;] is False:</span>
+<span class="c1">#             all_files_uploaded = False</span>
+<span class="c1">#             break</span>
+<span class="c1">#     # Update record</span>
+<span class="c1">#     if all_files_uploaded:</span>
+<span class="c1">#         db_manager.set_dataset_ready_for_ingest(datasetId)</span>
+<span class="c1">#</span>
+<span class="c1">#     start_process = db_manager.is_dataset_ready(datasetId)</span>
+<span class="c1">#</span>
+<span class="c1">#     if start_process:</span>
+<span class="c1">#         bridge_task(datasetId, f&#39;/inbox/file/{fileName}&#39;)</span>
+<span class="c1">#</span>
+<span class="c1">#     rdm = ResponseDataModel(status=&quot;OK&quot;)</span>
+<span class="c1">#     rdm.dataset_id = datasetId</span>
+<span class="c1">#     rdm.start_process = start_process</span>
+<span class="c1">#     return rdm.model_dump(by_alias=True)</span>
+
+
+<div class="viewcode-block" id="delete_file">
+<a class="viewcode-back" href="../../source/src.html#src.protected.delete_file">[docs]</a>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">delete_file</span><span class="p">(</span><span class="n">file_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Deleting file </span><span class="si">{</span><span class="n">file_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">TUS_BASE_URL</span><span class="si">}</span><span class="s1">/files/</span><span class="si">{</span><span class="n">file_id</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;accept&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;Authorization&quot;</span><span class="p">:</span> <span class="sa">f</span><span class="s2">&quot;Bearer </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">dans_packaging_service_api_key</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="p">}</span>
+    <span class="k">async</span> <span class="k">with</span> <span class="n">httpx</span><span class="o">.</span><span class="n">AsyncClient</span><span class="p">()</span> <span class="k">as</span> <span class="n">client</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">response</span> <span class="o">=</span> <span class="k">await</span> <span class="n">client</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">timeout</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">204</span><span class="p">:</span>
+                <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;TUS File  successfully deleted. </span><span class="si">{</span><span class="n">file_id</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File id: </span><span class="si">{</span><span class="n">file_id</span><span class="si">}</span><span class="s2"> Failed to delete file. Status code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+                       <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+            <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File id: </span><span class="si">{</span><span class="n">file_id</span><span class="si">}</span><span class="s2"> Error deleting file: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="mi">500</span></div>
+
+
+
+<div class="viewcode-block" id="update_file_metadata">
+<a class="viewcode-back" href="../../source/src.html#src.protected.update_file_metadata">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">patch</span><span class="p">(</span><span class="s2">&quot;/inbox/files/</span><span class="si">{metadata_id}</span><span class="s2">/</span><span class="si">{file_uuid}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">update_file_metadata</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_uuid</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">{}:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to update file metadata.</span>
+
+<span class="sd">    This endpoint updates the metadata of a file identified by the given metadata ID and file UUID.</span>
+<span class="sd">    It processes the file, creates a symlink, and updates the database with the new file information.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        metadata_id (str): The ID of the dataset metadata.</span>
+<span class="sd">        file_uuid (str): The UUID of the file.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary containing the status and the dataset ID.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        HTTPException: If the file info or file is not found.</span>
+<span class="sd">        HTTPException: If the file size is 0.</span>
+<span class="sd">        HTTPException: If there is a file size mismatch.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;PATCH file metadata for metadata_id: </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1"> and file_uuid: </span><span class="si">{</span><span class="n">file_uuid</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span>
+           <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">tus_file</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATA_TMP_BASE_TUS_FILES_DIR</span><span class="p">,</span> <span class="n">file_uuid</span><span class="p">)</span>
+    <span class="n">file_info_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">tus_file</span><span class="si">}</span><span class="s1">.info&#39;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">file_info_path</span><span class="p">):</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File info NOT FOUND for </span><span class="si">{</span><span class="n">file_uuid</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">file_info_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;File not found&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">tus_file</span><span class="p">):</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File NOT FOUND for </span><span class="si">{</span><span class="n">file_uuid</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">tus_file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;File not found&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">tus_file</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File SIZE IS 0 for </span><span class="si">{</span><span class="n">file_uuid</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">tus_file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;File size is 0&#39;</span><span class="p">)</span>
+
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_info_path</span><span class="p">,</span> <span class="s2">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+        <span class="n">file_metadata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+    <span class="n">file_name</span> <span class="o">=</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">][</span><span class="s1">&#39;fileName&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">file_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;File SIZE IS 0 for </span><span class="si">{</span><span class="n">file_uuid</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">tus_file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;File size is 0&#39;</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;file_name: </span><span class="si">{</span><span class="n">file_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">tus_file</span><span class="p">)</span> <span class="o">!=</span> <span class="n">file_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;size&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;FILE SIZE MISMATCH for </span><span class="si">{</span><span class="n">file_uuid</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">tus_file</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">400</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="s1">&#39;File size mismatch&#39;</span><span class="p">)</span>
+
+    <span class="n">db_record_metadata</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_dataset</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+    <span class="n">dataset_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATA_TMP_BASE_DIR</span><span class="p">,</span> <span class="n">db_record_metadata</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span> <span class="n">metadata_id</span><span class="p">)</span>
+    <span class="n">source_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATA_TMP_BASE_TUS_FILES_DIR</span><span class="p">,</span> <span class="n">file_uuid</span><span class="p">)</span>
+    <span class="n">dest_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
+    <span class="c1"># Process the files</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Processing using symlink </span><span class="si">{</span><span class="n">source_file_path</span><span class="si">}</span><span class="s1"> to </span><span class="si">{</span><span class="n">dest_file_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">target</span> <span class="o">=</span> <span class="n">source_file_path</span>
+    <span class="n">link_name</span> <span class="o">=</span> <span class="n">dest_file_path</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">md5_hash</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">settings</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;use_md5_hash&quot;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+            <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">source_file_path</span><span class="p">,</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
+                <span class="n">md5_hash</span> <span class="o">=</span> <span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">())</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">()</span>
+            <span class="c1"># with open(source_file_path, &quot;rb&quot;) as f:</span>
+            <span class="c1">#     file_hash = hashlib.md5()</span>
+            <span class="c1">#     while chunk := f.read(8192):</span>
+            <span class="c1">#         file_hash.update(chunk)</span>
+            <span class="c1"># md5_hash = file_hash.hexdigest()</span>
+
+        <span class="n">file_type</span> <span class="o">=</span> <span class="n">file_metadata</span><span class="p">[</span><span class="s1">&#39;metadata&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;filetype&#39;</span><span class="p">,</span> <span class="n">mimetypes</span><span class="o">.</span><span class="n">guess_type</span><span class="p">(</span><span class="n">dest_file_path</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">db_manager</span><span class="o">.</span><span class="n">update_file</span><span class="p">(</span><span class="n">DataFile</span><span class="p">(</span><span class="n">ds_id</span><span class="o">=</span><span class="n">metadata_id</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">file_name</span><span class="p">,</span> <span class="n">checksum_value</span><span class="o">=</span><span class="n">md5_hash</span><span class="p">,</span>
+                                        <span class="n">size</span><span class="o">=</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">source_file_path</span><span class="p">),</span> <span class="n">mime_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span>
+                                        <span class="n">path</span><span class="o">=</span><span class="n">dest_file_path</span><span class="p">,</span> <span class="n">date_added</span><span class="o">=</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">(),</span>
+                                        <span class="n">state</span><span class="o">=</span><span class="n">DataFileWorkState</span><span class="o">.</span><span class="n">UPLOADED</span><span class="p">))</span>
+        <span class="n">new_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s1">-</span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1">.</span><span class="si">{</span><span class="n">db_record_metadata</span><span class="o">.</span><span class="n">app_name</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">new_name</span><span class="p">)</span>
+        <span class="n">os</span><span class="o">.</span><span class="n">symlink</span><span class="p">(</span><span class="n">new_name</span><span class="p">,</span> <span class="n">link_name</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Symlink created: </span><span class="si">{</span><span class="n">link_name</span><span class="si">}</span><span class="s1"> -&gt; </span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Deleting </span><span class="si">{</span><span class="n">source_file_path</span><span class="si">}</span><span class="s1">.info&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">deleted_status</span> <span class="o">=</span> <span class="k">await</span> <span class="n">delete_file</span><span class="p">(</span><span class="n">file_uuid</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Deleted status: </span><span class="si">{</span><span class="n">deleted_status</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileExistsError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The symlink </span><span class="si">{</span><span class="n">link_name</span><span class="si">}</span><span class="s1"> already exists.&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">FileNotFoundError</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;The target </span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s1"> does not exist.&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">OSError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error creating symlink: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;error&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">all_files_uploaded</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">db_manager</span><span class="o">.</span><span class="n">find_registered_files</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">all_files_uploaded</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;All files are UPLOADED for </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">db_manager</span><span class="o">.</span><span class="n">set_dataset_ready_for_ingest</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">db_manager</span><span class="o">.</span><span class="n">set_dataset_ready_for_ingest</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">,</span> <span class="n">DatasetWorkState</span><span class="o">.</span><span class="n">NOT_READY</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Not all files uploaded for </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+    <span class="n">start_process</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">is_dataset_ready</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">start_process</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Start Bridge task for </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1"> from the PATCH file endpoint&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">bridge_task</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;/inbox/files/</span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">file_uuid</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Bridge task for </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1"> started successfully&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Bridge task for </span><span class="si">{</span><span class="n">metadata_id</span><span class="si">}</span><span class="s1"> NOT started&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+    <span class="n">registerd_files</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_registered_files</span><span class="p">(</span><span class="n">metadata_id</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Number of registered files: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">registerd_files</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">rdm</span> <span class="o">=</span> <span class="n">ResponseDataModel</span><span class="p">(</span><span class="n">status</span><span class="o">=</span><span class="s2">&quot;OK&quot;</span><span class="p">)</span>
+    <span class="n">rdm</span><span class="o">.</span><span class="n">dataset_id</span> <span class="o">=</span> <span class="n">metadata_id</span>
+    <span class="n">rdm</span><span class="o">.</span><span class="n">start_process</span> <span class="o">=</span> <span class="n">start_process</span>
+    <span class="k">return</span> <span class="n">rdm</span><span class="o">.</span><span class="n">model_dump</span><span class="p">(</span><span class="n">by_alias</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="bridge_task">
+<a class="viewcode-back" href="../../source/src.html#src.protected.bridge_task">[docs]</a>
+<span class="k">def</span> <span class="nf">bridge_task</span><span class="p">(</span><span class="n">datasetId</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">msg</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Starting threading for </span><span class="si">{</span><span class="n">msg</span><span class="si">}</span><span class="s2"> with datasetId: </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">follow_bridge</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,))</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Threading for </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s2"> started successfully.&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error starting thread for </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="follow_bridge">
+<a class="viewcode-back" href="../../source/src.html#src.protected.follow_bridge">[docs]</a>
+<span class="k">def</span> <span class="nf">follow_bridge</span><span class="p">(</span><span class="n">datasetId</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># Log the start time of the thread</span>
+    <span class="n">start_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Thread for datasetId: </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s2"> started at </span><span class="si">{</span><span class="n">start_time</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+    <span class="n">logger</span><span class="p">(</span><span class="s2">&quot;Follow bridge&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&gt;&gt;&gt; EXECUTE follow_bridge for datasetId: </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">db_manager</span><span class="o">.</span><span class="n">submitted_now</span><span class="p">(</span><span class="n">datasetId</span><span class="p">)</span>
+    <span class="n">target_repo_recs</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_target_repos_by_dataset_id</span><span class="p">(</span><span class="n">datasetId</span><span class="p">)</span>
+    <span class="n">execute_bridges</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">target_repo_recs</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="execute_bridges">
+<a class="viewcode-back" href="../../source/src.html#src.protected.execute_bridges">[docs]</a>
+<span class="k">def</span> <span class="nf">execute_bridges</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">targets</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s2">&quot;execute_bridges&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">results</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">target_repo_rec</span> <span class="ow">in</span> <span class="n">targets</span><span class="p">:</span>
+        <span class="n">bridge_class</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">Target</span><span class="p">(</span><span class="o">**</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">target_repo_rec</span><span class="o">.</span><span class="n">config</span><span class="p">))</span><span class="o">.</span><span class="n">bridge_module_class</span><span class="p">]</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;EXECUTING </span><span class="si">{</span><span class="n">bridge_class</span><span class="si">}</span><span class="s1"> for target_repo_id: </span><span class="si">{</span><span class="n">target_repo_rec</span><span class="o">.</span><span class="n">id</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+        <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span>
+        <span class="n">bridge_instance</span> <span class="o">=</span> <span class="n">get_class</span><span class="p">(</span><span class="n">bridge_class</span><span class="p">)(</span><span class="n">dataset_id</span><span class="o">=</span><span class="n">datasetId</span><span class="p">,</span>
+                                                  <span class="n">target</span><span class="o">=</span><span class="n">Target</span><span class="p">(</span><span class="o">**</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">target_repo_rec</span><span class="o">.</span><span class="n">config</span><span class="p">)))</span>
+        <span class="n">deposit_result</span> <span class="o">=</span> <span class="n">bridge_instance</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+        <span class="n">deposit_result</span><span class="o">.</span><span class="n">response</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">time</span><span class="o">.</span><span class="n">perf_counter</span><span class="p">()</span> <span class="o">-</span> <span class="n">start</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Result from Deposit: </span><span class="si">{</span><span class="n">deposit_result</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="n">bridge_instance</span><span class="o">.</span><span class="n">save_state</span><span class="p">(</span><span class="n">deposit_result</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">deposit_result</span><span class="o">.</span><span class="n">deposit_status</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">ACCEPTED</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">SUCCESS</span><span class="p">]:</span>
+            <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">deposit_result</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">send_mail</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Executing </span><span class="si">{</span><span class="n">bridge_class</span><span class="si">}</span><span class="s1"> is FAILED.&#39;</span><span class="p">,</span> <span class="sa">f</span><span class="s1">&#39;Resp:</span><span class="se">\n</span><span class="s1"> </span><span class="si">{</span><span class="n">deposit_result</span><span class="o">.</span><span class="n">model_dump_json</span><span class="p">()</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">targets</span><span class="p">):</span>
+        <span class="n">dataset_folder</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">DATA_TMP_BASE_DIR</span><span class="p">,</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_dataset</span><span class="p">(</span><span class="n">ds_id</span><span class="o">=</span><span class="n">datasetId</span><span class="p">)</span><span class="o">.</span><span class="n">app_name</span><span class="p">,</span>
+                                      <span class="n">datasetId</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ingest SUCCESSFULL, DELETE </span><span class="si">{</span><span class="n">dataset_folder</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">Path</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">)</span><span class="o">.</span><span class="n">glob</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">file</span><span class="o">.</span><span class="n">is_file</span><span class="p">():</span>
+                <span class="n">delete_symlink_and_target</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">dataset_folder</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;DELETED successfully: </span><span class="si">{</span><span class="n">dataset_folder</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ingest FAILED for datasetId: </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="retrieve_targets_configuration">
+<a class="viewcode-back" href="../../source/src.html#src.protected.retrieve_targets_configuration">[docs]</a>
+<span class="nd">@handle_ps_exceptions</span>
+<span class="k">def</span> <span class="nf">retrieve_targets_configuration</span><span class="p">(</span><span class="n">assistant_config_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+    <span class="n">repo_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">ASSISTANT_CONFIG_URL</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">assistant_config_name</span><span class="si">}</span><span class="s1">&#39;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Retrieve targets configuration from </span><span class="si">{</span><span class="n">repo_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">rsp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">repo_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">assistant_repo_headers</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">rsp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">repo_url</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">rsp</span><span class="o">.</span><span class="n">json</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="resubmit">
+<a class="viewcode-back" href="../../source/src.html#src.protected.resubmit">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="s2">&quot;/inbox/resubmit/</span><span class="si">{datasetId}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">resubmit</span><span class="p">(</span><span class="n">datasetId</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to resubmit a dataset.</span>
+
+<span class="sd">    This endpoint resubmits a dataset identified by the given dataset ID. It finds unfinished target repositories</span>
+<span class="sd">    associated with the dataset and attempts to resubmit them.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        datasetId (str): The ID of the dataset to be resubmitted.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        str: A message indicating whether there are targets to resubmit or not.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        Exception: If there is an error starting the resubmission thread.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Resubmit </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">targets</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_unfinished_target_repo</span><span class="p">(</span><span class="n">datasetId</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">targets</span><span class="p">:</span>
+        <span class="k">return</span> <span class="s1">&#39;No targets&#39;</span>
+
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Resubmitting </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">targets</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">execute_bridges_task</span> <span class="o">=</span> <span class="n">threading</span><span class="o">.</span><span class="n">Thread</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">execute_bridges</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="p">(</span><span class="n">datasetId</span><span class="p">,</span> <span class="n">targets</span><span class="p">,))</span>
+        <span class="n">execute_bridges_task</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;follow_bridge_task </span><span class="si">{</span><span class="n">execute_bridges_task</span><span class="si">}</span><span class="s1"> started&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ERROR: Follow bridge: </span><span class="si">{</span><span class="n">targets</span><span class="si">}</span><span class="s2">. For datasetId: </span><span class="si">{</span><span class="n">datasetId</span><span class="si">}</span><span class="s2">. Exception: &quot;</span>
+               <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">e</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span></div>
+
+
+
+<span class="c1">#</span>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/inbox/</span><span class="si">{datasetId}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">delete_inbox</span><span class="p">(</span><span class="n">datasetId</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to delete an inbox dataset.</span>
+
+<span class="sd">    This endpoint deletes the dataset identified by the given dataset ID from the database.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        datasetId (str): The ID of the dataset to be deleted.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary containing the status of the deletion and the number of rows deleted.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_rows_deleted</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">delete_by_dataset_id</span><span class="p">(</span><span class="n">datasetId</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;Deleted&quot;</span><span class="p">:</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;num-row-deleted&quot;</span><span class="p">:</span> <span class="n">num_rows_deleted</span><span class="p">}</span>
+
+
+<div class="viewcode-block" id="remove_files_and_directories">
+<a class="viewcode-back" href="../../source/src.html#src.protected.remove_files_and_directories">[docs]</a>
+<span class="k">def</span> <span class="nf">remove_files_and_directories</span><span class="p">(</span><span class="n">dir_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Remove all files and directories within the specified directory.</span>
+
+<span class="sd">    This function iterates through all items in the given directory path and removes them.</span>
+<span class="sd">    It logs the removal of each file and directory.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dir_path (str): The path of the directory to be cleaned.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">dir_path</span><span class="p">):</span>
+        <span class="n">item_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dir_path</span><span class="p">,</span> <span class="n">item</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isfile</span><span class="p">(</span><span class="n">item_path</span><span class="p">):</span>
+            <span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">item_path</span><span class="p">)</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">item_path</span><span class="si">}</span><span class="s2"> has been removed&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">item_path</span><span class="p">):</span>
+            <span class="n">shutil</span><span class="o">.</span><span class="n">rmtree</span><span class="p">(</span><span class="n">item_path</span><span class="p">)</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Directory </span><span class="si">{</span><span class="n">item_path</span><span class="si">}</span><span class="s2"> and all its contents have been removed&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="delete_inbox">
+<a class="viewcode-back" href="../../source/src.html#src.protected.delete_inbox">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/delete-dir/</span><span class="si">{dir}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">delete_inbox</span><span class="p">(</span><span class="nb">dir</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to delete a directory.</span>
+
+<span class="sd">    This endpoint deletes the specified directory and all its contents.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        dir (str): The name of the directory to be deleted.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        dict: A dictionary containing the status of the deletion and the name of the deleted directory.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">        HTTPException: If the specified directory is not found.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">directory</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">DATA_TMP_BASE_DIR</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="nb">dir</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">directory</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">HTTPException</span><span class="p">(</span><span class="n">status_code</span><span class="o">=</span><span class="mi">404</span><span class="p">,</span> <span class="n">detail</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s2"> not found&quot;</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Delete directory: </span><span class="si">{</span><span class="n">directory</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">remove_files_and_directories</span><span class="p">(</span><span class="n">directory</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;Deleted&quot;</span><span class="p">:</span> <span class="s2">&quot;OK&quot;</span><span class="p">,</span> <span class="s2">&quot;directory&quot;</span><span class="p">:</span> <span class="n">directory</span><span class="p">}</span></div>
+
+
+
+<span class="c1"># Endpoint to retrieve application settings</span>
+<div class="viewcode-block" id="get_settings">
+<a class="viewcode-back" href="../../source/src.html#src.protected.get_settings">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/settings-reload&quot;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_settings</span><span class="p">():</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Getting settings Before Load: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s2">&quot;Reload settings&quot;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="n">settings</span><span class="o">.</span><span class="n">reload</span><span class="p">()</span>
+    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Getting settings After Load: </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">settings</span><span class="o">.</span><span class="n">as_dict</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_log">
+<a class="viewcode-back" href="../../source/src.html#src.protected.get_log">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;/logs/</span><span class="si">{app_name}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_log</span><span class="p">(</span><span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s1">&#39;logs&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">FileResponse</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;BASE_DIR&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/logs/</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2">.log&quot;</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">app_name</span><span class="si">}</span><span class="s2">.log&quot;</span><span class="p">,</span>
+                        <span class="n">media_type</span><span class="o">=</span><span class="s1">&#39;text/plain&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="get_log_list">
+<a class="viewcode-back" href="../../source/src.html#src.protected.get_log_list">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/logs-list&quot;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_log_list</span><span class="p">():</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s1">&#39;logs-list&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">listdir</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="p">[</span><span class="s1">&#39;BASE_DIR&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2">/logs&quot;</span><span class="p">)</span></div>
+
+
+
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/db-download&quot;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">get_db</span><span class="p">():</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s1">&#39;db-download&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">FileResponse</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">DB_URL</span><span class="p">,</span> <span class="n">filename</span><span class="o">=</span><span class="s2">&quot;acp.db&quot;</span><span class="p">,</span>
+                        <span class="n">media_type</span><span class="o">=</span><span class="s1">&#39;application/octet-stream&#39;</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="delete_all_recs">
+<a class="viewcode-back" href="../../source/src.html#src.protected.delete_all_recs">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="s2">&quot;/db-delete-all&quot;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">def</span> <span class="nf">delete_all_recs</span><span class="p">():</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s1">&#39;Deleting all&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">delete_all</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="get_db">
+<a class="viewcode-back" href="../../source/src.html#src.protected.get_db">[docs]</a>
+<span class="nd">@router</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;/datasets&quot;</span><span class="p">,</span> <span class="n">include_in_schema</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="k">async</span> <span class="k">def</span> <span class="nf">get_db</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Endpoint to retrieve datasets.</span>
+
+<span class="sd">    This endpoint retrieves datasets from the database by executing a raw SQL query.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        JSONResponse: A JSON response containing the datasets retrieved from the database.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">logger</span><span class="p">(</span><span class="s2">&quot;Finding datasets&quot;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">JSONResponse</span><span class="p">(</span><span class="n">content</span><span class="o">=</span><span class="n">db_manager</span><span class="o">.</span><span class="n">execute_raw_sql</span><span class="p">())</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Eko Indarto.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

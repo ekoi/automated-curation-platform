@@ -1,0 +1,1001 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.modules package &mdash; Automated Curation Platform 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            Automated Curation Platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"><ul>
+<li><a class="reference internal" href="#">src.modules package</a><ul>
+<li><a class="reference internal" href="#submodules">Submodules</a></li>
+<li><a class="reference internal" href="#module-src.modules.dataverse_api_depositor">src.modules.dataverse_api_depositor module</a><ul>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester"><code class="docutils literal notranslate"><span class="pre">DataverseIngester</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.execute"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.app_name"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.data_file_rec"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.dataset_dir"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.dataset_id"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.db_manager"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#id0"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.metadata_rec"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_api_depositor.DataverseIngester.target"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules.dataverse_dataset_delete">src.modules.dataverse_dataset_delete module</a><ul>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.app_name"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.data_file_rec"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_dir"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_id"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.db_manager"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.execute"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.metadata_rec"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.target"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules.filesystem_depositor">src.modules.filesystem_depositor module</a><ul>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem"><code class="docutils literal notranslate"><span class="pre">FileSystem</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.app_name"><code class="docutils literal notranslate"><span class="pre">FileSystem.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.data_file_rec"><code class="docutils literal notranslate"><span class="pre">FileSystem.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.dataset_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.dataset_id"><code class="docutils literal notranslate"><span class="pre">FileSystem.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.db_manager"><code class="docutils literal notranslate"><span class="pre">FileSystem.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.execute"><code class="docutils literal notranslate"><span class="pre">FileSystem.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.metadata_rec"><code class="docutils literal notranslate"><span class="pre">FileSystem.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.filesystem_depositor.FileSystem.target"><code class="docutils literal notranslate"><span class="pre">FileSystem.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules.mail_depositor">src.modules.mail_depositor module</a><ul>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail"><code class="docutils literal notranslate"><span class="pre">Mail</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.app_name"><code class="docutils literal notranslate"><span class="pre">Mail.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.data_file_rec"><code class="docutils literal notranslate"><span class="pre">Mail.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.dataset_dir"><code class="docutils literal notranslate"><span class="pre">Mail.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.dataset_id"><code class="docutils literal notranslate"><span class="pre">Mail.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.db_manager"><code class="docutils literal notranslate"><span class="pre">Mail.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.execute"><code class="docutils literal notranslate"><span class="pre">Mail.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.metadata_rec"><code class="docutils literal notranslate"><span class="pre">Mail.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.mail_depositor.Mail.target"><code class="docutils literal notranslate"><span class="pre">Mail.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules.oai_harverster_client_get_record">src.modules.oai_harverster_client_get_record module</a><ul>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.app_name"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.data_file_rec"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_dir"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_id"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.db_manager"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.execute"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.metadata_rec"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.target"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules.swh_api_depositor">src.modules.swh_api_depositor module</a><ul>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.app_name"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.data_file_rec"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.dataset_dir"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.dataset_id"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.db_manager"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.execute"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.metadata_rec"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_api_depositor.SwhApiDepositor.target"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules.swh_sword_depositor">src.modules.swh_sword_depositor module</a><ul>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.app_name"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.data_file_rec"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_dir"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_id"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.db_manager"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.execute"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.metadata_rec"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.target"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.target</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules.zenodo_depositor">src.modules.zenodo_depositor module</a><ul>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links"><code class="docutils literal notranslate"><span class="pre">Links</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.badge"><code class="docutils literal notranslate"><span class="pre">Links.badge</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.bucket"><code class="docutils literal notranslate"><span class="pre">Links.bucket</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.discard"><code class="docutils literal notranslate"><span class="pre">Links.discard</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.edit"><code class="docutils literal notranslate"><span class="pre">Links.edit</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.files"><code class="docutils literal notranslate"><span class="pre">Links.files</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.html"><code class="docutils literal notranslate"><span class="pre">Links.html</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.latest_draft"><code class="docutils literal notranslate"><span class="pre">Links.latest_draft</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.latest_draft_html"><code class="docutils literal notranslate"><span class="pre">Links.latest_draft_html</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">Links.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.model_config"><code class="docutils literal notranslate"><span class="pre">Links.model_config</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.model_fields"><code class="docutils literal notranslate"><span class="pre">Links.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.newversion"><code class="docutils literal notranslate"><span class="pre">Links.newversion</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.publish"><code class="docutils literal notranslate"><span class="pre">Links.publish</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.registerconceptdoi"><code class="docutils literal notranslate"><span class="pre">Links.registerconceptdoi</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Links.self"><code class="docutils literal notranslate"><span class="pre">Links.self</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata"><code class="docutils literal notranslate"><span class="pre">Metadata</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata.access_right"><code class="docutils literal notranslate"><span class="pre">Metadata.access_right</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">Metadata.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata.model_config"><code class="docutils literal notranslate"><span class="pre">Metadata.model_config</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata.model_fields"><code class="docutils literal notranslate"><span class="pre">Metadata.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata.prereserve_doi"><code class="docutils literal notranslate"><span class="pre">Metadata.prereserve_doi</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi"><code class="docutils literal notranslate"><span class="pre">PrereserveDoi</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi.doi"><code class="docutils literal notranslate"><span class="pre">PrereserveDoi.doi</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">PrereserveDoi.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi.model_config"><code class="docutils literal notranslate"><span class="pre">PrereserveDoi.model_config</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi.model_fields"><code class="docutils literal notranslate"><span class="pre">PrereserveDoi.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi.recid"><code class="docutils literal notranslate"><span class="pre">PrereserveDoi.recid</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.app_name"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.app_name</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.data_file_rec"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.data_file_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_dir"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.dataset_dir</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_id"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.dataset_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.db_manager"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.db_manager</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.execute"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.metadata_rec"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.metadata_rec</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.target"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.target</span></code></a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel"><code class="docutils literal notranslate"><span class="pre">ZenodoModel</span></code></a><ul>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.conceptrecid"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.conceptrecid</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.created"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.created</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.files"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.files</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.id"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.links"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.links</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.metadata"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.metadata</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.model_computed_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.model_config"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.model_config</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.model_fields"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.model_fields</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.modified"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.modified</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.owner"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.owner</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.record_id"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.record_id</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.state"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.state</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.submitted"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.submitted</span></code></a></li>
+<li><a class="reference internal" href="#src.modules.zenodo_depositor.ZenodoModel.title"><code class="docutils literal notranslate"><span class="pre">ZenodoModel.title</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-src.modules">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">Automated Curation Platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">src.modules package</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/source/src.modules.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="src-modules-package">
+<h1>src.modules package<a class="headerlink" href="#src-modules-package" title="Link to this heading"></a></h1>
+<section id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Link to this heading"></a></h2>
+</section>
+<section id="module-src.modules.dataverse_api_depositor">
+<span id="src-modules-dataverse-api-depositor-module"></span><h2>src.modules.dataverse_api_depositor module<a class="headerlink" href="#module-src.modules.dataverse_api_depositor" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.dataverse_api_depositor.</span></span><span class="sig-name descname"><span class="pre">DataverseIngester</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/dataverse_api_depositor.html#DataverseIngester"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<p>Class for ingesting metadata and files into Dataverse.</p>
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/dataverse_api_depositor.html#DataverseIngester.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.execute" title="Link to this definition"></a></dt>
+<dd><p>Executes the ingestion process and returns the result as a BridgeOutputDataModel.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="id0">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/dataverse_api_depositor.html#DataverseIngester.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dd><p>Executes the ingestion process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>The result of the ingestion process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_api_depositor.DataverseIngester.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.dataverse_api_depositor.DataverseIngester.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules.dataverse_dataset_delete">
+<span id="src-modules-dataverse-dataset-delete-module"></span><h2>src.modules.dataverse_dataset_delete module<a class="headerlink" href="#module-src.modules.dataverse_dataset_delete" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.dataverse_dataset_delete.</span></span><span class="sig-name descname"><span class="pre">DataverseDatasetDelete</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/dataverse_dataset_delete.html#DataverseDatasetDelete"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/dataverse_dataset_delete.html#DataverseDatasetDelete.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.execute" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to deposit data into the target repository.</p>
+<p>Subclasses must provide a concrete implementation of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.dataverse_dataset_delete.DataverseDatasetDelete.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules.filesystem_depositor">
+<span id="src-modules-filesystem-depositor-module"></span><h2>src.modules.filesystem_depositor module<a class="headerlink" href="#module-src.modules.filesystem_depositor" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.filesystem_depositor.</span></span><span class="sig-name descname"><span class="pre">FileSystem</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/filesystem_depositor.html#FileSystem"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/filesystem_depositor.html#FileSystem.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.execute" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to deposit data into the target repository.</p>
+<p>Subclasses must provide a concrete implementation of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.filesystem_depositor.FileSystem.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.filesystem_depositor.FileSystem.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules.mail_depositor">
+<span id="src-modules-mail-depositor-module"></span><h2>src.modules.mail_depositor module<a class="headerlink" href="#module-src.modules.mail_depositor" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.mail_depositor.</span></span><span class="sig-name descname"><span class="pre">Mail</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/mail_depositor.html#Mail"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.mail_depositor.Mail" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.mail_depositor.Mail.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.mail_depositor.Mail.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.mail_depositor.Mail.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.mail_depositor.Mail.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.mail_depositor.Mail.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/mail_depositor.html#Mail.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.mail_depositor.Mail.execute" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to deposit data into the target repository.</p>
+<p>Subclasses must provide a concrete implementation of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.mail_depositor.Mail.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.mail_depositor.Mail.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.mail_depositor.Mail.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules.oai_harverster_client_get_record">
+<span id="src-modules-oai-harverster-client-get-record-module"></span><h2>src.modules.oai_harverster_client_get_record module<a class="headerlink" href="#module-src.modules.oai_harverster_client_get_record" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.oai_harverster_client_get_record.</span></span><span class="sig-name descname"><span class="pre">OaiHarvesterClientGetRecord</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/oai_harverster_client_get_record.html#OaiHarvesterClientGetRecord"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/oai_harverster_client_get_record.html#OaiHarvesterClientGetRecord.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.execute" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to deposit data into the target repository.</p>
+<p>Subclasses must provide a concrete implementation of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules.swh_api_depositor">
+<span id="src-modules-swh-api-depositor-module"></span><h2>src.modules.swh_api_depositor module<a class="headerlink" href="#module-src.modules.swh_api_depositor" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.swh_api_depositor.</span></span><span class="sig-name descname"><span class="pre">SwhApiDepositor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/swh_api_depositor.html#SwhApiDepositor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/swh_api_depositor.html#SwhApiDepositor.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.execute" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to deposit data into the target repository.</p>
+<p>Subclasses must provide a concrete implementation of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_api_depositor.SwhApiDepositor.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.swh_api_depositor.SwhApiDepositor.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules.swh_sword_depositor">
+<span id="src-modules-swh-sword-depositor-module"></span><h2>src.modules.swh_sword_depositor module<a class="headerlink" href="#module-src.modules.swh_sword_depositor" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.swh_sword_depositor.</span></span><span class="sig-name descname"><span class="pre">SwhSwordDepositor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/swh_sword_depositor.html#SwhSwordDepositor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/swh_sword_depositor.html#SwhSwordDepositor.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.execute" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to deposit data into the target repository.</p>
+<p>Subclasses must provide a concrete implementation of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.swh_sword_depositor.SwhSwordDepositor.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.swh_sword_depositor.SwhSwordDepositor.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules.zenodo_depositor">
+<span id="src-modules-zenodo-depositor-module"></span><h2>src.modules.zenodo_depositor module<a class="headerlink" href="#module-src.modules.zenodo_depositor" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.zenodo_depositor.</span></span><span class="sig-name descname"><span class="pre">Links</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">self</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">badge</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bucket</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latest_draft</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">latest_draft_html</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">publish</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">edit</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">discard</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">newversion</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">registerconceptdoi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/zenodo_depositor.html#Links"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.zenodo_depositor.Links" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.badge">
+<span class="sig-name descname"><span class="pre">badge</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.badge" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.bucket">
+<span class="sig-name descname"><span class="pre">bucket</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.bucket" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.discard">
+<span class="sig-name descname"><span class="pre">discard</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.discard" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.edit">
+<span class="sig-name descname"><span class="pre">edit</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.edit" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.files">
+<span class="sig-name descname"><span class="pre">files</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.files" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.html">
+<span class="sig-name descname"><span class="pre">html</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.html" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.latest_draft">
+<span class="sig-name descname"><span class="pre">latest_draft</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.latest_draft" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.latest_draft_html">
+<span class="sig-name descname"><span class="pre">latest_draft_html</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.latest_draft_html" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'badge':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'bucket':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'discard':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'edit':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'files':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'html':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'latest_draft':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'latest_draft_html':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'newversion':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'publish':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'registerconceptdoi':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'self':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.newversion">
+<span class="sig-name descname"><span class="pre">newversion</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.newversion" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.publish">
+<span class="sig-name descname"><span class="pre">publish</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.publish" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.registerconceptdoi">
+<span class="sig-name descname"><span class="pre">registerconceptdoi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.registerconceptdoi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Links.self">
+<span class="sig-name descname"><span class="pre">self</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Links.self" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Metadata">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.zenodo_depositor.</span></span><span class="sig-name descname"><span class="pre">Metadata</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">access_right</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prereserve_doi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi" title="src.modules.zenodo_depositor.PrereserveDoi"><span class="pre">PrereserveDoi</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/zenodo_depositor.html#Metadata"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.zenodo_depositor.Metadata" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Metadata.access_right">
+<span class="sig-name descname"><span class="pre">access_right</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Metadata.access_right" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Metadata.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Metadata.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Metadata.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Metadata.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Metadata.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'access_right':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'prereserve_doi':</span> <span class="pre">FieldInfo(annotation=PrereserveDoi,</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.Metadata.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.Metadata.prereserve_doi">
+<span class="sig-name descname"><span class="pre">prereserve_doi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#src.modules.zenodo_depositor.PrereserveDoi" title="src.modules.zenodo_depositor.PrereserveDoi"><span class="pre">PrereserveDoi</span></a></em><a class="headerlink" href="#src.modules.zenodo_depositor.Metadata.prereserve_doi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.PrereserveDoi">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.zenodo_depositor.</span></span><span class="sig-name descname"><span class="pre">PrereserveDoi</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">doi</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">recid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/zenodo_depositor.html#PrereserveDoi"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.zenodo_depositor.PrereserveDoi" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.PrereserveDoi.doi">
+<span class="sig-name descname"><span class="pre">doi</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.PrereserveDoi.doi" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.PrereserveDoi.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.PrereserveDoi.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.PrereserveDoi.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.PrereserveDoi.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.PrereserveDoi.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'doi':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'recid':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.PrereserveDoi.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.PrereserveDoi.recid">
+<span class="sig-name descname"><span class="pre">recid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.PrereserveDoi.recid" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.zenodo_depositor.</span></span><span class="sig-name descname"><span class="pre">ZenodoApiDepositor</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dataset_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/zenodo_depositor.html#ZenodoApiDepositor"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor" title="Link to this definition"></a></dt>
+<dd><p>Bases: <a class="reference internal" href="src.html#src.bridge.Bridge" title="src.bridge.Bridge"><code class="xref py py-class docutils literal notranslate"><span class="pre">Bridge</span></code></a></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.app_name">
+<span class="sig-name descname"><span class="pre">app_name</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.app_name" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.data_file_rec">
+<span class="sig-name descname"><span class="pre">data_file_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DataFile" title="src.dbz.DataFile"><span class="pre">DataFile</span></a></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.data_file_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_dir">
+<span class="sig-name descname"><span class="pre">dataset_dir</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_dir" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_id">
+<span class="sig-name descname"><span class="pre">dataset_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.db_manager">
+<span class="sig-name descname"><span class="pre">db_manager</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.DatabaseManager" title="src.dbz.DatabaseManager"><span class="pre">DatabaseManager</span></a></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.db_manager" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.execute">
+<span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/modules/zenodo_depositor.html#ZenodoApiDepositor.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.execute" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to deposit data into the target repository.</p>
+<p>Subclasses must provide a concrete implementation of this method.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.metadata_rec">
+<span class="sig-name descname"><span class="pre">metadata_rec</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.html#src.dbz.Dataset" title="src.dbz.Dataset"><span class="pre">Dataset</span></a></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.metadata_rec" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoApiDepositor.target">
+<span class="sig-name descname"><span class="pre">target</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target" title="src.models.assistant_datamodel.Target"><span class="pre">Target</span></a></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoApiDepositor.target" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel">
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.modules.zenodo_depositor.</span></span><span class="sig-name descname"><span class="pre">ZenodoModel</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">modified</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">conceptrecid</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metadata</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata" title="src.modules.zenodo_depositor.Metadata"><span class="pre">Metadata</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">links</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.modules.zenodo_depositor.Links" title="src.modules.zenodo_depositor.Links"><span class="pre">Links</span></a></span></em>, <em class="sig-param"><span class="n"><span class="pre">record_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">files</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">List</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submitted</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/modules/zenodo_depositor.html#ZenodoModel"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">BaseModel</span></code></p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.conceptrecid">
+<span class="sig-name descname"><span class="pre">conceptrecid</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.conceptrecid" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.created">
+<span class="sig-name descname"><span class="pre">created</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.created" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.files">
+<span class="sig-name descname"><span class="pre">files</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">List</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.files" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.id">
+<span class="sig-name descname"><span class="pre">id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.links">
+<span class="sig-name descname"><span class="pre">links</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#src.modules.zenodo_depositor.Links" title="src.modules.zenodo_depositor.Links"><span class="pre">Links</span></a></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.links" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.metadata">
+<span class="sig-name descname"><span class="pre">metadata</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="#src.modules.zenodo_depositor.Metadata" title="src.modules.zenodo_depositor.Metadata"><span class="pre">Metadata</span></a></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.metadata" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.model_computed_fields">
+<span class="sig-name descname"><span class="pre">model_computed_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">ComputedFieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.model_computed_fields" title="Link to this definition"></a></dt>
+<dd><p>A dictionary of computed field names and their corresponding <cite>ComputedFieldInfo</cite> objects.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.model_config">
+<span class="sig-name descname"><span class="pre">model_config</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">ConfigDict</span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.model_config" title="Link to this definition"></a></dt>
+<dd><p>Configuration for the model, should be a dictionary conforming to [<cite>ConfigDict</cite>][pydantic.config.ConfigDict].</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.model_fields">
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'conceptrecid':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'created':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'files':</span> <span class="pre">FieldInfo(annotation=List,</span> <span class="pre">required=True),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True),</span> <span class="pre">'links':</span> <span class="pre">FieldInfo(annotation=Links,</span> <span class="pre">required=True),</span> <span class="pre">'metadata':</span> <span class="pre">FieldInfo(annotation=Metadata,</span> <span class="pre">required=True),</span> <span class="pre">'modified':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'owner':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True),</span> <span class="pre">'record_id':</span> <span class="pre">FieldInfo(annotation=int,</span> <span class="pre">required=True),</span> <span class="pre">'state':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'submitted':</span> <span class="pre">FieldInfo(annotation=bool,</span> <span class="pre">required=True),</span> <span class="pre">'title':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.model_fields" title="Link to this definition"></a></dt>
+<dd><p>Metadata about the fields defined on the model,
+mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
+<p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.modified">
+<span class="sig-name descname"><span class="pre">modified</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.modified" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.owner">
+<span class="sig-name descname"><span class="pre">owner</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.owner" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.record_id">
+<span class="sig-name descname"><span class="pre">record_id</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.record_id" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.state">
+<span class="sig-name descname"><span class="pre">state</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.state" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.submitted">
+<span class="sig-name descname"><span class="pre">submitted</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">bool</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.submitted" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="src.modules.zenodo_depositor.ZenodoModel.title">
+<span class="sig-name descname"><span class="pre">title</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></em><a class="headerlink" href="#src.modules.zenodo_depositor.ZenodoModel.title" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="module-src.modules">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-src.modules" title="Link to this heading"></a></h2>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Eko Indarto.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

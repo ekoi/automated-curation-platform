@@ -1,0 +1,856 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.dbz &mdash; Automated Curation Platform 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            Automated Curation Platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">Automated Curation Platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.dbz</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.dbz</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">base64</span>
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">import</span> <span class="nn">sqlite3</span>
+<span class="kn">from</span> <span class="nn">contextlib</span> <span class="kn">import</span> <span class="n">closing</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">StrEnum</span><span class="p">,</span> <span class="n">auto</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Sequence</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">from</span> <span class="nn">cryptography.fernet</span> <span class="kn">import</span> <span class="n">Fernet</span>
+
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy</span> <span class="kn">import</span> <span class="n">text</span><span class="p">,</span> <span class="n">delete</span><span class="p">,</span> <span class="n">inspect</span><span class="p">,</span> <span class="n">UniqueConstraint</span><span class="p">,</span> <span class="n">desc</span><span class="p">,</span> <span class="n">asc</span>
+<span class="kn">from</span> <span class="nn">sqlalchemy.exc</span> <span class="kn">import</span> <span class="n">IntegrityError</span>
+<span class="kn">from</span> <span class="nn">sqlmodel</span> <span class="kn">import</span> <span class="n">SQLModel</span><span class="p">,</span> <span class="n">Field</span><span class="p">,</span> <span class="n">create_engine</span><span class="p">,</span> <span class="n">Session</span><span class="p">,</span> <span class="n">select</span>
+
+<span class="kn">from</span> <span class="nn">src.models.app_model</span> <span class="kn">import</span> <span class="n">OwnerAssetsModel</span><span class="p">,</span> <span class="n">Asset</span><span class="p">,</span> <span class="n">TargetApp</span>
+
+<span class="sd">&#39;&#39;&#39;</span>
+<span class="sd">import logging</span>
+<span class="sd">logging.basicConfig()</span>
+<span class="sd">logger = logging.getLogger(&#39;sqlalchemy.engine&#39;)</span>
+<span class="sd">logger.setLevel(logging.DEBUG)</span>
+<span class="sd"># run sqlmodel code after this</span>
+<span class="sd">&#39;&#39;&#39;</span>
+
+<div class="viewcode-block" id="ReleaseVersion">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.ReleaseVersion">[docs]</a>
+<span class="k">class</span> <span class="nc">ReleaseVersion</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+    <span class="n">DRAFT</span> <span class="o">=</span> <span class="s1">&#39;DRAFT&#39;</span>
+    <span class="n">PUBLISH</span> <span class="o">=</span> <span class="s1">&#39;PUBLISH&#39;</span>
+    <span class="n">PUBLISHED</span> <span class="o">=</span> <span class="s1">&#39;PUBLISHED&#39;</span>
+    <span class="n">PUBLISHING</span> <span class="o">=</span> <span class="s1">&#39;PUBLISHING&#39;</span></div>
+
+
+
+<div class="viewcode-block" id="DepositStatus">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DepositStatus">[docs]</a>
+<span class="k">class</span> <span class="nc">DepositStatus</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+    <span class="n">INITIAL</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">PROGRESS</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">FINISH</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">REJECTED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">FAILED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">ERROR</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">SUCCESS</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">ACCEPTED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">FINALIZING</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">SUBMITTED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">PUBLISHED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">UNDEFINED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">DEPOSITED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="DataFileWorkState">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DataFileWorkState">[docs]</a>
+<span class="k">class</span> <span class="nc">DataFileWorkState</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+    <span class="n">GENERATED</span> <span class="o">=</span> <span class="s2">&quot;GENERATED&quot;</span>
+    <span class="n">UPLOADED</span> <span class="o">=</span> <span class="s2">&quot;UPLOADED&quot;</span>
+    <span class="n">REGISTERED</span> <span class="o">=</span> <span class="s2">&quot;REGISTERED&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="DatasetWorkState">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatasetWorkState">[docs]</a>
+<span class="k">class</span> <span class="nc">DatasetWorkState</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+    <span class="n">NOT_READY</span> <span class="o">=</span> <span class="s1">&#39;not-ready&#39;</span>
+    <span class="n">READY</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">RELEASED</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+
+
+<div class="viewcode-block" id="FilePermissions">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.FilePermissions">[docs]</a>
+<span class="k">class</span> <span class="nc">FilePermissions</span><span class="p">(</span><span class="n">StrEnum</span><span class="p">):</span>
+    <span class="n">PUBLIC</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span>
+    <span class="n">PRIVATE</span> <span class="o">=</span> <span class="n">auto</span><span class="p">()</span></div>
+
+
+
+<span class="c1"># Define the Metadata model</span>
+<div class="viewcode-block" id="Dataset">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.Dataset">[docs]</a>
+<span class="k">class</span> <span class="nc">Dataset</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">title</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">nullable</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">created_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+    <span class="n">saved_date</span><span class="p">:</span> <span class="n">datetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+    <span class="n">submitted_date</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span>
+    <span class="n">app_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">md</span><span class="p">:</span> <span class="nb">str</span>  <span class="c1"># https://www.sqlite.org/fasterthanfs.html</span>
+    <span class="n">release_version</span><span class="p">:</span> <span class="n">ReleaseVersion</span> <span class="o">=</span> <span class="n">ReleaseVersion</span><span class="o">.</span><span class="n">DRAFT</span>
+    <span class="n">version</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">DatasetWorkState</span> <span class="o">=</span> <span class="n">DatasetWorkState</span><span class="o">.</span><span class="n">NOT_READY</span>
+
+<div class="viewcode-block" id="Dataset.encrypt_md">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.Dataset.encrypt_md">[docs]</a>
+    <span class="k">def</span> <span class="nf">encrypt_md</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cipher_suite</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">md</span> <span class="o">=</span> <span class="n">cipher_suite</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="Dataset.decrypt_md">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.Dataset.decrypt_md">[docs]</a>
+    <span class="k">def</span> <span class="nf">decrypt_md</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cipher_suite</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">md</span> <span class="o">=</span> <span class="n">cipher_suite</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">md</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+</div>
+
+
+
+<span class="c1"># Define the TargetRepo model</span>
+<div class="viewcode-block" id="TargetRepo">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.TargetRepo">[docs]</a>
+<span class="k">class</span> <span class="nc">TargetRepo</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;target_repo&quot;</span>
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s2">&quot;ds_id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;unique_dataset_id_target_repo_name&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ds_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;dataset.id&quot;</span><span class="p">)</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">display_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">config</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">url</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">deposit_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DepositStatus</span><span class="p">]</span>
+    <span class="n">deposit_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
+    <span class="n">target_output</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+
+<div class="viewcode-block" id="TargetRepo.encrypt_config">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.TargetRepo.encrypt_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">encrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cipher_suite</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">cipher_suite</span><span class="o">.</span><span class="n">encrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="TargetRepo.decrypt_config">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.TargetRepo.decrypt_config">[docs]</a>
+    <span class="k">def</span> <span class="nf">decrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cipher_suite</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">cipher_suite</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span><span class="o">.</span><span class="n">decode</span><span class="p">()</span></div>
+</div>
+
+    <span class="c1"># Optional since some repo uses the same uername/password</span>
+    <span class="c1"># e.g. dataverse username is always API_KEY, SWH API uses the same username/password for every user.</span>
+    <span class="c1"># username: Optional[str]</span>
+    <span class="c1"># password: Optional[str]</span>
+
+
+<span class="c1"># Define the Files model</span>
+<div class="viewcode-block" id="DataFile">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DataFile">[docs]</a>
+<span class="k">class</span> <span class="nc">DataFile</span><span class="p">(</span><span class="n">SQLModel</span><span class="p">,</span> <span class="n">table</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">__tablename__</span> <span class="o">=</span> <span class="s2">&quot;data_file&quot;</span>
+    <span class="n">__table_args__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">UniqueConstraint</span><span class="p">(</span><span class="s2">&quot;ds_id&quot;</span><span class="p">,</span> <span class="s2">&quot;name&quot;</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;unique_ds_id_name&quot;</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="nb">id</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">primary_key</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">ds_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">foreign_key</span><span class="o">=</span><span class="s2">&quot;dataset.id&quot;</span><span class="p">)</span>
+    <span class="n">name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">path</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">size</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>
+    <span class="n">mime_type</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">checksum_value</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span>
+    <span class="n">date_added</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">datetime</span><span class="p">]</span>
+    <span class="n">permissions</span><span class="p">:</span> <span class="n">FilePermissions</span> <span class="o">=</span> <span class="n">FilePermissions</span><span class="o">.</span><span class="n">PRIVATE</span>
+    <span class="n">state</span><span class="p">:</span> <span class="n">DataFileWorkState</span> <span class="o">=</span> <span class="n">DataFileWorkState</span><span class="o">.</span><span class="n">REGISTERED</span></div>
+
+
+
+<div class="viewcode-block" id="DatabaseManager">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager">[docs]</a>
+<span class="k">class</span> <span class="nc">DatabaseManager</span><span class="p">:</span>
+    <span class="n">cipher_suite</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_dialect</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">db_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">encryption_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">conn_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">db_dialect</span><span class="si">}</span><span class="s1">:</span><span class="si">{</span><span class="n">db_url</span><span class="si">}</span><span class="s1">&#39;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">engine</span> <span class="o">=</span> <span class="n">create_engine</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_url</span><span class="p">,</span> <span class="n">pool_size</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+        <span class="c1"># TODO: Remove db_file = self.conn_url.split(&quot;///&quot;)[1]</span>
+        <span class="c1"># TODO use self.engine</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">db_file</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn_url</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;///&quot;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>  <span class="c1"># sqlite:////</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span> <span class="o">=</span> <span class="n">Fernet</span><span class="p">(</span><span class="n">base64</span><span class="o">.</span><span class="n">urlsafe_b64encode</span><span class="p">(</span><span class="n">encryption_key</span><span class="o">.</span><span class="n">encode</span><span class="p">()))</span>
+
+    <span class="c1"># def get_db(self):</span>
+    <span class="c1">#     database = self.session_local()</span>
+    <span class="c1">#     try:</span>
+    <span class="c1">#         yield database</span>
+    <span class="c1">#     finally:</span>
+    <span class="c1">#         database.close()</span>
+
+    <span class="c1"># def encrypt_data(self, data):</span>
+    <span class="c1">#     return self.cipher_suite.encrypt(data.encode()).decode()</span>
+    <span class="c1">#</span>
+    <span class="c1"># # Function to decrypt data</span>
+    <span class="c1"># def decrypt_data(self, data):</span>
+    <span class="c1">#     return  self.cipher_suite.decrypt(data.encode()).decode()</span>
+
+<div class="viewcode-block" id="DatabaseManager.create_db_and_tables">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.create_db_and_tables">[docs]</a>
+    <span class="k">def</span> <span class="nf">create_db_and_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># checkfirst=True means if not exist create one, otherwise skip it.</span>
+        <span class="c1"># But it doesn&#39;t work in multiple uvicorn workers</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">inspect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span><span class="o">.</span><span class="n">has_table</span><span class="p">(</span><span class="s2">&quot;Dataset&quot;</span><span class="p">):</span>
+            <span class="n">SQLModel</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">create_all</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">,</span> <span class="n">checkfirst</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">logger</span>
+            <span class="n">logger</span><span class="p">(</span><span class="s1">&#39;TABLES ALREADY CREATED&#39;</span><span class="p">,</span> <span class="s2">&quot;info&quot;</span><span class="p">,</span> <span class="s2">&quot;acp&quot;</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.insert_dataset_and_target_repo">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.insert_dataset_and_target_repo">[docs]</a>
+    <span class="k">def</span> <span class="nf">insert_dataset_and_target_repo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds_record</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">repo_records</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TargetRepo</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># Encrypt the md field of the Dataset</span>
+        <span class="n">ds_record</span><span class="o">.</span><span class="n">encrypt_md</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+
+        <span class="c1"># Encrypt the config field of each TargetRepo</span>
+        <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">repo_records</span><span class="p">:</span>
+            <span class="n">tr</span><span class="o">.</span><span class="n">encrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ds_record</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">repo_records</span><span class="p">:</span>
+                <span class="n">tr</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">=</span> <span class="n">ds_record</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tr</span><span class="p">)</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.insert_datafiles">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.insert_datafiles">[docs]</a>
+    <span class="k">def</span> <span class="nf">insert_datafiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_records</span><span class="p">:</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">file_record</span> <span class="ow">in</span> <span class="n">file_records</span><span class="p">:</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">file_record</span><span class="p">)</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">file_record</span><span class="p">)</span>
+        <span class="k">except</span> <span class="n">IntegrityError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="c1"># Handle the unique constraint violation</span>
+            <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;IntegrityError: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">orig</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="c1"># Optionally, you can re-raise the exception or handle it as needed</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;------- IntegrityError: </span><span class="si">{</span><span class="n">e</span><span class="o">.</span><span class="n">orig</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_datafile">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.delete_datafile">[docs]</a>
+    <span class="k">def</span> <span class="nf">delete_datafile</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">file_record</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">DataFile</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">filename</span><span class="p">))</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">file_record</span><span class="p">:</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">file_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_all">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.delete_all">[docs]</a>
+    <span class="k">def</span> <span class="nf">delete_all</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">tabs</span> <span class="o">=</span> <span class="p">{</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__qualname__</span><span class="p">:</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">delete</span><span class="p">(</span><span class="bp">cls</span><span class="p">))</span><span class="o">.</span><span class="n">rowcount</span> <span class="k">for</span> <span class="bp">cls</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">,</span> <span class="n">TargetRepo</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">]}</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">tabs</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.delete_by_dataset_id">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.delete_by_dataset_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">delete_by_dataset_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="nb">int</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">))</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ds</span><span class="p">:</span>
+                <span class="c1"># Delete DataFiles and TargetRepos in a single transaction</span>
+                <span class="k">for</span> <span class="n">model</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">,</span> <span class="n">TargetRepo</span><span class="p">]:</span>
+                    <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">delete</span><span class="p">(</span><span class="n">model</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">))</span>
+
+                <span class="c1"># Delete Dataset</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">))</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">())</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="k">return</span> <span class="mi">1</span>
+            <span class="k">return</span> <span class="mi">0</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.is_dataset_exist">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.is_dataset_exist">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_dataset_exist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">))</span><span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.is_dataset_published">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.is_dataset_published">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_dataset_published</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span>
+                                                               <span class="n">Dataset</span><span class="o">.</span><span class="n">release_version</span> <span class="o">==</span> <span class="n">ReleaseVersion</span><span class="o">.</span><span class="n">PUBLISHED</span><span class="p">))</span>
+                                                            <span class="o">.</span><span class="n">first</span><span class="p">()</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_dataset">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_dataset">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Dataset</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">ds_id</span><span class="p">))</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">dataset</span><span class="p">:</span>
+                <span class="n">dataset</span><span class="o">.</span><span class="n">decrypt_md</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">dataset</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_target_repo">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_target_repo">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_target_repo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetRepo</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">target_repo</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span>
+                <span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">TargetRepo</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">target_name</span><span class="p">))</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">target_repo</span><span class="p">:</span>
+                <span class="n">target_repo</span><span class="o">.</span><span class="n">decrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">target_repo</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_unfinished_target_repo">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_unfinished_target_repo">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_unfinished_target_repo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">TargetRepo</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span>
+                                                         <span class="n">TargetRepo</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">!=</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span><span class="p">)</span><span class="o">.</span>
+                                <span class="n">order_by</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_all_datasets">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_all_datasets">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_all_datasets</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Dataset</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">))</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_dataset_and_targets">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_dataset_and_targets">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_dataset_and_targets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Asset</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">dataset</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">))</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">dataset</span><span class="p">:</span>
+                <span class="n">dataset</span><span class="o">.</span><span class="n">decrypt_md</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+                <span class="n">asset</span> <span class="o">=</span> <span class="n">Asset</span><span class="p">()</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">dataset_id</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">id</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">release_version</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">release_version</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">title</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">md</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">md</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">created_date</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">created_date</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">saved_date</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">saved_date</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">submitted_date</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">submitted_date</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">release_version</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">release_version</span>
+                <span class="n">asset</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">version</span>
+                <span class="c1"># Fetch TargetRepo objects associated with the Dataset and order them</span>
+                <span class="n">targets_repo</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span>
+                    <span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+                <span class="k">for</span> <span class="n">target_repo</span> <span class="ow">in</span> <span class="n">targets_repo</span><span class="p">:</span>
+                    <span class="n">target_repo</span><span class="o">.</span><span class="n">decrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+                    <span class="n">target</span> <span class="o">=</span> <span class="n">TargetApp</span><span class="p">()</span>
+                    <span class="n">target</span><span class="o">.</span><span class="n">repo_name</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">target</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">display_name</span>
+                    <span class="n">target</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_status</span>
+                    <span class="n">target</span><span class="o">.</span><span class="n">deposit_time</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_time</span>
+                    <span class="n">target</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">duration</span>
+                    <span class="k">if</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">target_output</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">target_output</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">output_response</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">target_repo</span><span class="o">.</span><span class="n">target_output</span><span class="p">)</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">asset</span>
+            <span class="k">return</span> <span class="n">Asset</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_dataset_ids_by_owner">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_dataset_ids_by_owner">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_dataset_ids_by_owner</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">TargetRepo</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">owner_id</span> <span class="o">==</span> <span class="n">owner_id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="c1"># or the compact version: session.exec(select(TargetRepo)).all()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_target_repos_by_dataset_id">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_target_repos_by_dataset_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_target_repos_by_dataset_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">TargetRepo</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">target_repos</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">target_repo</span> <span class="ow">in</span> <span class="n">target_repos</span><span class="p">:</span>
+                <span class="n">target_repo</span><span class="o">.</span><span class="n">decrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">target_repos</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_files">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_uploaded_files">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_uploaded_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_uploaded_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">DataFile</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">DataFileWorkState</span><span class="o">.</span><span class="n">UPLOADED</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_file_by_name">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_file_by_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_file_by_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">DataFile</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_registered_files">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_registered_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_registered_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">DataFile</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">DataFileWorkState</span><span class="o">.</span><span class="n">REGISTERED</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_non_generated_files">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_non_generated_files">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_non_generated_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="p">[</span><span class="n">DataFile</span><span class="p">]:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">DataFile</span><span class="o">.</span><span class="n">state</span> <span class="o">!=</span> <span class="n">DataFileWorkState</span><span class="o">.</span><span class="n">REGISTERED</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.execute_raw_sql">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.execute_raw_sql">[docs]</a>
+    <span class="k">def</span> <span class="nf">execute_raw_sql</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">rst</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">text</span><span class="p">(</span><span class="s2">&quot;select json_object(&#39;metadata-id&#39;, ds.id, &#39;owner&#39;, ds.owner_id,  &#39;title&#39;, &quot;</span>
+                                           <span class="s2">&quot;ds.title, &#39;release-version&#39;, ds.release_version) from dataset ds&quot;</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">rst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+        <span class="k">return</span> <span class="n">rst</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.execute_l">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.execute_l">[docs]</a>
+    <span class="k">def</span> <span class="nf">execute_l</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Any</span><span class="p">:</span>
+        <span class="n">rst</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">text</span><span class="p">(</span><span class="s2">&quot;SELECT name from data_file where ds_id = &#39;&quot;</span> <span class="o">+</span> <span class="n">dataset_id</span> <span class="o">+</span> <span class="s2">&quot;&#39; and state = &#39;UPLOADED&#39;&quot;</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">t</span><span class="p">)</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">t</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+                <span class="n">rst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">rst</span></div>
+
+
+
+<div class="viewcode-block" id="DatabaseManager.find_file_by_dataset_id_and_name">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_file_by_dataset_id_and_name">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_file_by_dataset_id_and_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ds_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">file_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">DataFile</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">ds_id</span><span class="p">,</span>
+                                               <span class="n">DataFile</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">file_name</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+        <span class="k">return</span> <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.find_owner_assets">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_owner_assets">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_owner_assets</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">OwnerAssetsModel</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">datasets</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">owner_id</span> <span class="o">==</span> <span class="n">owner_id</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">desc</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">created_date</span><span class="p">)))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">datasets</span><span class="p">:</span>
+                <span class="n">oam</span> <span class="o">=</span> <span class="n">OwnerAssetsModel</span><span class="p">()</span>
+                <span class="n">oam</span><span class="o">.</span><span class="n">owner_id</span> <span class="o">=</span> <span class="n">owner_id</span>
+                <span class="k">for</span> <span class="n">dataset</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+                    <span class="n">asset</span> <span class="o">=</span> <span class="n">Asset</span><span class="p">()</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">dataset_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">dataset</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">release_version</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">release_version</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">title</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">created_date</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">created_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">saved_date</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">saved_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">submitted_date</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">submitted_date</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">submitted_date</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">release_version</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">release_version</span><span class="o">.</span><span class="n">name</span>
+                    <span class="n">asset</span><span class="o">.</span><span class="n">version</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">version</span> <span class="k">if</span> <span class="n">dataset</span><span class="o">.</span><span class="n">version</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">targets_repo</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span>
+                        <span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">order_by</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">id</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+                    <span class="k">for</span> <span class="n">target_repo</span> <span class="ow">in</span> <span class="n">targets_repo</span><span class="p">:</span>
+                        <span class="n">target</span> <span class="o">=</span> <span class="n">TargetApp</span><span class="p">()</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">repo_name</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">name</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">display_name</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">display_name</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_status</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">deposit_time</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1"> %H:%M:%S&#39;</span><span class="p">)</span> <span class="k">if</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_time</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">target_repo</span><span class="o">.</span><span class="n">duration</span><span class="p">)</span>
+                        <span class="n">target</span><span class="o">.</span><span class="n">output_response</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">target_repo</span><span class="o">.</span><span class="n">target_output</span><span class="p">)</span> <span class="k">if</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">target_output</span> <span class="k">else</span> <span class="p">{}</span>
+                        <span class="n">asset</span><span class="o">.</span><span class="n">targets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+                    <span class="n">oam</span><span class="o">.</span><span class="n">assets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">asset</span><span class="p">)</span>
+
+                <span class="k">return</span> <span class="n">oam</span>
+            <span class="k">return</span> <span class="kc">None</span></div>
+
+
+    <span class="c1"># TODO: REFACTOR - Using sqlmodel</span>
+<div class="viewcode-block" id="DatabaseManager.find_dataset_by_id">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_dataset_by_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_dataset_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">closing</span><span class="p">(</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_file</span><span class="p">))</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT json(md) FROM dataset WHERE id = ?&#39;</span><span class="p">,</span> <span class="p">(</span><span class="nb">id</span><span class="p">,))</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+    <span class="c1"># TODO: REFACTOR - Using sqlmodel</span>
+<div class="viewcode-block" id="DatabaseManager.find_file_upload_status_by_dataset_id_and_filename">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.find_file_upload_status_by_dataset_id_and_filename">[docs]</a>
+    <span class="k">def</span> <span class="nf">find_file_upload_status_by_dataset_id_and_filename</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">filename</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">closing</span><span class="p">(</span><span class="n">sqlite3</span><span class="o">.</span><span class="n">connect</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn_url</span><span class="p">))</span> <span class="k">as</span> <span class="n">connection</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">connection</span><span class="p">:</span>
+                <span class="n">cursor</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">cursor</span><span class="p">()</span>
+                <span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s1">&#39;SELECT json(date_added) FROM data_file WHERE ds_id = ? and name=?&#39;</span><span class="p">,</span>
+                               <span class="p">(</span><span class="n">dataset_id</span><span class="p">,</span> <span class="n">filename</span><span class="p">,))</span>
+                <span class="n">results</span> <span class="o">=</span> <span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+            <span class="k">return</span> <span class="p">(</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_metadata">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.update_metadata">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_metadata</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset</span><span class="p">:</span> <span class="n">Dataset</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">dataset</span><span class="o">.</span><span class="n">id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">ds_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ds_record</span><span class="p">:</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">md</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">md</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">title</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">title</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">release_version</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">release_version</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">saved_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">dataset</span><span class="o">.</span><span class="n">state</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">encrypt_md</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ds_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">ds_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_dataset_md">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.update_dataset_md">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_dataset_md</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">md</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="nb">id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">ds_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">ds_record</span><span class="p">:</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">md</span> <span class="o">=</span> <span class="n">md</span>
+                <span class="n">ds_record</span><span class="o">.</span><span class="n">encrypt_md</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">ds_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">ds_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.set_dataset_ready_for_ingest">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.set_dataset_ready_for_ingest">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_dataset_ready_for_ingest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">status</span><span class="p">:</span> <span class="n">DatasetWorkState</span><span class="o">=</span> <span class="n">DatasetWorkState</span><span class="o">.</span><span class="n">READY</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="nb">id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">md_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">md_record</span><span class="p">:</span>
+                <span class="c1"># md_record.release_version = ReleaseVersion.PUBLISH</span>
+                <span class="n">md_record</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">status</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">md_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">md_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.set_dataset_published">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.set_dataset_published">[docs]</a>
+    <span class="k">def</span> <span class="nf">set_dataset_published</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="nb">id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">md_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">md_record</span><span class="p">:</span>
+                <span class="c1"># md_record.release_version = ReleaseVersion.PUBLISH</span>
+                <span class="n">md_record</span><span class="o">.</span><span class="n">release_version</span> <span class="o">=</span> <span class="n">ReleaseVersion</span><span class="o">.</span><span class="n">PUBLISHED</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">md_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">md_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_target_repo_deposit_status">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.update_target_repo_deposit_status">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_target_repo_deposit_status</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_repo</span><span class="p">:</span> <span class="n">TargetRepo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">ds_id</span><span class="p">,</span>
+                                                 <span class="n">TargetRepo</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">target_repo_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">target_repo</span><span class="p">:</span>
+                <span class="n">target_repo_record</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">deposit_status</span>
+                <span class="n">target_repo_record</span><span class="o">.</span><span class="n">target_output</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">target_output</span>
+                <span class="n">target_repo_record</span><span class="o">.</span><span class="n">deposit_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">target_repo_record</span><span class="o">.</span><span class="n">duration</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">duration</span>
+                <span class="n">target_repo_record</span><span class="o">.</span><span class="n">encrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">target_repo_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">target_repo_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_target_output_by_id">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.update_target_output_by_id">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_target_output_by_id</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">target_repo</span><span class="o">=</span><span class="n">TargetRepo</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">target_repo</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">target_repo_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">target_repo_record</span><span class="p">:</span>
+                <span class="n">target_repo_record</span><span class="o">.</span><span class="n">target_output</span> <span class="o">=</span> <span class="n">target_repo</span><span class="o">.</span><span class="n">target_output</span>
+                <span class="n">target_repo_record</span><span class="o">.</span><span class="n">encrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">target_repo_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">target_repo_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.submitted_now">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.submitted_now">[docs]</a>
+    <span class="k">def</span> <span class="nf">submitted_now</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="nb">id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="nb">id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">md_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">md_record</span><span class="p">:</span>
+                <span class="n">md_record</span><span class="o">.</span><span class="n">submitted_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">md_record</span><span class="o">.</span><span class="n">saved_date</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">md_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">md_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_file">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.update_file">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">df</span><span class="p">:</span> <span class="n">DataFile</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">df</span><span class="o">.</span><span class="n">ds_id</span><span class="p">,</span> <span class="n">DataFile</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">df</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">f_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">f_record</span><span class="p">:</span>
+                <span class="n">f_record</span><span class="o">.</span><span class="n">date_added</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
+                <span class="n">f_record</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">path</span>
+                <span class="n">f_record</span><span class="o">.</span><span class="n">mime_type</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">mime_type</span>
+                <span class="n">f_record</span><span class="o">.</span><span class="n">size</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">size</span>
+                <span class="n">f_record</span><span class="o">.</span><span class="n">checksum_value</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">checksum_value</span>
+                <span class="n">f_record</span><span class="o">.</span><span class="n">state</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">state</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">f_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.update_file_permission">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.update_file_permission">[docs]</a>
+    <span class="k">def</span> <span class="nf">update_file_permission</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">filename</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">permission</span><span class="p">:</span> <span class="n">FilePermissions</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span> <span class="n">DataFile</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">filename</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">f_record</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">f_record</span><span class="p">:</span>
+                <span class="n">f_record</span><span class="o">.</span><span class="n">permissions</span> <span class="o">=</span> <span class="n">permission</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">f_record</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">refresh</span><span class="p">(</span><span class="n">f_record</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.replace_targets_record">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.replace_targets_record">[docs]</a>
+    <span class="k">def</span> <span class="nf">replace_targets_record</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">target_repo_records</span><span class="p">:</span> <span class="p">[</span><span class="n">TargetRepo</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">statement</span> <span class="o">=</span> <span class="n">select</span><span class="p">(</span><span class="n">TargetRepo</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">TargetRepo</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">)</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">statement</span><span class="p">)</span>
+            <span class="n">trs</span> <span class="o">=</span> <span class="n">results</span><span class="o">.</span><span class="n">fetchall</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">trs</span><span class="p">:</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">tr</span><span class="p">)</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">tr</span> <span class="ow">in</span> <span class="n">target_repo_records</span><span class="p">:</span>
+                <span class="n">tr</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">=</span> <span class="n">dataset_id</span>
+                <span class="n">tr</span><span class="o">.</span><span class="n">encrypt_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cipher_suite</span><span class="p">)</span>
+                <span class="n">session</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">tr</span><span class="p">)</span>
+            <span class="n">session</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.is_dataset_ready">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.is_dataset_ready">[docs]</a>
+    <span class="k">def</span> <span class="nf">is_dataset_ready</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">dataset_id_rec</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span>
+                <span class="n">select</span><span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">((</span><span class="n">Dataset</span><span class="o">.</span><span class="n">id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">DatasetWorkState</span><span class="o">.</span><span class="n">READY</span><span class="p">)</span> <span class="o">&amp;</span>
+                                         <span class="p">(</span><span class="n">Dataset</span><span class="o">.</span><span class="n">release_version</span> <span class="o">==</span> <span class="n">ReleaseVersion</span><span class="o">.</span><span class="n">PUBLISH</span><span class="p">)))</span><span class="o">.</span><span class="n">one_or_none</span><span class="p">()</span>
+            <span class="k">return</span> <span class="n">dataset_id_rec</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="DatabaseManager.are_files_uploaded">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.DatabaseManager.are_files_uploaded">[docs]</a>
+    <span class="k">def</span> <span class="nf">are_files_uploaded</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">Session</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">engine</span><span class="p">)</span> <span class="k">as</span> <span class="n">session</span><span class="p">:</span>
+            <span class="n">results</span> <span class="o">=</span> <span class="n">session</span><span class="o">.</span><span class="n">exec</span><span class="p">(</span><span class="n">select</span><span class="p">(</span><span class="n">DataFile</span><span class="p">)</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">DataFile</span><span class="o">.</span><span class="n">ds_id</span> <span class="o">==</span> <span class="n">dataset_id</span><span class="p">,</span>
+                                                          <span class="n">DataFile</span><span class="o">.</span><span class="n">state</span> <span class="o">==</span> <span class="n">DataFileWorkState</span><span class="o">.</span><span class="n">REGISTERED</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()</span>
+
+        <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span></div>
+</div>
+
+
+
+<span class="c1"># import decimal, datetime</span>
+<span class="c1">#</span>
+<span class="c1">#</span>
+<span class="c1"># def alchemyencoder(obj):</span>
+<span class="c1">#     &quot;&quot;&quot;JSON encoder function for SQLAlchemy special classes.&quot;&quot;&quot;</span>
+<span class="c1">#     if isinstance(obj, datetime.date):</span>
+<span class="c1">#         return obj.isoformat()</span>
+<span class="c1">#     elif isinstance(obj, decimal.Decimal):</span>
+<span class="c1">#         return float(obj)</span>
+
+
+<div class="viewcode-block" id="ProgressTarget">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.ProgressTarget">[docs]</a>
+<span class="k">class</span> <span class="nc">ProgressTarget</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">target_repo_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;target-repo-name&#39;</span><span class="p">)</span>
+    <span class="n">target_repo_display_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;target-repo-display-name&#39;</span><span class="p">)</span>
+    <span class="n">target_url</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;target-url&#39;</span><span class="p">)</span>
+    <span class="n">ingest_status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;ingest-status&#39;</span><span class="p">)</span>
+    <span class="n">target_output</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;target-output&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="ProgressModel">
+<a class="viewcode-back" href="../../source/src.html#src.dbz.ProgressModel">[docs]</a>
+<span class="k">class</span> <span class="nc">ProgressModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+    <span class="n">metadata_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;metadata-id&#39;</span><span class="p">)</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">created_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;created-date&#39;</span><span class="p">)</span>
+    <span class="n">submitted_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;submitted-date&#39;</span><span class="p">)</span>
+    <span class="n">saved_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;saved-date&#39;</span><span class="p">)</span>
+    <span class="n">release_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;release-version&#39;</span><span class="p">)</span>
+    <span class="n">targets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">ProgressTarget</span><span class="p">]</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Eko Indarto.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

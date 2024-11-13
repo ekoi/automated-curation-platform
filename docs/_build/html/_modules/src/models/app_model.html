@@ -1,0 +1,237 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.models.app_model &mdash; Automated Curation Platform 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Automated Curation Platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Automated Curation Platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.models.app_model</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.models.app_model</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">from</span> <span class="nn">dataclasses</span> <span class="kn">import</span> <span class="n">dataclass</span>
+<span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">List</span><span class="p">,</span> <span class="n">Dict</span><span class="p">,</span> <span class="n">Any</span>
+
+<span class="kn">from</span> <span class="nn">pydantic</span> <span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+
+
+<div class="viewcode-block" id="ResponseDataModel">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.app_model.ResponseDataModel">[docs]</a>
+<span class="k">class</span> <span class="nc">ResponseDataModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for response data.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        status (str): The status of the response.</span>
+<span class="sd">        dataset_id (str): The ID of the dataset, aliased as &#39;dataset-id&#39;.</span>
+<span class="sd">        start_process (Optional[bool]): Indicates whether to start the process, aliased as &#39;start-process&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;dataset-id&#39;</span><span class="p">)</span>
+    <span class="n">start_process</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">bool</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;start-process&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="InboxDatasetDataModel">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.app_model.InboxDatasetDataModel">[docs]</a>
+<span class="nd">@dataclass</span><span class="p">(</span><span class="n">frozen</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">kw_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="k">class</span> <span class="nc">InboxDatasetDataModel</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for inbox dataset.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        assistant_name (str): The name of the assistant.</span>
+<span class="sd">        target_creds (str): The credentials for the target.</span>
+<span class="sd">        owner_id (str): The ID of the owner.</span>
+<span class="sd">        title (str): The title of the dataset. Defaults to an empty string.</span>
+<span class="sd">        metadata (dict): The metadata associated with the dataset.</span>
+<span class="sd">        release_version (str): The release version of the dataset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">assistant_name</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">target_creds</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">metadata</span><span class="p">:</span> <span class="nb">dict</span>
+    <span class="n">release_version</span><span class="p">:</span> <span class="nb">str</span></div>
+
+
+
+<div class="viewcode-block" id="TargetApp">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.app_model.TargetApp">[docs]</a>
+<span class="k">class</span> <span class="nc">TargetApp</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for target application.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        repo_name (str): The name of the repository, aliased as &#39;repo-name&#39;.</span>
+<span class="sd">        display_name (str): The display name of the target application, aliased as &#39;display-name&#39;.</span>
+<span class="sd">        deposit_status (str): The deposit status of the target application, aliased as &#39;deposit-status&#39;.</span>
+<span class="sd">        deposit_time (str): The deposit time of the target application, aliased as &#39;deposit-time&#39;.</span>
+<span class="sd">        duration (str): The duration of the process.</span>
+<span class="sd">        output_response (Dict[str, Any]): The output response from the target application, aliased as &#39;output-response&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">repo_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;repo-name&#39;</span><span class="p">)</span>
+    <span class="n">display_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;display-name&#39;</span><span class="p">)</span>
+    <span class="n">deposit_status</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;deposit-status&#39;</span><span class="p">)</span>
+    <span class="n">deposit_time</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;deposit-time&#39;</span><span class="p">)</span>
+    <span class="n">duration</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">output_response</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;output-response&#39;</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Asset">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.app_model.Asset">[docs]</a>
+<span class="k">class</span> <span class="nc">Asset</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for an asset.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        dataset_id (str): The ID of the dataset, aliased as &#39;dataset-id&#39;.</span>
+<span class="sd">        title (str): The title of the asset.</span>
+<span class="sd">        md (str): The metadata of the asset.</span>
+<span class="sd">        created_date (str): The creation date of the asset, aliased as &#39;created-date&#39;.</span>
+<span class="sd">        saved_date (str): The saved date of the asset, aliased as &#39;saved-date&#39;.</span>
+<span class="sd">        submitted_date (str): The submitted date of the asset, aliased as &#39;submitted-date&#39;.</span>
+<span class="sd">        release_version (str): The release version of the asset, aliased as &#39;release-version&#39;.</span>
+<span class="sd">        version (str): The version of the asset.</span>
+<span class="sd">        targets (List[TargetApp]): The list of target applications associated with the asset.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">dataset_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;dataset-id&#39;</span><span class="p">)</span>
+    <span class="n">title</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">md</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">created_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;created-date&#39;</span><span class="p">)</span>
+    <span class="n">saved_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;saved-date&#39;</span><span class="p">)</span>
+    <span class="n">submitted_date</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;submitted-date&#39;</span><span class="p">)</span>
+    <span class="n">release_version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;release-version&#39;</span><span class="p">)</span>
+    <span class="n">version</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+    <span class="n">targets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TargetApp</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+
+<div class="viewcode-block" id="OwnerAssetsModel">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.app_model.OwnerAssetsModel">[docs]</a>
+<span class="k">class</span> <span class="nc">OwnerAssetsModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for owner assets.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        owner_id (str): The ID of the owner, aliased as &#39;owner-id&#39;.</span>
+<span class="sd">        assets (List[Asset]): The list of assets owned by the owner.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">owner_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;owner-id&#39;</span><span class="p">)</span>
+    <span class="n">assets</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">Asset</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span></div>
+
+
+<span class="n">json_data</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;owner-id&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;assets&quot;</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;dataset-id&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;ds.title&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;created-date&quot;</span><span class="p">:</span> <span class="s2">&quot;ds.created_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;saved-date&quot;</span><span class="p">:</span> <span class="s2">&quot;ds.saved_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;submitted-date&quot;</span><span class="p">:</span> <span class="s2">&quot;ds.submitted_date&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;release-version&quot;</span><span class="p">:</span> <span class="s2">&quot;ds.release_version&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;version&quot;</span><span class="p">:</span> <span class="s2">&quot;ds.version&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;targets&quot;</span><span class="p">:</span> <span class="p">[</span>
+                <span class="p">{</span>
+                    <span class="s2">&quot;repo-name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;display-name&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;deposit-status&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;deposit-time&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+                    <span class="s2">&quot;output-response&quot;</span><span class="p">:</span> <span class="p">{}</span>
+                <span class="p">}</span>
+            <span class="p">]</span>
+        <span class="p">}</span>
+    <span class="p">]</span>
+<span class="p">}</span>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Eko Indarto.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

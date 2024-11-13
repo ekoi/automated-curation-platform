@@ -1,0 +1,184 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>src.modules.swh_sword_depositor &mdash; Automated Curation Platform 0.5.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../../_static/pygments.css?v=80d5e7a1" />
+      <link rel="stylesheet" type="text/css" href="../../../_static/css/theme.css?v=e59714d7" />
+
+  
+      <script src="../../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../../_static/documentation_options.js?v=1dd76d02"></script>
+      <script src="../../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../../_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="../../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../../index.html" class="icon icon-home">
+            Automated Curation Platform
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <!-- Local TOC -->
+              <div class="local-toc"></div>
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">Automated Curation Platform</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">src.modules.swh_sword_depositor</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for src.modules.swh_sword_depositor</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span> <span class="nn">json</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">time</span> <span class="kn">import</span> <span class="n">sleep</span>
+
+<span class="kn">import</span> <span class="nn">requests</span>
+<span class="kn">import</span> <span class="nn">sword2.deposit_receipt</span> <span class="k">as</span> <span class="nn">dr</span>
+<span class="kn">from</span> <span class="nn">requests.auth</span> <span class="kn">import</span> <span class="n">HTTPBasicAuth</span>
+
+<span class="kn">from</span> <span class="nn">src.bridge</span> <span class="kn">import</span> <span class="n">Bridge</span>
+<span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">settings</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">db_manager</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span>
+
+
+<div class="viewcode-block" id="SwhSwordDepositor">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor">[docs]</a>
+<span class="k">class</span> <span class="nc">SwhSwordDepositor</span><span class="p">(</span><span class="n">Bridge</span><span class="p">):</span>
+
+<div class="viewcode-block" id="SwhSwordDepositor.execute">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.execute">[docs]</a>
+    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+
+        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">()</span>
+        <span class="c1"># create_sword_payload(self):</span>
+        <span class="n">swh_form_md</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_rec</span><span class="o">.</span><span class="n">md</span><span class="p">)</span>
+        <span class="n">dv_target</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_target_repo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">from_target_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">dv_target</span><span class="p">:</span>
+            <span class="n">swh_form_md</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s2">&quot;doi&quot;</span><span class="p">:</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">dv_target</span><span class="o">.</span><span class="n">target_output</span><span class="p">)[</span><span class="s1">&#39;response&#39;</span><span class="p">][</span><span class="s1">&#39;identifiers&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="s1">&#39;value&#39;</span><span class="p">]})</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;SwhSwordDepositor- swh_form_md - after update (doi): </span><span class="si">{</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">swh_form_md</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+               <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+        <span class="n">str_sword_payload</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span>
+            <span class="n">transformer_url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">transformed_metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">transformer_url</span><span class="p">,</span>
+            <span class="n">str_tobe_transformed</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">swh_form_md</span><span class="p">)</span>
+        <span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;deposit to &quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;payload: &quot;</span><span class="si">{</span><span class="n">str_sword_payload</span><span class="si">}</span><span class="s1">&quot;&#39;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+        <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/atom+xml;type=entry&#39;</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">auth</span> <span class="o">=</span> <span class="n">HTTPBasicAuth</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">swh_sword_username</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">swh_sword_password</span><span class="p">)</span>
+        <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">str_sword_payload</span><span class="p">)</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;status_code: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">. Response: </span><span class="si">{</span><span class="n">response</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span> <span class="ow">or</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">201</span><span class="p">:</span>  <span class="c1"># TODO: remove 200, use only 201</span>
+            <span class="n">rt</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;sword response: </span><span class="si">{</span><span class="n">rt</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+
+            <span class="n">deposit_response</span> <span class="o">=</span> <span class="n">dr</span><span class="o">.</span><span class="n">Deposit_Receipt</span><span class="p">(</span><span class="n">xml_deposit_receipt</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">deposit_response</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;atom_deposit_status&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;deposited&#39;</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">DEPOSITED</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
+            <span class="n">status_url</span> <span class="o">=</span> <span class="n">deposit_response</span><span class="o">.</span><span class="n">alternate</span>
+            <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Status request send to </span><span class="si">{</span><span class="n">status_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+            <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">while</span> <span class="kc">True</span> <span class="ow">and</span> <span class="p">(</span><span class="n">counter</span> <span class="o">&lt;</span> <span class="n">settings</span><span class="o">.</span><span class="n">swh_api_max_retries</span><span class="p">):</span>
+                <span class="n">counter</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="n">sleep</span><span class="p">(</span><span class="n">settings</span><span class="o">.</span><span class="n">swh_delay_polling_sword</span><span class="p">)</span>
+                <span class="n">rsp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">status_url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">,</span> <span class="n">auth</span><span class="o">=</span><span class="n">auth</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">rsp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">200</span><span class="p">:</span>
+                    <span class="n">rsp_text</span> <span class="o">=</span> <span class="n">rsp</span><span class="o">.</span><span class="n">text</span>
+                    <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;response from </span><span class="si">{</span><span class="n">status_url</span><span class="si">}</span><span class="s1"> is </span><span class="si">{</span><span class="n">rsp_text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+                    <span class="n">rsp_dep</span> <span class="o">=</span> <span class="n">dr</span><span class="o">.</span><span class="n">Deposit_Receipt</span><span class="p">(</span><span class="n">xml_deposit_receipt</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">)</span>
+                    <span class="nb">print</span><span class="p">(</span><span class="n">rsp_dep</span><span class="o">.</span><span class="n">metadata</span><span class="p">)</span>
+                    <span class="n">swh_metadata</span> <span class="o">=</span> <span class="n">rsp_dep</span><span class="o">.</span><span class="n">metadata</span>
+                    <span class="n">swh_deposit_status</span> <span class="o">=</span> <span class="n">swh_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;atom_deposit_status&#39;</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">swh_deposit_status</span> <span class="ow">and</span> <span class="n">swh_deposit_status</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;rejected&#39;</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">swh_deposit_status</span> <span class="ow">and</span> <span class="n">swh_deposit_status</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">DEPOSITED</span><span class="p">,</span> <span class="s2">&quot;done&quot;</span><span class="p">]:</span>
+                        <span class="n">target_repo</span> <span class="o">=</span> <span class="n">TargetResponse</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span><span class="p">,</span>
+                                                     <span class="n">message</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">)</span>
+                        <span class="n">target_repo</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">status_url</span>
+                        <span class="n">target_repo</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">rsp</span><span class="o">.</span><span class="n">status_code</span>
+                        <span class="n">target_repo</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">rsp_text</span>
+                        <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span>
+                        <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">target_repo</span>
+                        <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">deposit_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">bridge_output_model</span>
+
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error request to </span><span class="si">{</span><span class="n">status_url</span><span class="si">}</span><span class="s1"> with rsp.status_code: </span><span class="si">{</span><span class="n">rsp</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1"> and &#39;</span>
+                                     <span class="sa">f</span><span class="s1">&#39;rsp.text: </span><span class="si">{</span><span class="n">rsp</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">ERROR</span>
+            <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">notes</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">text</span>
+        <span class="k">return</span> <span class="n">bridge_output_model</span></div>
+</div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Eko Indarto.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
