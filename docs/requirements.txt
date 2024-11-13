@@ -156,4 +156,8 @@ yarl==1.17.1
 zipp==3.20.2
 sphinx
 sphinx-rtd-theme
+sphinx
+sphinx-rtd-theme
+sphinx.ext.autodoc
+sphinx.ext.napoleon
 
