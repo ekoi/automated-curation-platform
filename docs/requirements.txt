@@ -154,10 +154,5 @@ Werkzeug==3.1.2
 wrapt==1.16.0
 yarl==1.17.1
 zipp==3.20.2
-sphinx
-sphinx-rtd-theme
-sphinx
-sphinx-rtd-theme
 sphinx.ext.autodoc
 sphinx.ext.napoleon
-
