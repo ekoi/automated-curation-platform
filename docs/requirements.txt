@@ -141,7 +141,6 @@ starlette==0.41.2
 swh.core==3.6.3
 swh.deposit==1.4.4
 swh.model==6.16.0
-sword2 @ git+https://github.com/ekoi/python-client-sword2@abc71e920800432e8a6c9cc7110e22dd2f4fb8ed
 tenacity==9.0.0
 thrift==0.21.0
 toml==0.10.2
