@@ -1,24 +1,9 @@
-# def taskX_A():
-#     logger_a = logger.bind(task="AX")
-#     logger_a.info("Starting task AX")
-#     #do_something()
-#     logger_a.success("End of task AX")
-# def taskX_B():
-#     logger_b = logger.bind(task="BY")
-#     logger_b.info("Starting task BY")
-#     #do_something_else()
-#     logger_b.success("End of task BY")
-# logger.add("file_A.log", filter=lambda record: record["extra"]["task"] == "AX")
-# logger.add("file_B.log", filter=lambda record: record["extra"]["task"] == "BY")
-# taskX_A()
-# taskX_B()
-
-
 from __future__ import annotations
 
+import urllib
 from typing import List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class TransformedMetadata(BaseModel):
@@ -70,7 +55,7 @@ class Target(BaseModel):
     repo_name: str = Field(..., alias='repo-name')
     repo_display_name: str = Field(..., alias='repo-display-name')
     bridge_module_class: str = Field(..., alias='bridge-module-class')
-    base_url: str = Field(..., alias='base-url')
+    base_url: Optional[str] = Field(default=None, alias='base-url')
     target_url: str = Field(..., alias='target-url')
     target_url_params: Optional[str] = Field(default=None, alias='target-url-params')
     username: Optional[str] = None
@@ -78,6 +63,14 @@ class Target(BaseModel):
     metadata: Optional[Metadata] = None
     initial_release_version: Optional[str] = Field(default=None, alias='initial-release-version')
     input: Optional[Input] = None
+
+    @field_validator('target_url', 'base_url', mode='before')
+    def validate_urls(cls, v, field):
+        if v:
+            parsed_url = urllib.parse.urlparse(v)
+            if field.name in ['target_url', 'base_url'] and parsed_url.scheme not in ['https', 'http', 'file']:
+                raise ValueError(f"Invalid {field.name} URL: {v}")
+        return v
 
 
 class FileConversion(BaseModel):

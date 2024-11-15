@@ -50,3 +50,19 @@ By offering these diverse implementations, DANS ensures that the ACP can meet a 
 The database schema for the Automated Curation Platform (ACP) is designed to support the curation process by storing essential information related to the curation tasks, configurations, and repository targets. This schema is crucial for managing and organizing data effectively, ensuring that the curation process runs smoothly and efficiently.
 
 **By default, after every successful ingestion to the target repository, the metadata and files will be deleted from the database and the file system**. However, it is possible to configure the system to retain the **metadata** for a specific period for auditing purposes.
+
+## How to Run in docker-compose
+To run the Automated Curation Platform (ACP) using `docker-compose`, follow these steps:
+
+1. **Clone `docker-compose` from [acp-ras-transformer](https://github.com/koharudin/acp-ras-transformer)**:
+    
+
+2. **Run `docker-compose`**:
+    ```sh
+    docker-compose up -d
+    ```
+
+3. **Access the ACP**:
+    Open your browser and navigate to `http://localhost:10124/docs` or `http://localhost:10124/redoc`.
+
+This setup will start the ACP, RA Service, and Transformer Service, allowing you to begin using the Automated Curation Platform for your curation needs.
