@@ -1,0 +1,11 @@
+services:
+  acp:
+    build: 
+      context: . 
+      dockerfile: Dockerfile-dev 
+    ports:
+      - 10124:10124
+    volumes:
+      - ./:/home/dans/acp 
+    tty: true
+    command: "poetry run python -m src.main"
