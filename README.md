@@ -56,8 +56,9 @@ To run the Automated Curation Platform (ACP) using `docker-compose`, follow thes
 
 1. **Clone `docker-compose` from [acp-ras-transformer](https://github.com/koharudin/acp-ras-transformer)**:
     
+2. **Run `git submodule update --remote`**
 
-2. **Run `docker-compose`**:
+3. **Run `docker-compose`**:
     ```sh
     docker-compose up -d
     ```
