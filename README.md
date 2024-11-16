@@ -63,7 +63,7 @@ To run the Automated Curation Platform (ACP) using `docker-compose`, follow thes
     docker-compose up -d
     ```
 
-3. **Access the ACP**:
+4. **Access the ACP**:
     Open your browser and navigate to `http://localhost:10124/docs` or `http://localhost:10124/redoc`.
 
 This setup will start the ACP, RA Service, and Transformer Service, allowing you to begin using the Automated Curation Platform for your curation needs.
