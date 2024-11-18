@@ -61,6 +61,7 @@ class Target(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     metadata: Optional[Metadata] = None
+    storage_type: Optional[str] = Field(default=None, alias='store-type')
     initial_release_version: Optional[str] = Field(default=None, alias='initial-release-version')
     input: Optional[Input] = None
 

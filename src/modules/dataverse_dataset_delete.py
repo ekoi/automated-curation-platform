@@ -11,8 +11,23 @@ from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
 
 
 class DataverseDatasetDelete(Bridge):
+    """
+    A class to handle the deletion of datasets from a Dataverse repository.
+
+    Inherits from:
+        Bridge: The base class for all bridge implementations.
+    """
 
     def execute(self) -> BridgeOutputDataModel:
+        """
+        Executes the dataset deletion process from the Dataverse repository.
+
+        This method parses the metadata to retrieve the dataset persistent ID, constructs the appropriate URL for deletion,
+        sends the deletion request, and constructs the bridge output model based on the response.
+
+        Returns:
+        BridgeOutputDataModel: The output model containing the response from the Dataverse repository and the status of the deletion process.
+        """
         md_json = json.loads(self.metadata_rec.md)
         try:
             dv_pid = md_json["datasetVersion"]["datasetPersistentId"]

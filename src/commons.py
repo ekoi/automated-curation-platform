@@ -8,6 +8,7 @@ import zipfile
 import re
 from tempfile import NamedTemporaryFile
 
+import boto3
 import psutil
 import time
 from datetime import datetime
@@ -54,11 +55,29 @@ assistant_repo_headers = {
 }
 
 def get_version():
+    """
+    Retrieves the version of the package from the `pyproject.toml` file.
+
+    This function opens the `pyproject.toml` file located in the base directory of the project,
+    reads its contents, and returns the version of the package as specified under the `[tool.poetry]` section.
+
+    Returns:
+    str: The version of the package.
+    """
     with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
         package_details = tomli.load(file)
     return package_details['tool']['poetry']['version']
 
 def get_name():
+    """
+    Retrieves the name of the package from the `pyproject.toml` file.
+
+    This function opens the `pyproject.toml` file located in the base directory of the project,
+    reads its contents, and returns the name of the package as specified under the `[tool.poetry]` section.
+
+    Returns:
+    str: The name of the package.
+    """
     with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
         package_details = tomli.load(file)
     return package_details['tool']['poetry']['name']
@@ -135,6 +154,24 @@ def get_class(kls) -> Any:
     return None
 
 def transform(transformer_url: str, str_tobe_transformed: str, headers: {} = None) -> str:
+    """
+    Transforms a given string using a specified transformer service.
+
+    This function sends a POST request to the transformer service with the string to be transformed.
+    If the transformation is successful (HTTP status code 200), it returns the transformed result.
+    Otherwise, it raises a ValueError with the response status code.
+
+    Parameters:
+    transformer_url (str): The URL of the transformer service.
+    str_tobe_transformed (str): The string to be transformed.
+    headers (dict, optional): The headers to include in the request. Defaults to `transformer_headers`.
+
+    Returns:
+    str: The transformed string if the request is successful.
+
+    Raises:
+    ValueError: If `str_tobe_transformed` is not a string or if the response status code is not 200.
+    """
     logger(f'transformer_url: {transformer_url}', settings.LOG_LEVEL, LOG_NAME_ACP)
     if not isinstance(str_tobe_transformed, str):
         raise ValueError(f"Error - str_tobe_transformed is not a string. It is : {type(str_tobe_transformed)}")
@@ -149,11 +186,37 @@ def transform(transformer_url: str, str_tobe_transformed: str, headers: {} = Non
     raise ValueError(f"Error - Transformer response status code: {response.status_code}")
 
 def transform_json(transformer_url: str, str_tobe_transformed: str) -> str:
-   transform(transformer_url, str_tobe_transformed, transformer_headers)
+    """
+    Transforms a given string using a specified transformer service with JSON headers.
+
+    This function calls the `transform` function with the provided transformer URL and string to be transformed,
+    using the `transformer_headers` for the request headers.
+
+    Parameters:
+    transformer_url (str): The URL of the transformer service.
+    str_tobe_transformed (str): The string to be transformed.
+
+    Returns:
+    str: The transformed string if the request is successful.
+    """
+    transform(transformer_url, str_tobe_transformed, transformer_headers)
 
 
 
 def transform_xml(transformer_url: str, str_tobe_transformed: str) -> str:
+    """
+    Transforms a given string using a specified transformer service with XML headers.
+
+    This function calls the `transform` function with the provided transformer URL and string to be transformed,
+    using the `transformer_headers_xml` for the request headers.
+
+    Parameters:
+    transformer_url (str): The URL of the transformer service.
+    str_tobe_transformed (str): The string to be transformed.
+
+    Returns:
+    str: The transformed string if the request is successful.
+    """
     transform(transformer_url, str_tobe_transformed, transformer_headers_xml)
 
 # def transform(transformer_url: str, input: str) -> str:
@@ -378,7 +441,32 @@ def dmz_dataverse_headers(username, password) -> dict:
 
 
 def upload_large_file(url, file_path, json_data, api_key, file_name=None):
+    """
+    Uploads a large file to a specified URL with progress logging.
+
+    This function uploads a file to the given URL using the `requests` library and the `MultipartEncoder` for handling
+    large file uploads. It logs the upload progress at intervals of 5% or when the progress exceeds 95%.
+
+    Parameters:
+    url (str): The URL to which the file will be uploaded.
+    file_path (str): The path to the file to be uploaded.
+    json_data (dict): A dictionary containing JSON data to be included in the upload.
+    api_key (str): The API key for authentication.
+    file_name (str, optional): The name of the file to be uploaded. If not provided, the basename of `file_path` is used.
+
+    Returns:
+    requests.Response: The response from the server after the file upload.
+    """
     def create_callback(encoder):
+        """
+        Creates a callback function to log the upload progress.
+
+        Parameters:
+        encoder (MultipartEncoder): The encoder handling the file upload.
+
+        Returns:
+        function: A callback function that logs the upload progress.
+        """
         encoder_len = encoder.len
         last_reported_progress = -5  # Initialize to -5 so it prints at 0%
 
@@ -413,6 +501,18 @@ def upload_large_file(url, file_path, json_data, api_key, file_name=None):
 
 
 def zip_with_progress(file_path, zip_path):
+    """
+    Compresses a file into a zip archive with progress logging.
+
+    This function compresses the specified file into a zip archive, logging the progress at intervals of 10%.
+
+    Parameters:
+    file_path (str): The path to the file to be compressed.
+    zip_path (str): The path where the zip archive will be created.
+
+    Returns:
+    None
+    """
     # Resolve the file_path if it's a symlink
     if os.path.islink(file_path):
         real_file_path = os.readlink(file_path)
@@ -453,6 +553,19 @@ def zip_with_progress(file_path, zip_path):
 
 
 def delete_symlink_and_target(link_name):
+    """
+    Deletes a symbolic link and its target.
+
+    This function checks if the given `link_name` is a symbolic link. If it is, it reads the target of the symbolic link.
+    If the target is a directory, it removes the directory and its contents. If the target is a file, it removes the file.
+    Finally, it removes the symbolic link itself and logs the deletion.
+
+    Parameters:
+    link_name (str): The name of the symbolic link to be deleted.
+
+    Returns:
+    None
+    """
     if os.path.islink(link_name):
         target = os.readlink(link_name)
         if os.path.isdir(target):
@@ -462,8 +575,20 @@ def delete_symlink_and_target(link_name):
         os.remove(link_name)
         logger(f'{link_name} and its target {target} DELETED successfully.', settings.LOG_LEVEL, LOG_NAME_ACP)
 
-
 def compress_zip_file(original_zip_path):
+    """
+    Compresses an existing zip file to reduce its size.
+
+    This function reads the contents of the specified zip file, compresses them with the highest compression level,
+    and writes the compressed contents to a temporary file. The temporary file is then moved to replace the original zip file.
+    Progress is printed to the console.
+
+    Parameters:
+    original_zip_path (str): The path to the original zip file to be compressed.
+
+    Returns:
+    None
+    """
     if not os.path.exists(original_zip_path):
         print(f"File {original_zip_path} does not exist.")
         return
@@ -494,9 +619,23 @@ def compress_zip_file(original_zip_path):
 
 
 def zip_a_zipfile_with_progress(original_zip_path, new_zip_path):
+    """
+    Compresses an existing zip file into a new zip file with progress logging.
+
+    This function creates a new zip file and adds the original zip file to it. The progress is logged as 100%
+    since the file is added in one go.
+
+    Parameters:
+    original_zip_path (str): The path to the original zip file to be compressed.
+    new_zip_path (str): The path where the new zip file will be created.
+
+    Returns:
+    None
+    """
     # Get the size of the original zip file
     original_zip_size = os.path.getsize(original_zip_path)
     arcname = original_zip_path.split('/')[-1]
+
     # Create a new zip file (outer zip)
     with zipfile.ZipFile(new_zip_path, 'w', zipfile.ZIP_DEFLATED) as new_zip:
         # Add the original zip file to the new zip file
@@ -508,13 +647,26 @@ def zip_a_zipfile_with_progress(original_zip_path, new_zip_path):
         # Print the progress
         logger(f"Zipping Progress of {arcname} : {progress}%", settings.LOG_LEVEL, LOG_NAME_ACP)
 
-
-
-
-
 def escape_invalid_json_characters(json_string: str) -> str:
     # Replace invalid control characters with their escaped equivalents
     escaped_string = re.sub(r'[\x00-\x1F\x7F]', lambda match: '\\u{:04x}'.format(ord(match.group())), json_string)
     return escaped_string
 
+def create_s3_client():
+    """
+    Initializes and returns an S3 client using the provided settings.
 
+    The settings for the S3 client are retrieved from the global `settings` object, which includes:
+    - `S3_STORAGE_ENDPOINT`: The endpoint URL for the S3 storage.
+    - `S3_ACCESS_KEY_ID`: The AWS access key ID.
+    - `S3_ACCESS_KEY_SECRET`: The AWS secret access key.
+
+    Returns:
+        boto3.client: An S3 client instance configured with the specified settings.
+    """
+    return boto3.client(
+        's3',
+        endpoint_url=settings.S3_STORAGE_ENDPOINT,
+        aws_access_key_id=settings.S3_ACCESS_KEY_ID,
+        aws_secret_access_key=settings.S3_ACCESS_KEY_SECRET
+    )

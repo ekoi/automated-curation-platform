@@ -15,8 +15,24 @@ from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
 
 
 class ZenodoApiDepositor(Bridge):
+    """
+    A class to handle the deposit of metadata to the Zenodo API.
+
+    Inherits from:
+        Bridge: The base class for all bridge implementations.
+    """
+
     @handle_deposit_exceptions
     def execute(self) -> BridgeOutputDataModel:
+        """
+        Executes the deposit process to the Zenodo API.
+
+        This method creates an initial dataset on Zenodo, transforms the metadata, and sends a PUT request to update the dataset.
+        It then ingests files into the Zenodo bucket and updates the bridge output model accordingly.
+
+        Returns:
+        BridgeOutputDataModel: The output model containing the response from the Zenodo API and the status of the deposit.
+        """
         zenodo_resp = self.__create_initial_dataset()
         if zenodo_resp is None:
             return BridgeOutputDataModel(notes="Error occurs: status code: 500", deposit_status=DepositStatus.ERROR)
@@ -54,6 +70,14 @@ class ZenodoApiDepositor(Bridge):
 
     @handle_deposit_exceptions
     def __create_initial_dataset(self) -> dict | None:
+        """
+        Creates an initial dataset on Zenodo.
+
+        This method sends a POST request to the Zenodo API to create an initial dataset.
+
+        Returns:
+        dict | None: The response from the Zenodo API if the dataset is created successfully, otherwise None.
+        """
         logger('Create an initial zenodo dataset', settings.LOG_LEVEL, self.app_name)
         response = requests.post(f"{self.target.target_url}?{self.target.username}={self.target.password}",
                                  data="{}", headers={"Content-Type": "application/json"})
@@ -61,6 +85,17 @@ class ZenodoApiDepositor(Bridge):
         return response.json() if response.status_code == 201 else None
 
     def __ingest_files(self, bucket_url: str) -> dict:
+        """
+        Ingests files into the Zenodo bucket.
+
+        This method uploads files to the specified Zenodo bucket URL.
+
+        Parameters:
+        bucket_url (str): The URL of the Zenodo bucket where files will be uploaded.
+
+        Returns:
+        dict: A dictionary containing the status of the file ingestion process.
+        """
         logger(f'Ingesting files to {bucket_url}', "debug", self.app_name)
         params = {'access_token': self.target.password, 'access_right': 'restricted'}
         for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):

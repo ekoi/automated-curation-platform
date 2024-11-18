@@ -14,8 +14,24 @@ from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
 
 
 class SwhApiDepositor(Bridge):
+    """
+    A class to handle the deposit of metadata to the Software Heritage (SWH) API.
+
+    Inherits from:
+        Bridge: The base class for all bridge implementations.
+    """
 
     def execute(self) -> BridgeOutputDataModel:
+        """
+        Executes the deposit process to the SWH API.
+
+        This method logs the start of the deposit process, constructs the target URL, and sends a POST request to the SWH API.
+        It then polls the SWH API for the status of the deposit until it is either successful or fails, logging the progress
+        and updating the bridge output model accordingly.
+
+        Returns:
+        BridgeOutputDataModel: The output model containing the response from the SWH API and the status of the deposit.
+        """
         logger(f'DEPOSIT to {self.target.repo_name}', settings.LOG_LEVEL, self.app_name)
         target_response = TargetResponse()
         target_swh = jmespath.search("metadata[*].fields[?name=='repository_url'].value",

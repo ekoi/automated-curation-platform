@@ -12,8 +12,23 @@ from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
 
 
 class OaiHarvesterClientGetRecord(Bridge):
+    """
+    A class to handle the harvesting of metadata records from an OAI-PMH (Open Archives Initiative Protocol for Metadata Harvesting) repository.
+
+    Inherits from:
+        Bridge: The base class for all bridge implementations.
+    """
 
     def execute(self) -> BridgeOutputDataModel:
+        """
+        Executes the harvesting process from the OAI-PMH repository.
+
+        This method logs the start of the harvesting process, retrieves the metadata record from the OAI-PMH repository,
+        transforms the metadata, updates the dataset metadata in the database, and constructs the bridge output model.
+
+        Returns:
+        BridgeOutputDataModel: The output model containing the response from the OAI-PMH repository and the status of the harvesting process.
+        """
         logger(f'Harvesting of {self.target.repo_name}', settings.LOG_LEVEL, self.app_name)
         oai_metadata = json.loads(self.metadata_rec.md)
 
