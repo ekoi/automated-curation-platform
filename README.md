@@ -46,6 +46,36 @@ ACP currently supports the following authentication mechanisms:
 
 These options ensure secure and scalable access to the platform, meeting the authentication requirements of modern systems.
 
+## [ACP UI Admin](https://github.com/koharudin/acp-admin)
+
+The ACP comes equipped with an intuitive **UI Admin** interface, providing administrators and users with robust tools to manage, monitor, and fine-tune the platform. Key features include:
+
+1. **Monitoring the Progress of the Pipeline Flow**
+   - Administrators can visually track the progression of curation pipelines in real-time, ensuring transparency in every step of the process.
+   - Detailed views highlight the status and performance metrics of ongoing flows.
+
+2. **Checking the Status of Each Flow**
+   - The UI provides granular insights into the state of individual curation flows, enabling administrators to quickly identify bottlenecks or errors.
+   - Logs and reports are accessible for troubleshooting and auditing.
+
+3. **Managing Repository Assistant Service**
+   - Easily create, modify, and delete repository targets to accommodate evolving requirements.
+   - Fine-tune configurations for repository URLs and associated modules directly from the UI.
+
+4. **Managing Transformer Service**
+   - Configure and maintain transformers that translate metadata formats to meet the standards of target repositories.
+   - Add, update, or deactivate transformers based on specific repository needs.
+
+5. **Managing Bridge Module**
+   - Customize and maintain bridge modules that structure deposit packages in the required formats (e.g., SWORD).
+   - Test and validate modules to ensure proper alignment with repository requirements.
+
+6. **Managing the Curation Process**
+   - Oversee and control the entire curation workflow, from initial data ingestion to final deposit package generation.
+   - Adjust rules, algorithms, or user-defined inputs to improve curation accuracy and relevance.
+   - Schedule or automate specific processes to optimize resource utilization.
+
+The ACP UI Admin consolidates these features into a centralized dashboard, empowering users to efficiently manage the platform's operations and ensuring seamless alignment with repository standards.
 
 
 ## Implementations of the Automated Curation Platform (ACP)
