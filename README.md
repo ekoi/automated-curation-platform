@@ -22,7 +22,7 @@ Repository URL: This URL acts as a direct link to the designated storage locatio
 
 By centralizing and automating these crucial components, ACP provides an efficient, scalable, and adaptable solution for deposit package generation. This design makes it significantly easier for users to manage, curate, and deliver content that meets precise repository standards, promoting streamlined workflows and enhancing the quality of digital content management.
 
-## Integrating OpenTelemetry Protocol (OTLP) in ACP
+## Integrating [OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) Protocol (OTLP) in ACP
 To enhance observability and monitoring within ACP, DANS integrates the OpenTelemetry Protocol (OTLP), a telemetry data protocol optimized for collecting and transmitting metrics, logs, and traces. OTLP brings several key benefits to ACP:
 
 - **Unified Observability**: OTLP simplifies tracking and monitoring by aggregating data across various services, providing a comprehensive view of the platform’s performance and behavior.
