@@ -37,6 +37,17 @@ ACP also utilizes the TUS Protocol, an open protocol designed for reliable, resu
 - **Scalability**: The protocol efficiently manages high-volume and high-frequency file uploads, allowing ACP to handle diverse and large datasets across multiple repositories with ease.
 - **Improved User Experience**: By reducing upload failures and ensuring smoother file transfers, TUS enhances the user experience, making ACP more dependable for users needing to transfer substantial files reliably.
 
+## Authentication Support
+
+ACP currently supports the following authentication mechanisms:
+
+- **OAuth2PasswordBearer**: This method leverages OAuth 2.0's password bearer token flow for secure authentication.  
+- **[Keycloak](https://www.keycloak.org)**: ACP integrates with Keycloak for robust and centralized identity and access management, allowing users to authenticate and manage permissions seamlessly.
+
+These options ensure secure and scalable access to the platform, meeting the authentication requirements of modern systems.
+
+
+
 ## Implementations of the Automated Curation Platform (ACP)
 
 At DANS, we have developed several implementations of the Automated Curation Platform (ACP) to cater to different curation needs and repository targets:
