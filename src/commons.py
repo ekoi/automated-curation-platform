@@ -199,7 +199,7 @@ def transform_json(transformer_url: str, str_tobe_transformed: str) -> str:
     Returns:
     str: The transformed string if the request is successful.
     """
-    transform(transformer_url, str_tobe_transformed, transformer_headers)
+    return transform(transformer_url, str_tobe_transformed, transformer_headers)
 
 
 
@@ -217,7 +217,7 @@ def transform_xml(transformer_url: str, str_tobe_transformed: str) -> str:
     Returns:
     str: The transformed string if the request is successful.
     """
-    transform(transformer_url, str_tobe_transformed, transformer_headers_xml)
+    return transform(transformer_url, str_tobe_transformed, transformer_headers_xml)
 
 # def transform(transformer_url: str, input: str) -> str:
 #     logger(transformer_url: {transformer_url}', LOGGER_LEVEL_DEBUG, LOG_NAME_PS)

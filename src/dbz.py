@@ -78,7 +78,10 @@ class Dataset(SQLModel, table=True):
     state: DatasetWorkState = DatasetWorkState.NOT_READY
 
     def encrypt_md(self, cipher_suite):
-        self.md = cipher_suite.encrypt(self.md.encode()).decode()
+        if self.md is not None:
+            self.md = cipher_suite.encrypt(self.md.encode()).decode()
+        else:
+            raise ValueError("The 'md' attribute is None and cannot be encrypted.")
 
     def decrypt_md(self, cipher_suite):
         self.md = cipher_suite.decrypt(self.md.encode()).decode()
