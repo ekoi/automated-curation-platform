@@ -69,18 +69,31 @@
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">from</span> <span class="nn">src.bridge</span> <span class="kn">import</span> <span class="n">Bridge</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span>
 
 
 <div class="viewcode-block" id="Mail">
 <a class="viewcode-back" href="../../../source/src.modules.html#src.modules.mail_depositor.Mail">[docs]</a>
 <span class="k">class</span> <span class="nc">Mail</span><span class="p">(</span><span class="n">Bridge</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the deposit of metadata via email.</span>
 
-<div class="viewcode-block" id="Mail.execute">
-<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.mail_depositor.Mail.execute">[docs]</a>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+<span class="sd">    Inherits from:</span>
+<span class="sd">        Bridge: The base class for all bridge implementations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">()</span>
+<div class="viewcode-block" id="Mail.job">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.mail_depositor.Mail.job">[docs]</a>
+    <span class="k">def</span> <span class="nf">job</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetDataModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the deposit process via email.</span>
+
+<span class="sd">        This method initializes the bridge output model and returns it.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        BridgeOutputDataModel: The output model for the email deposit process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">bridge_output_model</span></div>
 </div>

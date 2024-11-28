@@ -79,19 +79,35 @@
 <span class="kn">from</span> <span class="nn">src.bridge</span> <span class="kn">import</span> <span class="n">Bridge</span>
 <span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">transform</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">handle_deposit_exceptions</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">,</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">src.dbz</span> <span class="kn">import</span> <span class="n">DepositStatus</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span><span class="p">,</span> <span class="n">ResponseContentType</span><span class="p">,</span> <span class="n">IdentifierItem</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span><span class="p">,</span> <span class="n">ResponseContentType</span><span class="p">,</span> <span class="n">IdentifierItem</span>
 
 
 <div class="viewcode-block" id="ZenodoApiDepositor">
 <a class="viewcode-back" href="../../../source/src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor">[docs]</a>
 <span class="k">class</span> <span class="nc">ZenodoApiDepositor</span><span class="p">(</span><span class="n">Bridge</span><span class="p">):</span>
-<div class="viewcode-block" id="ZenodoApiDepositor.execute">
-<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.execute">[docs]</a>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the deposit of metadata to the Zenodo API.</span>
+
+<span class="sd">    Inherits from:</span>
+<span class="sd">        Bridge: The base class for all bridge implementations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="ZenodoApiDepositor.job">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.job">[docs]</a>
     <span class="nd">@handle_deposit_exceptions</span>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">job</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetDataModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the deposit process to the Zenodo API.</span>
+
+<span class="sd">        This method creates an initial dataset on Zenodo, transforms the metadata, and sends a PUT request to update the dataset.</span>
+<span class="sd">        It then ingests files into the Zenodo bucket and updates the bridge output model accordingly.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        BridgeOutputDataModel: The output model containing the response from the Zenodo API and the status of the deposit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">zenodo_resp</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__create_initial_dataset</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">zenodo_resp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Error occurs: status code: 500&quot;</span><span class="p">,</span> <span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Error occurs: status code: 500&quot;</span><span class="p">,</span> <span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">ERROR</span><span class="p">)</span>
         <span class="n">zenodo_id</span> <span class="o">=</span> <span class="n">zenodo_resp</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;id&quot;</span><span class="p">)</span>
         <span class="n">str_zenodo_dataset_metadata</span> <span class="o">=</span> <span class="n">transform</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">metadata</span><span class="o">.</span><span class="n">transformed_metadata</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">transformer_url</span><span class="p">,</span>
                                                 <span class="bp">self</span><span class="o">.</span><span class="n">metadata_rec</span><span class="o">.</span><span class="n">md</span><span class="p">)</span>
@@ -101,12 +117,12 @@
         <span class="n">zen_resp</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">str_zenodo_dataset_metadata</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">})</span>
         <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Zenodo response status code: </span><span class="si">{</span><span class="n">zen_resp</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">. Zenodo response: </span><span class="si">{</span><span class="n">zen_resp</span><span class="o">.</span><span class="n">text</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
-        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">()</span>
+        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">zen_resp</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="n">status</span><span class="o">.</span><span class="n">HTTP_200_OK</span><span class="p">:</span>
             <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Error occurs: status code: </span><span class="si">{</span><span class="n">zen_resp</span><span class="o">.</span><span class="n">status_code</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39;error&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
             <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">notes</span> <span class="o">=</span> <span class="s2">&quot;Error occurs: status code: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">zen_resp</span><span class="o">.</span><span class="n">status_code</span><span class="p">)</span>
             <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">zen_resp</span><span class="o">.</span><span class="n">text</span>
-            <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="n">zen_resp</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">zen_resp</span><span class="p">)</span>
+            <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="n">zen_resp</span><span class="o">.</span><span class="n">text</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">zen_resp</span><span class="p">)</span>
             <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">deposit_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span>
             <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">ERROR</span>
             <span class="k">return</span> <span class="n">bridge_output_model</span>
@@ -127,6 +143,14 @@
 
     <span class="nd">@handle_deposit_exceptions</span>
     <span class="k">def</span> <span class="nf">__create_initial_dataset</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates an initial dataset on Zenodo.</span>
+
+<span class="sd">        This method sends a POST request to the Zenodo API to create an initial dataset.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        dict | None: The response from the Zenodo API if the dataset is created successfully, otherwise None.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="p">(</span><span class="s1">&#39;Create an initial zenodo dataset&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
         <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">post</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="si">}</span><span class="s2">?</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">username</span><span class="si">}</span><span class="s2">=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">password</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
                                  <span class="n">data</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;Content-Type&quot;</span><span class="p">:</span> <span class="s2">&quot;application/json&quot;</span><span class="p">})</span>
@@ -134,10 +158,21 @@
         <span class="k">return</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()</span> <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">==</span> <span class="mi">201</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="k">def</span> <span class="nf">__ingest_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">bucket_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Ingests files into the Zenodo bucket.</span>
+
+<span class="sd">        This method uploads files to the specified Zenodo bucket URL.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        bucket_url (str): The URL of the Zenodo bucket where files will be uploaded.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        dict: A dictionary containing the status of the file ingestion process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ingesting files to </span><span class="si">{</span><span class="n">bucket_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
         <span class="n">params</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;access_token&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">password</span><span class="p">,</span> <span class="s1">&#39;access_right&#39;</span><span class="p">:</span> <span class="s1">&#39;restricted&#39;</span><span class="p">}</span>
         <span class="k">for</span> <span class="n">file</span> <span class="ow">in</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_non_generated_files</span><span class="p">(</span><span class="n">dataset_id</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">):</span>
-            <span class="n">file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="n">file_path</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span>
             <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Ingesting file </span><span class="si">{</span><span class="n">file_path</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s2">&quot;debug&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="s2">&quot;rb&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fp</span><span class="p">:</span>
                 <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">put</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">bucket_url</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">file</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">fp</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>

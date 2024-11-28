@@ -78,19 +78,34 @@
 
 <span class="kn">from</span> <span class="nn">src.bridge</span> <span class="kn">import</span> <span class="n">Bridge</span>
 <span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">settings</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="p">,</span> <span class="n">transform</span><span class="p">,</span> <span class="n">logger</span><span class="p">,</span> <span class="n">db_manager</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span>
 
 
 <div class="viewcode-block" id="SwhSwordDepositor">
 <a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor">[docs]</a>
 <span class="k">class</span> <span class="nc">SwhSwordDepositor</span><span class="p">(</span><span class="n">Bridge</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the deposit of metadata to the Software Heritage (SWH) API using the SWORD protocol.</span>
 
-<div class="viewcode-block" id="SwhSwordDepositor.execute">
-<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.execute">[docs]</a>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+<span class="sd">    Inherits from:</span>
+<span class="sd">        Bridge: The base class for all bridge implementations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">()</span>
-        <span class="c1"># create_sword_payload(self):</span>
+<div class="viewcode-block" id="SwhSwordDepositor.job">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.job">[docs]</a>
+    <span class="k">def</span> <span class="nf">job</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetDataModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the deposit process to the SWH API using the SWORD protocol.</span>
+
+<span class="sd">        This method constructs the SWORD payload, sends a POST request to the SWH API, and handles the response.</span>
+<span class="sd">        It polls the SWH API for the status of the deposit until it is either successful or fails, logging the progress</span>
+<span class="sd">        and updating the bridge output model accordingly.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        BridgeOutputDataModel: The output model containing the response from the SWH API and the status of the deposit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">()</span>
+        <span class="c1"># Create SWORD payload</span>
         <span class="n">swh_form_md</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_rec</span><span class="o">.</span><span class="n">md</span><span class="p">)</span>
         <span class="n">dv_target</span> <span class="o">=</span> <span class="n">db_manager</span><span class="o">.</span><span class="n">find_target_repo</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_id</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">input</span><span class="o">.</span><span class="n">from_target_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">dv_target</span><span class="p">:</span>
@@ -115,7 +130,7 @@
 
             <span class="n">deposit_response</span> <span class="o">=</span> <span class="n">dr</span><span class="o">.</span><span class="n">Deposit_Receipt</span><span class="p">(</span><span class="n">xml_deposit_receipt</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">deposit_response</span><span class="o">.</span><span class="n">metadata</span><span class="p">[</span><span class="s1">&#39;atom_deposit_status&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;deposited&#39;</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">DEPOSITED</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">DEPOSITED</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="n">rt</span><span class="p">)</span>
             <span class="n">status_url</span> <span class="o">=</span> <span class="n">deposit_response</span><span class="o">.</span><span class="n">alternate</span>
             <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Status request send to </span><span class="si">{</span><span class="n">status_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
             <span class="n">counter</span> <span class="o">=</span> <span class="mi">0</span>
@@ -131,7 +146,7 @@
                     <span class="n">swh_metadata</span> <span class="o">=</span> <span class="n">rsp_dep</span><span class="o">.</span><span class="n">metadata</span>
                     <span class="n">swh_deposit_status</span> <span class="o">=</span> <span class="n">swh_metadata</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;atom_deposit_status&#39;</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">swh_deposit_status</span> <span class="ow">and</span> <span class="n">swh_deposit_status</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;rejected&#39;</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">)</span>
+                        <span class="k">return</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">FAILED</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">)</span>
                     <span class="k">if</span> <span class="n">swh_deposit_status</span> <span class="ow">and</span> <span class="n">swh_deposit_status</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">DEPOSITED</span><span class="p">,</span> <span class="s2">&quot;done&quot;</span><span class="p">]:</span>
                         <span class="n">target_repo</span> <span class="o">=</span> <span class="n">TargetResponse</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span><span class="p">,</span>
                                                      <span class="n">message</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">rsp_text</span><span class="p">)</span>

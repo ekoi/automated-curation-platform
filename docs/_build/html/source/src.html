@@ -63,7 +63,7 @@
 <li><a class="reference internal" href="#id3"><code class="docutils literal notranslate"><span class="pre">Bridge.dataset_id</span></code></a></li>
 <li><a class="reference internal" href="#id4"><code class="docutils literal notranslate"><span class="pre">Bridge.db_manager</span></code></a></li>
 <li><a class="reference internal" href="#src.bridge.Bridge.deposit_files"><code class="docutils literal notranslate"><span class="pre">Bridge.deposit_files()</span></code></a></li>
-<li><a class="reference internal" href="#src.bridge.Bridge.execute"><code class="docutils literal notranslate"><span class="pre">Bridge.execute()</span></code></a></li>
+<li><a class="reference internal" href="#src.bridge.Bridge.job"><code class="docutils literal notranslate"><span class="pre">Bridge.job()</span></code></a></li>
 <li><a class="reference internal" href="#id5"><code class="docutils literal notranslate"><span class="pre">Bridge.metadata_rec</span></code></a></li>
 <li><a class="reference internal" href="#src.bridge.Bridge.save_state"><code class="docutils literal notranslate"><span class="pre">Bridge.save_state()</span></code></a></li>
 <li><a class="reference internal" href="#id6"><code class="docutils literal notranslate"><span class="pre">Bridge.target</span></code></a></li>
@@ -73,6 +73,7 @@
 </li>
 <li><a class="reference internal" href="#module-src.commons">src.commons module</a><ul>
 <li><a class="reference internal" href="#src.commons.compress_zip_file"><code class="docutils literal notranslate"><span class="pre">compress_zip_file()</span></code></a></li>
+<li><a class="reference internal" href="#src.commons.create_s3_client"><code class="docutils literal notranslate"><span class="pre">create_s3_client()</span></code></a></li>
 <li><a class="reference internal" href="#src.commons.delete_symlink_and_target"><code class="docutils literal notranslate"><span class="pre">delete_symlink_and_target()</span></code></a></li>
 <li><a class="reference internal" href="#src.commons.dmz_dataverse_headers"><code class="docutils literal notranslate"><span class="pre">dmz_dataverse_headers()</span></code></a></li>
 <li><a class="reference internal" href="#src.commons.escape_invalid_json_characters"><code class="docutils literal notranslate"><span class="pre">escape_invalid_json_characters()</span></code></a></li>
@@ -266,7 +267,7 @@
 </ul>
 </li>
 <li><a class="reference internal" href="#module-src.protected">src.protected module</a><ul>
-<li><a class="reference internal" href="#src.protected.bridge_task"><code class="docutils literal notranslate"><span class="pre">bridge_task()</span></code></a></li>
+<li><a class="reference internal" href="#src.protected.bridge_job"><code class="docutils literal notranslate"><span class="pre">bridge_job()</span></code></a></li>
 <li><a class="reference internal" href="#src.protected.count_files_in_directory"><code class="docutils literal notranslate"><span class="pre">count_files_in_directory()</span></code></a></li>
 <li><a class="reference internal" href="#src.protected.delete_all_recs"><code class="docutils literal notranslate"><span class="pre">delete_all_recs()</span></code></a></li>
 <li><a class="reference internal" href="#src.protected.delete_dataset_and_its_folder"><code class="docutils literal notranslate"><span class="pre">delete_dataset_and_its_folder()</span></code></a></li>
@@ -464,6 +465,11 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.RepoAssistantDataModel.targets"><code class="docutils literal notranslate"><span class="pre">RepoAssistantDataModel.targets</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.StorageType"><code class="docutils literal notranslate"><span class="pre">StorageType</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.StorageType.FILE_SYSTEM"><code class="docutils literal notranslate"><span class="pre">StorageType.FILE_SYSTEM</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.StorageType.S3"><code class="docutils literal notranslate"><span class="pre">StorageType.S3</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target"><code class="docutils literal notranslate"><span class="pre">Target</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.base_url"><code class="docutils literal notranslate"><span class="pre">Target.base_url</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.bridge_module_class"><code class="docutils literal notranslate"><span class="pre">Target.bridge_module_class</span></code></a></li>
@@ -476,9 +482,11 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.password"><code class="docutils literal notranslate"><span class="pre">Target.password</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.repo_display_name"><code class="docutils literal notranslate"><span class="pre">Target.repo_display_name</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.repo_name"><code class="docutils literal notranslate"><span class="pre">Target.repo_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.storage_type"><code class="docutils literal notranslate"><span class="pre">Target.storage_type</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.target_url"><code class="docutils literal notranslate"><span class="pre">Target.target_url</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.target_url_params"><code class="docutils literal notranslate"><span class="pre">Target.target_url_params</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.username"><code class="docutils literal notranslate"><span class="pre">Target.username</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.Target.validate_urls"><code class="docutils literal notranslate"><span class="pre">Target.validate_urls()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.assistant_datamodel.TransformedMetadata"><code class="docutils literal notranslate"><span class="pre">TransformedMetadata</span></code></a><ul>
@@ -494,18 +502,14 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src.models.html#module-src.models.bridge_output_model">src.models.bridge_output_model module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel.deposit_time"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.deposit_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel.deposit_status"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.deposit_status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel.notes"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.notes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel.response"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.response</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id26"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.deposit_status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id27"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.deposit_time</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.model_computed_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel.model_config"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel.model_fields"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id28"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.notes</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id29"><code class="docutils literal notranslate"><span class="pre">BridgeOutputDataModel.response</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.Credentials"><code class="docutils literal notranslate"><span class="pre">Credentials</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.Credentials.password"><code class="docutils literal notranslate"><span class="pre">Credentials.password</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.Credentials.username"><code class="docutils literal notranslate"><span class="pre">Credentials.username</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.Credentials.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">Credentials.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.Credentials.model_config"><code class="docutils literal notranslate"><span class="pre">Credentials.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.Credentials.model_fields"><code class="docutils literal notranslate"><span class="pre">Credentials.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id26"><code class="docutils literal notranslate"><span class="pre">Credentials.password</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id27"><code class="docutils literal notranslate"><span class="pre">Credentials.username</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierItem"><code class="docutils literal notranslate"><span class="pre">IdentifierItem</span></code></a><ul>
@@ -515,9 +519,9 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierItem.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.model_computed_fields</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierItem.model_config"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.model_config</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierItem.model_fields"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id30"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.protocol</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id31"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.url</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id32"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id28"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.protocol</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id29"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id30"><code class="docutils literal notranslate"><span class="pre">IdentifierItem.value</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierProtocol"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol</span></code></a><ul>
@@ -527,12 +531,12 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierProtocol.URN_UUID"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.URN_UUID</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierProtocol.SWHID"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.SWHID</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.IdentifierProtocol.UNDEFINED"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.UNDEFINED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id33"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.DOI</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id34"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.HANDLE</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id35"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.SWHID</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id36"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.UNDEFINED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id37"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.URN_NBN</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id38"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.URN_UUID</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id31"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.DOI</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id32"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.HANDLE</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id33"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.SWHID</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id34"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.UNDEFINED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id35"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.URN_NBN</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id36"><code class="docutils literal notranslate"><span class="pre">IdentifierProtocol.URN_UUID</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.ResponseContentType"><code class="docutils literal notranslate"><span class="pre">ResponseContentType</span></code></a><ul>
@@ -541,11 +545,27 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.ResponseContentType.TEXT"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.TEXT</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.ResponseContentType.RDF"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.RDF</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.ResponseContentType.UNDEFINED"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.UNDEFINED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id39"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.JSON</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id40"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.RDF</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id41"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.TEXT</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id42"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.UNDEFINED</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id43"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.XML</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id37"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.JSON</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id38"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.RDF</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id39"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.TEXT</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id40"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.UNDEFINED</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id41"><code class="docutils literal notranslate"><span class="pre">ResponseContentType.XML</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel"><code class="docutils literal notranslate"><span class="pre">TargetDataModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.deposit_time"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.deposit_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.deposit_status"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.deposit_status</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.payload"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.payload</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.notes"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.notes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.response"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.response</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id42"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.deposit_status</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id43"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.deposit_time</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.model_config"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel.model_fields"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id44"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.notes</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id45"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.payload</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id46"><code class="docutils literal notranslate"><span class="pre">TargetDataModel.response</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetResponse"><code class="docutils literal notranslate"><span class="pre">TargetResponse</span></code></a><ul>
@@ -558,53 +578,39 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetResponse.identifiers"><code class="docutils literal notranslate"><span class="pre">TargetResponse.identifiers</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetResponse.content"><code class="docutils literal notranslate"><span class="pre">TargetResponse.content</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetResponse.content_type"><code class="docutils literal notranslate"><span class="pre">TargetResponse.content_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id44"><code class="docutils literal notranslate"><span class="pre">TargetResponse.content</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id45"><code class="docutils literal notranslate"><span class="pre">TargetResponse.content_type</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id46"><code class="docutils literal notranslate"><span class="pre">TargetResponse.duration</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id47"><code class="docutils literal notranslate"><span class="pre">TargetResponse.error</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id48"><code class="docutils literal notranslate"><span class="pre">TargetResponse.identifiers</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id49"><code class="docutils literal notranslate"><span class="pre">TargetResponse.message</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id47"><code class="docutils literal notranslate"><span class="pre">TargetResponse.content</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id48"><code class="docutils literal notranslate"><span class="pre">TargetResponse.content_type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id49"><code class="docutils literal notranslate"><span class="pre">TargetResponse.duration</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id50"><code class="docutils literal notranslate"><span class="pre">TargetResponse.error</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id51"><code class="docutils literal notranslate"><span class="pre">TargetResponse.identifiers</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetResponse.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TargetResponse.model_computed_fields</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetResponse.model_config"><code class="docutils literal notranslate"><span class="pre">TargetResponse.model_config</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetResponse.model_fields"><code class="docutils literal notranslate"><span class="pre">TargetResponse.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id50"><code class="docutils literal notranslate"><span class="pre">TargetResponse.status</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id51"><code class="docutils literal notranslate"><span class="pre">TargetResponse.status_code</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id52"><code class="docutils literal notranslate"><span class="pre">TargetResponse.url</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id52"><code class="docutils literal notranslate"><span class="pre">TargetResponse.status_code</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id53"><code class="docutils literal notranslate"><span class="pre">TargetResponse.url</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredential"><code class="docutils literal notranslate"><span class="pre">TargetsCredential</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredential.target_repo_name"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.target_repo_name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredential.credentials"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.credentials</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id54"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.credentials</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredential.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredential.model_config"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredential.model_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id55"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.target_repo_name</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredentialsModel"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredentialsModel.targets_credentials"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.targets_credentials</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredentialsModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.model_computed_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredentialsModel.model_config"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.model_config</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetsCredentialsModel.model_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.model_fields</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id56"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.targets_credentials</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src.models.html#module-src.models.target_datamodel">src.models.target_datamodel module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.target_datamodel.Credentials"><code class="docutils literal notranslate"><span class="pre">Credentials</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.Credentials.password"><code class="docutils literal notranslate"><span class="pre">Credentials.password</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.Credentials.username"><code class="docutils literal notranslate"><span class="pre">Credentials.username</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.Credentials.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">Credentials.model_computed_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.Credentials.model_config"><code class="docutils literal notranslate"><span class="pre">Credentials.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.Credentials.model_fields"><code class="docutils literal notranslate"><span class="pre">Credentials.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id53"><code class="docutils literal notranslate"><span class="pre">Credentials.password</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id54"><code class="docutils literal notranslate"><span class="pre">Credentials.username</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredential"><code class="docutils literal notranslate"><span class="pre">TargetsCredential</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredential.target_repo_name"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.target_repo_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredential.credentials"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.credentials</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id55"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.credentials</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredential.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.model_computed_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredential.model_config"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredential.model_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id56"><code class="docutils literal notranslate"><span class="pre">TargetsCredential.target_repo_name</span></code></a></li>
-</ul>
-</li>
-<li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredentialsModel"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredentialsModel.targets_credentials"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.targets_credentials</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredentialsModel.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.model_computed_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredentialsModel.model_config"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.model_config</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.target_datamodel.TargetsCredentialsModel.model_fields"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id57"><code class="docutils literal notranslate"><span class="pre">TargetsCredentialsModel.targets_credentials</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="src.models.html#src-models-target-datamodel-module">src.models.target_datamodel module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src.models.html#module-src.models.upload_files_model">src.models.upload_files_model module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata"><code class="docutils literal notranslate"><span class="pre">Metadata</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata.relativePath"><code class="docutils literal notranslate"><span class="pre">Metadata.relativePath</span></code></a></li>
@@ -612,14 +618,14 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata.type"><code class="docutils literal notranslate"><span class="pre">Metadata.type</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata.filetype"><code class="docutils literal notranslate"><span class="pre">Metadata.filetype</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata.filename"><code class="docutils literal notranslate"><span class="pre">Metadata.filename</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id58"><code class="docutils literal notranslate"><span class="pre">Metadata.filename</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id59"><code class="docutils literal notranslate"><span class="pre">Metadata.filetype</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id57"><code class="docutils literal notranslate"><span class="pre">Metadata.filename</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id58"><code class="docutils literal notranslate"><span class="pre">Metadata.filetype</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">Metadata.model_computed_fields</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata.model_config"><code class="docutils literal notranslate"><span class="pre">Metadata.model_config</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Metadata.model_fields"><code class="docutils literal notranslate"><span class="pre">Metadata.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id60"><code class="docutils literal notranslate"><span class="pre">Metadata.name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id61"><code class="docutils literal notranslate"><span class="pre">Metadata.relativePath</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id62"><code class="docutils literal notranslate"><span class="pre">Metadata.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id59"><code class="docutils literal notranslate"><span class="pre">Metadata.name</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id60"><code class="docutils literal notranslate"><span class="pre">Metadata.relativePath</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id61"><code class="docutils literal notranslate"><span class="pre">Metadata.type</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Model"><code class="docutils literal notranslate"><span class="pre">Model</span></code></a><ul>
@@ -634,20 +640,20 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Model.expires"><code class="docutils literal notranslate"><span class="pre">Model.expires</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Model.storage"><code class="docutils literal notranslate"><span class="pre">Model.storage</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Model.created_at"><code class="docutils literal notranslate"><span class="pre">Model.created_at</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id63"><code class="docutils literal notranslate"><span class="pre">Model.created_at</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id64"><code class="docutils literal notranslate"><span class="pre">Model.expires</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id65"><code class="docutils literal notranslate"><span class="pre">Model.is_final</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id66"><code class="docutils literal notranslate"><span class="pre">Model.is_partial</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id67"><code class="docutils literal notranslate"><span class="pre">Model.is_size_deferred</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id68"><code class="docutils literal notranslate"><span class="pre">Model.metadata</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id62"><code class="docutils literal notranslate"><span class="pre">Model.created_at</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id63"><code class="docutils literal notranslate"><span class="pre">Model.expires</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id64"><code class="docutils literal notranslate"><span class="pre">Model.is_final</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id65"><code class="docutils literal notranslate"><span class="pre">Model.is_partial</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id66"><code class="docutils literal notranslate"><span class="pre">Model.is_size_deferred</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id67"><code class="docutils literal notranslate"><span class="pre">Model.metadata</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Model.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">Model.model_computed_fields</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Model.model_config"><code class="docutils literal notranslate"><span class="pre">Model.model_config</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Model.model_fields"><code class="docutils literal notranslate"><span class="pre">Model.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id69"><code class="docutils literal notranslate"><span class="pre">Model.offset</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id70"><code class="docutils literal notranslate"><span class="pre">Model.partial_uploads</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id71"><code class="docutils literal notranslate"><span class="pre">Model.size</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id72"><code class="docutils literal notranslate"><span class="pre">Model.storage</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id73"><code class="docutils literal notranslate"><span class="pre">Model.uuid</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id68"><code class="docutils literal notranslate"><span class="pre">Model.offset</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id69"><code class="docutils literal notranslate"><span class="pre">Model.partial_uploads</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id70"><code class="docutils literal notranslate"><span class="pre">Model.size</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id71"><code class="docutils literal notranslate"><span class="pre">Model.storage</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id72"><code class="docutils literal notranslate"><span class="pre">Model.uuid</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Storage"><code class="docutils literal notranslate"><span class="pre">Storage</span></code></a><ul>
@@ -656,8 +662,8 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Storage.model_computed_fields"><code class="docutils literal notranslate"><span class="pre">Storage.model_computed_fields</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Storage.model_config"><code class="docutils literal notranslate"><span class="pre">Storage.model_config</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#src.models.upload_files_model.Storage.model_fields"><code class="docutils literal notranslate"><span class="pre">Storage.model_fields</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id74"><code class="docutils literal notranslate"><span class="pre">Storage.path</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#id75"><code class="docutils literal notranslate"><span class="pre">Storage.type</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id73"><code class="docutils literal notranslate"><span class="pre">Storage.path</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#id74"><code class="docutils literal notranslate"><span class="pre">Storage.type</span></code></a></li>
 </ul>
 </li>
 </ul>
@@ -675,7 +681,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_api_depositor.DataverseIngester.dataset_dir"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.dataset_dir</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_api_depositor.DataverseIngester.dataset_id"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_api_depositor.DataverseIngester.db_manager"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#id0"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_api_depositor.DataverseIngester.job"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_api_depositor.DataverseIngester.metadata_rec"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_api_depositor.DataverseIngester.target"><code class="docutils literal notranslate"><span class="pre">DataverseIngester.target</span></code></a></li>
 </ul>
@@ -689,7 +695,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_dir"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.dataset_dir</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.dataset_id"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.db_manager"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.execute"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.job"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.metadata_rec"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.target"><code class="docutils literal notranslate"><span class="pre">DataverseDatasetDelete.target</span></code></a></li>
 </ul>
@@ -703,7 +709,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.filesystem_depositor.FileSystem.dataset_dir"><code class="docutils literal notranslate"><span class="pre">FileSystem.dataset_dir</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.filesystem_depositor.FileSystem.dataset_id"><code class="docutils literal notranslate"><span class="pre">FileSystem.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.filesystem_depositor.FileSystem.db_manager"><code class="docutils literal notranslate"><span class="pre">FileSystem.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.filesystem_depositor.FileSystem.execute"><code class="docutils literal notranslate"><span class="pre">FileSystem.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.filesystem_depositor.FileSystem.job"><code class="docutils literal notranslate"><span class="pre">FileSystem.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.filesystem_depositor.FileSystem.metadata_rec"><code class="docutils literal notranslate"><span class="pre">FileSystem.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.filesystem_depositor.FileSystem.target"><code class="docutils literal notranslate"><span class="pre">FileSystem.target</span></code></a></li>
 </ul>
@@ -717,27 +723,14 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.mail_depositor.Mail.dataset_dir"><code class="docutils literal notranslate"><span class="pre">Mail.dataset_dir</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.mail_depositor.Mail.dataset_id"><code class="docutils literal notranslate"><span class="pre">Mail.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.mail_depositor.Mail.db_manager"><code class="docutils literal notranslate"><span class="pre">Mail.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.mail_depositor.Mail.execute"><code class="docutils literal notranslate"><span class="pre">Mail.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.mail_depositor.Mail.job"><code class="docutils literal notranslate"><span class="pre">Mail.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.mail_depositor.Mail.metadata_rec"><code class="docutils literal notranslate"><span class="pre">Mail.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.mail_depositor.Mail.target"><code class="docutils literal notranslate"><span class="pre">Mail.target</span></code></a></li>
 </ul>
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="src.modules.html#module-src.modules.oai_harverster_client_get_record">src.modules.oai_harverster_client_get_record module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord</span></code></a><ul>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.app_name"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.app_name</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.data_file_rec"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.data_file_rec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_dir"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.dataset_dir</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.dataset_id"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.dataset_id</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.db_manager"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.execute"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.execute()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.metadata_rec"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.metadata_rec</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.oai_harverster_client_get_record.OaiHarvesterClientGetRecord.target"><code class="docutils literal notranslate"><span class="pre">OaiHarvesterClientGetRecord.target</span></code></a></li>
-</ul>
-</li>
-</ul>
-</li>
+<li class="toctree-l2"><a class="reference internal" href="src.modules.html#src-modules-oai-harverster-client-get-record-module">src.modules.oai_harverster_client_get_record module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="src.modules.html#module-src.modules.swh_api_depositor">src.modules.swh_api_depositor module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.app_name"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.app_name</span></code></a></li>
@@ -745,7 +738,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.dataset_dir"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.dataset_dir</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.dataset_id"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.db_manager"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.execute"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.job"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.metadata_rec"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.target"><code class="docutils literal notranslate"><span class="pre">SwhApiDepositor.target</span></code></a></li>
 </ul>
@@ -759,7 +752,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_dir"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.dataset_dir</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.dataset_id"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.db_manager"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.execute"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.job"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.metadata_rec"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.swh_sword_depositor.SwhSwordDepositor.target"><code class="docutils literal notranslate"><span class="pre">SwhSwordDepositor.target</span></code></a></li>
 </ul>
@@ -807,7 +800,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_dir"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.dataset_dir</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.dataset_id"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.db_manager"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.db_manager</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.execute"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.job"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.metadata_rec"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#src.modules.zenodo_depositor.ZenodoApiDepositor.target"><code class="docutils literal notranslate"><span class="pre">ZenodoApiDepositor.target</span></code></a></li>
 </ul>
@@ -986,16 +979,15 @@
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="src.bridge.Bridge.execute">
-<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">execute</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/bridge.html#Bridge.execute"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.bridge.Bridge.execute" title="Link to this definition"></a></dt>
-<dd><p>Abstract method to deposit data into the target repository.</p>
-<p>Subclasses must provide a concrete implementation of this method.</p>
+<dt class="sig sig-object py" id="src.bridge.Bridge.job">
+<em class="property"><span class="pre">abstract</span><span class="w"> </span><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">job</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel" title="src.models.bridge_output_model.TargetDataModel"><span class="pre">TargetDataModel</span></a></span></span><a class="reference internal" href="../_modules/src/bridge.html#Bridge.job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.bridge.Bridge.job" title="Link to this definition"></a></dt>
+<dd><p>Abstract method to be implemented by subclasses to perform a specific job.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
-<dd class="field-odd"><p>An instance of BridgeOutputModel representing the output of the deposit process.</p>
+<dd class="field-odd"><p>The result of the job execution.</p>
 </dd>
 <dt class="field-even">Return type<span class="colon">:</span></dt>
-<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel">BridgeOutputDataModel</a></p>
+<dd class="field-even"><p><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel" title="src.models.bridge_output_model.TargetDataModel">TargetDataModel</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -1007,7 +999,7 @@
 
 <dl class="py method">
 <dt class="sig sig-object py" id="src.bridge.Bridge.save_state">
-<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_data_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/bridge.html#Bridge.save_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.bridge.Bridge.save_state" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">save_state</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">output_data_model</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel" title="src.models.bridge_output_model.TargetDataModel"><span class="pre">TargetDataModel</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/bridge.html#Bridge.save_state"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.bridge.Bridge.save_state" title="Link to this definition"></a></dt>
 <dd><p>Saves the state of the deposit process, updating the deposit status in the database.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -1030,12 +1022,46 @@ output of the deposit process. Defaults to None.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.compress_zip_file">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">compress_zip_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_zip_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#compress_zip_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.compress_zip_file" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Compresses an existing zip file to reduce its size.</p>
+<p>This function reads the contents of the specified zip file, compresses them with the highest compression level,
+and writes the compressed contents to a temporary file. The temporary file is then moved to replace the original zip file.
+Progress is printed to the console.</p>
+<p>Parameters:
+original_zip_path (str): The path to the original zip file to be compressed.</p>
+<p>Returns:
+None</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="src.commons.create_s3_client">
+<span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">create_s3_client</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#create_s3_client"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.create_s3_client" title="Link to this definition"></a></dt>
+<dd><p>Initializes and returns an S3 client using the provided settings.</p>
+<p>The settings for the S3 client are retrieved from the global <cite>settings</cite> object, which includes:
+- <cite>S3_STORAGE_ENDPOINT</cite>: The endpoint URL for the S3 storage.
+- <cite>S3_ACCESS_KEY_ID</cite>: The AWS access key ID.
+- <cite>S3_ACCESS_KEY_SECRET</cite>: The AWS secret access key.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>An S3 client instance configured with the specified settings.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>boto3.client</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.delete_symlink_and_target">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">delete_symlink_and_target</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">link_name</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#delete_symlink_and_target"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.delete_symlink_and_target" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Deletes a symbolic link and its target.</p>
+<p>This function checks if the given <cite>link_name</cite> is a symbolic link. If it is, it reads the target of the symbolic link.
+If the target is a directory, it removes the directory and its contents. If the target is a file, it removes the file.
+Finally, it removes the symbolic link itself and logs the deletion.</p>
+<p>Parameters:
+link_name (str): The name of the symbolic link to be deleted.</p>
+<p>Returns:
+None</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.dmz_dataverse_headers">
@@ -1064,16 +1090,26 @@ Any: The class if it can be imported, or <cite>None</cite> otherwise.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.get_name">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">get_name</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#get_name"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.get_name" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Retrieves the name of the package from the <cite>pyproject.toml</cite> file.</p>
+<p>This function opens the <cite>pyproject.toml</cite> file located in the base directory of the project,
+reads its contents, and returns the name of the package as specified under the <cite>[tool.poetry]</cite> section.</p>
+<p>Returns:
+str: The name of the package.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.get_version">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">get_version</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#get_version"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.get_version" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Retrieves the version of the package from the <cite>pyproject.toml</cite> file.</p>
+<p>This function opens the <cite>pyproject.toml</cite> file located in the base directory of the project,
+reads its contents, and returns the version of the package as specified under the <cite>[tool.poetry]</cite> section.</p>
+<p>Returns:
+str: The version of the package.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.handle_deposit_exceptions">
-<span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">handle_deposit_exceptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.bridge_output_model.BridgeOutputDataModel" title="src.models.bridge_output_model.BridgeOutputDataModel"><span class="pre">BridgeOutputDataModel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/src/commons.html#handle_deposit_exceptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.handle_deposit_exceptions" title="Link to this definition"></a></dt>
+<span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">handle_deposit_exceptions</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">func</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="p"><span class="pre">...</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="src.models.html#src.models.bridge_output_model.TargetDataModel" title="src.models.bridge_output_model.TargetDataModel"><span class="pre">TargetDataModel</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/src/commons.html#handle_deposit_exceptions"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.handle_deposit_exceptions" title="Link to this definition"></a></dt>
 <dd><p>This function is a decorator that wraps around a function to handle exceptions during the deposit process.</p>
 <p>It logs the entry into the function it is decorating, then attempts to execute the function.
 If an exception is raised during the execution of the function, it logs the error and creates a BridgeOutputDataModel
@@ -1163,32 +1199,86 @@ app password, recipient email, and mail subject prefix) are read from the applic
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.transform">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">transform</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformer_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str_tobe_transformed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">headers</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">{}</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/commons.html#transform"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.transform" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Transforms a given string using a specified transformer service.</p>
+<p>This function sends a POST request to the transformer service with the string to be transformed.
+If the transformation is successful (HTTP status code 200), it returns the transformed result.
+Otherwise, it raises a ValueError with the response status code.</p>
+<p>Parameters:
+transformer_url (str): The URL of the transformer service.
+str_tobe_transformed (str): The string to be transformed.
+headers (dict, optional): The headers to include in the request. Defaults to <cite>transformer_headers</cite>.</p>
+<p>Returns:
+str: The transformed string if the request is successful.</p>
+<p>Raises:
+ValueError: If <cite>str_tobe_transformed</cite> is not a string or if the response status code is not 200.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.transform_json">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">transform_json</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformer_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str_tobe_transformed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/commons.html#transform_json"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.transform_json" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Transforms a given string using a specified transformer service with JSON headers.</p>
+<p>This function calls the <cite>transform</cite> function with the provided transformer URL and string to be transformed,
+using the <cite>transformer_headers</cite> for the request headers.</p>
+<p>Parameters:
+transformer_url (str): The URL of the transformer service.
+str_tobe_transformed (str): The string to be transformed.</p>
+<p>Returns:
+str: The transformed string if the request is successful.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.transform_xml">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">transform_xml</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">transformer_url</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">str_tobe_transformed</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/commons.html#transform_xml"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.transform_xml" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Transforms a given string using a specified transformer service with XML headers.</p>
+<p>This function calls the <cite>transform</cite> function with the provided transformer URL and string to be transformed,
+using the <cite>transformer_headers_xml</cite> for the request headers.</p>
+<p>Parameters:
+transformer_url (str): The URL of the transformer service.
+str_tobe_transformed (str): The string to be transformed.</p>
+<p>Returns:
+str: The transformed string if the request is successful.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.upload_large_file">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">upload_large_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">url</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">json_data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">api_key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#upload_large_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.upload_large_file" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Uploads a large file to a specified URL with progress logging.</p>
+<p>This function uploads a file to the given URL using the <cite>requests</cite> library and the <cite>MultipartEncoder</cite> for handling
+large file uploads. It logs the upload progress at intervals of 5% or when the progress exceeds 95%.</p>
+<p>Parameters:
+url (str): The URL to which the file will be uploaded.
+file_path (str): The path to the file to be uploaded.
+json_data (dict): A dictionary containing JSON data to be included in the upload.
+api_key (str): The API key for authentication.
+file_name (str, optional): The name of the file to be uploaded. If not provided, the basename of <cite>file_path</cite> is used.</p>
+<p>Returns:
+requests.Response: The response from the server after the file upload.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.zip_a_zipfile_with_progress">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">zip_a_zipfile_with_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">original_zip_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new_zip_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#zip_a_zipfile_with_progress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.zip_a_zipfile_with_progress" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Compresses an existing zip file into a new zip file with progress logging.</p>
+<p>This function creates a new zip file and adds the original zip file to it. The progress is logged as 100%
+since the file is added in one go.</p>
+<p>Parameters:
+original_zip_path (str): The path to the original zip file to be compressed.
+new_zip_path (str): The path where the new zip file will be created.</p>
+<p>Returns:
+None</p>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.commons.zip_with_progress">
 <span class="sig-prename descclassname"><span class="pre">src.commons.</span></span><span class="sig-name descname"><span class="pre">zip_with_progress</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_path</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">zip_path</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/commons.html#zip_with_progress"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.commons.zip_with_progress" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Compresses a file into a zip archive with progress logging.</p>
+<p>This function compresses the specified file into a zip archive, logging the progress at intervals of 10%.</p>
+<p>Parameters:
+file_path (str): The path to the file to be compressed.
+zip_path (str): The path where the zip archive will be created.</p>
+<p>Returns:
+None</p>
+</dd></dl>
 
 </section>
 <section id="module-src.dbz">
@@ -1493,7 +1583,7 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 
 <dl class="py class">
 <dt class="sig sig-object py" id="src.dbz.Dataset">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.dbz.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">13,</span> <span class="pre">8,</span> <span class="pre">23,</span> <span class="pre">26,</span> <span class="pre">673122)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">13,</span> <span class="pre">8,</span> <span class="pre">23,</span> <span class="pre">26,</span> <span class="pre">673127)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submitted_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">md</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.dbz.ReleaseVersion" title="src.dbz.ReleaseVersion"><span class="pre">ReleaseVersion</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ReleaseVersion.DRAFT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.dbz.DatasetWorkState" title="src.dbz.DatasetWorkState"><span class="pre">DatasetWorkState</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DatasetWorkState.NOT_READY</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/dbz.html#Dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.dbz.Dataset" title="Link to this definition"></a></dt>
+<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.dbz.</span></span><span class="sig-name descname"><span class="pre">Dataset</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">title</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">owner_id</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">created_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">28,</span> <span class="pre">13,</span> <span class="pre">3,</span> <span class="pre">52,</span> <span class="pre">40750)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">saved_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">28,</span> <span class="pre">13,</span> <span class="pre">3,</span> <span class="pre">52,</span> <span class="pre">40754)</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">submitted_date</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">datetime</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">md</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.dbz.ReleaseVersion" title="src.dbz.ReleaseVersion"><span class="pre">ReleaseVersion</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">ReleaseVersion.DRAFT</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">state</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.dbz.DatasetWorkState" title="src.dbz.DatasetWorkState"><span class="pre">DatasetWorkState</span></a></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">DatasetWorkState.NOT_READY</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/dbz.html#Dataset"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.dbz.Dataset" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">SQLModel</span></code></p>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="src.dbz.Dataset.app_name">
@@ -1539,7 +1629,7 @@ mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] ob
 
 <dl class="py attribute">
 <dt class="sig sig-object py" id="src.dbz.Dataset.model_fields">
-<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'app_name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'created_date':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=False,</span> <span class="pre">default=datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">13,</span> <span class="pre">8,</span> <span class="pre">23,</span> <span class="pre">26,</span> <span class="pre">673122)),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'md':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'owner_id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'release_version':</span> <span class="pre">FieldInfo(annotation=ReleaseVersion,</span> <span class="pre">required=False,</span> <span class="pre">default=&lt;ReleaseVersion.DRAFT:</span> <span class="pre">'DRAFT'&gt;),</span> <span class="pre">'saved_date':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=False,</span> <span class="pre">default=datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">13,</span> <span class="pre">8,</span> <span class="pre">23,</span> <span class="pre">26,</span> <span class="pre">673127)),</span> <span class="pre">'state':</span> <span class="pre">FieldInfo(annotation=DatasetWorkState,</span> <span class="pre">required=False,</span> <span class="pre">default=&lt;DatasetWorkState.NOT_READY:</span> <span class="pre">'not-ready'&gt;),</span> <span class="pre">'submitted_date':</span> <span class="pre">FieldInfo(annotation=Union[datetime,</span> <span class="pre">NoneType],</span> <span class="pre">required=True),</span> <span class="pre">'title':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=True),</span> <span class="pre">'version':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#src.dbz.Dataset.model_fields" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">model_fields</span></span><em class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ClassVar</span><span class="p"><span class="pre">[</span></span><span class="pre">Dict</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">FieldInfo</span><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></em><em class="property"><span class="w"> </span><span class="p"><span class="pre">=</span></span><span class="w"> </span><span class="pre">{'app_name':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'created_date':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=False,</span> <span class="pre">default=datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">28,</span> <span class="pre">13,</span> <span class="pre">3,</span> <span class="pre">52,</span> <span class="pre">40750)),</span> <span class="pre">'id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'md':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'owner_id':</span> <span class="pre">FieldInfo(annotation=str,</span> <span class="pre">required=True),</span> <span class="pre">'release_version':</span> <span class="pre">FieldInfo(annotation=ReleaseVersion,</span> <span class="pre">required=False,</span> <span class="pre">default=&lt;ReleaseVersion.DRAFT:</span> <span class="pre">'DRAFT'&gt;),</span> <span class="pre">'saved_date':</span> <span class="pre">FieldInfo(annotation=datetime,</span> <span class="pre">required=False,</span> <span class="pre">default=datetime.datetime(2024,</span> <span class="pre">11,</span> <span class="pre">28,</span> <span class="pre">13,</span> <span class="pre">3,</span> <span class="pre">52,</span> <span class="pre">40754)),</span> <span class="pre">'state':</span> <span class="pre">FieldInfo(annotation=DatasetWorkState,</span> <span class="pre">required=False,</span> <span class="pre">default=&lt;DatasetWorkState.NOT_READY:</span> <span class="pre">'not-ready'&gt;),</span> <span class="pre">'submitted_date':</span> <span class="pre">FieldInfo(annotation=Union[datetime,</span> <span class="pre">NoneType],</span> <span class="pre">required=True),</span> <span class="pre">'title':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=True),</span> <span class="pre">'version':</span> <span class="pre">FieldInfo(annotation=Union[str,</span> <span class="pre">NoneType],</span> <span class="pre">required=True)}</span></em><a class="headerlink" href="#src.dbz.Dataset.model_fields" title="Link to this definition"></a></dt>
 <dd><p>Metadata about the fields defined on the model,
 mapping of field names to [<cite>FieldInfo</cite>][pydantic.fields.FieldInfo] objects.</p>
 <p>This replaces <cite>Model.__fields__</cite> from Pydantic V1.</p>
@@ -2010,24 +2100,88 @@ and prints available bridge classes.</p>
 <section id="module-src.protected">
 <span id="src-protected-module"></span><h2>src.protected module<a class="headerlink" href="#module-src.protected" title="Link to this heading"></a></h2>
 <dl class="py function">
-<dt class="sig sig-object py" id="src.protected.bridge_task">
-<span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">bridge_task</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasetId</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/protected.html#bridge_task"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.bridge_task" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dt class="sig sig-object py" id="src.protected.bridge_job">
+<span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">bridge_job</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasetId</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">msg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/protected.html#bridge_job"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.bridge_job" title="Link to this definition"></a></dt>
+<dd><p>Start a new thread to follow the bridge process for a dataset.</p>
+<p>This function starts a new thread to execute the <cite>follow_bridge</cite> function for the given dataset ID.
+It logs the start of the threading process and handles any exceptions that occur.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasetId</strong> (<em>str</em>) – The ID of the dataset to follow the bridge process for.</p></li>
+<li><p><strong>msg</strong> (<em>str</em>) – A message to log when starting the threading process.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.count_files_in_directory">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">count_files_in_directory</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">directory</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">int</span></span></span><a class="reference internal" href="../_modules/src/protected.html#count_files_in_directory"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.count_files_in_directory" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Count the number of files in a directory.</p>
+<p>This function lists all items in the specified directory, filters the list to include only files,
+and returns the count of files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>directory</strong> (<em>str</em>) – The path of the directory to count files in.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The number of files in the directory.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><ul class="simple">
+<li><p><strong>FileNotFoundError</strong> – If the specified directory does not exist.</p></li>
+<li><p><strong>Exception</strong> – If any other error occurs during the process.</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.delete_all_recs">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">delete_all_recs</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/protected.html#delete_all_recs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.delete_all_recs" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Endpoint to delete all records from the database.</p>
+<p>This endpoint deletes all records from the database by calling the <cite>delete_all</cite> method
+of the <cite>db_manager</cite> object.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the status of the deletion.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Logs:</dt><dd><p>Logs the action of deleting all records.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.delete_dataset_and_its_folder">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">delete_dataset_and_its_folder</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">metadata_id</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/protected.html#delete_dataset_and_its_folder"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.delete_dataset_and_its_folder" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Delete a dataset and its associated folder.</p>
+<p>This function deletes the dataset identified by the given metadata ID and its associated folder.
+It first checks if the dataset folder exists and deletes it if found. It then deletes the dataset
+record from the database and checks again if the folder exists to ensure it is removed.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>metadata_id</strong> (<em>str</em>) – The ID of the dataset metadata to be deleted.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A dictionary containing the status of the deletion and the metadata ID.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.delete_dataset_metadata">
@@ -2087,12 +2241,37 @@ It checks if the user is authorized and if the dataset can be deleted based on i
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.execute_bridges">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">execute_bridges</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasetId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">targets</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/protected.html#execute_bridges"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.execute_bridges" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Execute the bridge process for a dataset.</p>
+<p>This function iterates over the target repositories associated with the dataset,
+executes the bridge process for each target, and handles the results.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasetId</strong> (<em>str</em>) – The ID of the dataset to execute the bridge process for.</p></li>
+<li><p><strong>targets</strong> (<em>list</em>) – A list of target repositories to process.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.follow_bridge">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">follow_bridge</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasetId</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/protected.html#follow_bridge"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.follow_bridge" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Follow the bridge process for a dataset.</p>
+<p>This function logs the start time of the thread, marks the dataset as submitted,
+retrieves the target repositories associated with the dataset, and executes the bridge process.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>datasetId</strong> (<em>str</em>) – The ID of the dataset to follow the bridge process for.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.get_db">
@@ -2112,22 +2291,80 @@ It checks if the user is authorized and if the dataset can be deleted based on i
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.get_inbox_dataset_dc">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">get_inbox_dataset_dc</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">request</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Request</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">release_version</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#src.dbz.ReleaseVersion" title="src.dbz.ReleaseVersion"><span class="pre">ReleaseVersion</span></a></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">Callable</span><span class="p"><span class="pre">[</span></span><span class="p"><span class="pre">[</span></span><span class="pre">Request</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><a class="reference internal" href="#src.dbz.ReleaseVersion" title="src.dbz.ReleaseVersion"><span class="pre">ReleaseVersion</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">Awaitable</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="src.models.html#src.models.app_model.InboxDatasetDataModel" title="src.models.app_model.InboxDatasetDataModel"><span class="pre">InboxDatasetDataModel</span></a><span class="p"><span class="pre">]</span></span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/src/protected.html#get_inbox_dataset_dc"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.get_inbox_dataset_dc" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Process inbox dataset metadata.</p>
+<p>This function processes the metadata of an inbox dataset for the given release version.
+It extracts necessary information from the request headers and body to create an
+InboxDatasetDataModel instance.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>request</strong> (<em>Request</em>) – The request object containing the dataset metadata.</p></li>
+<li><p><strong>release_version</strong> (<a class="reference internal" href="#src.dbz.ReleaseVersion" title="src.dbz.ReleaseVersion"><em>ReleaseVersion</em></a>) – The release version of the dataset.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>An awaitable function that returns an InboxDatasetDataModel instance.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Callable[[Request, <a class="reference internal" href="#src.dbz.ReleaseVersion" title="src.dbz.ReleaseVersion">ReleaseVersion</a>], Awaitable[<a class="reference internal" href="src.models.html#src.models.app_model.InboxDatasetDataModel" title="src.models.app_model.InboxDatasetDataModel">InboxDatasetDataModel</a>]]</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.get_log">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">get_log</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">app_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/protected.html#get_log"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.get_log" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Endpoint to retrieve a specific log file.</p>
+<p>This endpoint returns the log file for the specified application name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>app_name</strong> (<em>str</em>) – The name of the application whose log file is to be retrieved.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A response object that allows the client to download the log file.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>FileResponse</p>
+</dd>
+</dl>
+<dl class="simple">
+<dt>Logs:</dt><dd><p>Logs the action of retrieving the log file.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.get_log_list">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">get_log_list</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/protected.html#get_log_list"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.get_log_list" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Endpoint to retrieve the list of log files.</p>
+<p>This endpoint returns a list of log files present in the logs directory.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A list of log file names.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>list</p>
+</dd>
+<dt class="field-odd">Raises<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>FileNotFoundError</strong> – If the logs directory does not exist.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.get_settings">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">get_settings</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/protected.html#get_settings"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.get_settings" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Endpoint to retrieve and reload application settings.</p>
+<p>This endpoint retrieves the current application settings, reloads them, and returns the updated settings.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns<span class="colon">:</span></dt>
+<dd class="field-odd"><p>A dictionary containing the updated application settings.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.list_files_with_suffix">
@@ -2143,12 +2380,49 @@ list: A list of file names that end with the given suffix.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.process_db_records">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">process_db_records</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasetId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_record_metadata</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">db_recs_target_repo</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">registered_files</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None</span></span></span><a class="reference internal" href="../_modules/src/protected.html#process_db_records"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.process_db_records" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Process database records for a dataset.</p>
+<p>This function processes the database records for the given dataset ID by either inserting new records
+or updating existing ones. It handles dataset metadata, target repository records, and registered files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasetId</strong> (<em>str</em>) – The ID of the dataset to process the records for.</p></li>
+<li><p><strong>db_record_metadata</strong> (<a class="reference internal" href="#src.dbz.Dataset" title="src.dbz.Dataset"><em>Dataset</em></a>) – The dataset metadata record to be processed.</p></li>
+<li><p><strong>db_recs_target_repo</strong> (<em>list</em><em>[</em><a class="reference internal" href="#src.dbz.TargetRepo" title="src.dbz.TargetRepo"><em>TargetRepo</em></a><em>]</em>) – A list of target repository records to be processed.</p></li>
+<li><p><strong>registered_files</strong> (<em>list</em><em>[</em><a class="reference internal" href="#src.dbz.DataFile" title="src.dbz.DataFile"><em>DataFile</em></a><em>]</em>) – A list of registered files to be processed.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>None</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.process_inbox">
 <em class="property"><span class="k"><span class="pre">async</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">process_inbox</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">release_version</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">request</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/protected.html#process_inbox"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.process_inbox" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Process the inbox dataset metadata.</p>
+<p>This function processes the metadata of an inbox dataset for the given release version.
+It validates the dataset, retrieves the repository configuration, processes target repositories,
+metadata records, and database records. It also checks if the dataset is ready for submission.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>release_version</strong> (<a class="reference internal" href="#src.dbz.ReleaseVersion" title="src.dbz.ReleaseVersion"><em>ReleaseVersion</em></a>) – The release version of the dataset.</p></li>
+<li><p><strong>request</strong> (<em>Request</em>) – The request object containing the dataset metadata.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A data model containing the status and dataset ID.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="src.models.html#src.models.app_model.ResponseDataModel" title="src.models.app_model.ResponseDataModel">ResponseDataModel</a></p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>HTTPException</strong> – If the dataset is already published.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.process_inbox_dataset_metadata">
@@ -2198,12 +2472,52 @@ list: A list of file names that end with the given suffix.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.process_metadata_record">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">process_metadata_record</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">datasetId</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">idh</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">repo_assistant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tmp_dir</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/src/protected.html#process_metadata_record"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.process_metadata_record" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Process the metadata record for a dataset.</p>
+<p>This function processes the metadata record for the given dataset ID by validating and updating file permissions,
+deleting files that are no longer needed, and registering new files. It also updates the dataset state based on
+the presence of new files.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>datasetId</strong> (<em>str</em>) – The ID of the dataset to process the metadata for.</p></li>
+<li><p><strong>idh</strong> (<a class="reference internal" href="src.models.html#src.models.app_model.InboxDatasetDataModel" title="src.models.app_model.InboxDatasetDataModel"><em>InboxDatasetDataModel</em></a>) – The data model containing the dataset metadata.</p></li>
+<li><p><strong>repo_assistant</strong> (<a class="reference internal" href="src.models.html#src.models.assistant_datamodel.RepoAssistantDataModel" title="src.models.assistant_datamodel.RepoAssistantDataModel"><em>RepoAssistantDataModel</em></a>) – The assistant data model containing repository information.</p></li>
+<li><p><strong>tmp_dir</strong> (<em>str</em>) – The temporary directory path where files are stored.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A tuple containing the dataset metadata record and a list of registered files.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.process_target_repos">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">process_target_repos</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">repo_assistant</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target_creds</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">[&lt;class</span> <span class="pre">'src.dbz.TargetRepo'&gt;]</span></span></span><a class="reference internal" href="../_modules/src/protected.html#process_target_repos"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.process_target_repos" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Process target repositories for a given assistant.</p>
+<p>This function processes the target repositories for the given assistant by validating
+the target credentials and updating the repository configuration.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>repo_assistant</strong> (<a class="reference internal" href="src.models.html#src.models.assistant_datamodel.RepoAssistantDataModel" title="src.models.assistant_datamodel.RepoAssistantDataModel"><em>RepoAssistantDataModel</em></a>) – The assistant data model containing target repository information.</p></li>
+<li><p><strong>target_creds</strong> (<em>str</em>) – A JSON string containing the target credentials.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>A list of TargetRepo objects representing the processed target repositories.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#src.dbz.TargetRepo" title="src.dbz.TargetRepo">TargetRepo</a>]</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>HTTPException</strong> – If a specified bridge module class is not found in the data keys.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.register_module">
@@ -2274,7 +2588,24 @@ associated with the dataset and attempts to resubmit them.</p>
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.retrieve_targets_configuration">
 <span class="sig-prename descclassname"><span class="pre">src.protected.</span></span><span class="sig-name descname"><span class="pre">retrieve_targets_configuration</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">assistant_config_name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">str</span></span></span><a class="reference internal" href="../_modules/src/protected.html#retrieve_targets_configuration"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#src.protected.retrieve_targets_configuration" title="Link to this definition"></a></dt>
-<dd></dd></dl>
+<dd><p>Retrieve the configuration for the specified assistant.</p>
+<p>This function retrieves the configuration for the given assistant by making a request
+to the assistant configuration URL.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>assistant_config_name</strong> (<em>str</em>) – The name of the assistant configuration to retrieve.</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The JSON response containing the assistant configuration.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>HTTPException</strong> – If the configuration URL returns a status code other than 200.</p>
+</dd>
+</dl>
+</dd></dl>
 
 <dl class="py function">
 <dt class="sig sig-object py" id="src.protected.update_file_metadata">

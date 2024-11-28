@@ -75,7 +75,7 @@
 <span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">settings</span><span class="p">,</span> <span class="n">db_manager</span><span class="p">,</span> <span class="n">logger</span>
 <span class="kn">from</span> <span class="nn">src.dbz</span> <span class="kn">import</span> <span class="n">TargetRepo</span><span class="p">,</span> <span class="n">DepositStatus</span><span class="p">,</span> <span class="n">DatabaseManager</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataFile</span>
 <span class="kn">from</span> <span class="nn">src.models.assistant_datamodel</span> <span class="kn">import</span> <span class="n">Target</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span>
 
 
 <div class="viewcode-block" id="Bridge">
@@ -134,25 +134,23 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">save_state</span><span class="p">()</span></div>
 
 
-<div class="viewcode-block" id="Bridge.execute">
-<a class="viewcode-back" href="../../source/src.html#src.bridge.Bridge.execute">[docs]</a>
+<div class="viewcode-block" id="Bridge.job">
+<a class="viewcode-back" href="../../source/src.html#src.bridge.Bridge.job">[docs]</a>
     <span class="nd">@classmethod</span>
     <span class="nd">@abstractmethod</span>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">job</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetDataModel</span><span class="p">:</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Abstract method to deposit data into the target repository.</span>
-
-<span class="sd">        Subclasses must provide a concrete implementation of this method.</span>
+<span class="sd">        Abstract method to be implemented by subclasses to perform a specific job.</span>
 
 <span class="sd">        Returns:</span>
-<span class="sd">            BridgeOutputDataModel: An instance of BridgeOutputModel representing the output of the deposit process.</span>
+<span class="sd">            TargetDataModel: The result of the job execution.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="o">...</span></div>
 
 
 <div class="viewcode-block" id="Bridge.save_state">
 <a class="viewcode-back" href="../../source/src.html#src.bridge.Bridge.save_state">[docs]</a>
-    <span class="k">def</span> <span class="nf">save_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_data_model</span><span class="p">:</span> <span class="n">BridgeOutputDataModel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">save_state</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">output_data_model</span><span class="p">:</span> <span class="n">TargetDataModel</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Saves the state of the deposit process, updating the deposit status in the database.</span>
 

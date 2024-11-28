@@ -77,22 +77,38 @@
 <span class="kn">from</span> <span class="nn">src.bridge</span> <span class="kn">import</span> <span class="n">Bridge</span>
 <span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">settings</span>
 <span class="kn">from</span> <span class="nn">src.dbz</span> <span class="kn">import</span> <span class="n">DepositStatus</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span><span class="p">,</span> <span class="n">ResponseContentType</span><span class="p">,</span> <span class="n">IdentifierItem</span><span class="p">,</span> \
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span><span class="p">,</span> <span class="n">ResponseContentType</span><span class="p">,</span> <span class="n">IdentifierItem</span><span class="p">,</span> \
     <span class="n">IdentifierProtocol</span>
 
 
 <div class="viewcode-block" id="SwhApiDepositor">
 <a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor">[docs]</a>
 <span class="k">class</span> <span class="nc">SwhApiDepositor</span><span class="p">(</span><span class="n">Bridge</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the deposit of metadata to the Software Heritage (SWH) API.</span>
 
-<div class="viewcode-block" id="SwhApiDepositor.execute">
-<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.execute">[docs]</a>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+<span class="sd">    Inherits from:</span>
+<span class="sd">        Bridge: The base class for all bridge implementations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="SwhApiDepositor.job">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.swh_api_depositor.SwhApiDepositor.job">[docs]</a>
+    <span class="k">def</span> <span class="nf">job</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetDataModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the deposit process to the SWH API.</span>
+
+<span class="sd">        This method logs the start of the deposit process, constructs the target URL, and sends a POST request to the SWH API.</span>
+<span class="sd">        It then polls the SWH API for the status of the deposit until it is either successful or fails, logging the progress</span>
+<span class="sd">        and updating the bridge output model accordingly.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        BridgeOutputDataModel: The output model containing the response from the SWH API and the status of the deposit.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;DEPOSIT to </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">repo_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
         <span class="n">target_response</span> <span class="o">=</span> <span class="n">TargetResponse</span><span class="p">()</span>
         <span class="n">target_swh</span> <span class="o">=</span> <span class="n">jmespath</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;metadata[*].fields[?name==&#39;repository_url&#39;].value&quot;</span><span class="p">,</span>
                                      <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_rec</span><span class="o">.</span><span class="n">md</span><span class="p">))</span>
-        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">target_response</span><span class="p">)</span>
+        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">response</span><span class="o">=</span><span class="n">target_response</span><span class="p">)</span>
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;Content-Type&#39;</span><span class="p">:</span> <span class="s1">&#39;application/json&#39;</span><span class="p">,</span> <span class="s1">&#39;Authorization&#39;</span><span class="p">:</span> <span class="sa">f</span><span class="s1">&#39;Bearer </span><span class="si">{</span><span class="n">settings</span><span class="o">.</span><span class="n">SWH_ACCESS_TOKEN</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">}</span>
         <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;self.target.target_url: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
         <span class="n">swh_url</span> <span class="o">=</span> <span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">target_swh</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s1">/&#39;</span>
@@ -120,7 +136,6 @@
                         <span class="n">target_response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">check_resp</span><span class="o">.</span><span class="n">status_code</span>
                         <span class="n">target_response</span><span class="o">.</span><span class="n">content_type</span> <span class="o">=</span> <span class="n">ResponseContentType</span><span class="o">.</span><span class="n">JSON</span>
                         <span class="n">target_response</span><span class="o">.</span><span class="n">content</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">swh_resp_json</span><span class="p">)</span>
-                        <span class="n">target_response</span><span class="o">.</span><span class="n">status</span> <span class="o">=</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">SUCCESS</span>
                         <span class="n">identifier_items</span> <span class="o">=</span> <span class="p">[]</span>
                         <span class="n">target_response</span><span class="o">.</span><span class="n">identifiers</span> <span class="o">=</span> <span class="n">identifier_items</span>
                         <span class="n">ideni</span> <span class="o">=</span> <span class="n">IdentifierItem</span><span class="p">(</span><span class="n">value</span><span class="o">=</span><span class="n">swh_resp_json</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;snapshot_swhid&#39;</span><span class="p">),</span> <span class="n">url</span><span class="o">=</span><span class="n">swh_url</span><span class="p">,</span>

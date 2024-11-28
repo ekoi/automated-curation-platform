@@ -68,7 +68,7 @@
   <h1>Source code for src.models.bridge_output_model</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
-<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
+<span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span><span class="p">,</span> <span class="n">timezone</span>
 <span class="kn">from</span> <span class="nn">enum</span> <span class="kn">import</span> <span class="n">StrEnum</span><span class="p">,</span> <span class="n">auto</span>
 <span class="kn">from</span> <span class="nn">typing</span> <span class="kn">import</span> <span class="n">List</span><span class="p">,</span> <span class="n">Optional</span>
 
@@ -158,69 +158,76 @@
     <span class="n">url</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">status_code</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=-</span><span class="mi">10122004</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;status-code&#39;</span><span class="p">)</span>
     <span class="n">duration</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span>
-    <span class="n">status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">error</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
-    <span class="n">message</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">identifiers</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">List</span><span class="p">[</span><span class="n">IdentifierItem</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">content</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">content_type</span><span class="p">:</span> <span class="n">ResponseContentType</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;content-type&#39;</span><span class="p">)</span></div>
 
 
 
-<div class="viewcode-block" id="BridgeOutputDataModel">
-<a class="viewcode-back" href="../../../source/src.models.html#src.models.bridge_output_model.BridgeOutputDataModel">[docs]</a>
-<span class="k">class</span> <span class="nc">BridgeOutputDataModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<div class="viewcode-block" id="TargetDataModel">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.bridge_output_model.TargetDataModel">[docs]</a>
+<span class="k">class</span> <span class="nc">TargetDataModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Data model for bridge output data.</span>
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        deposit_time (Optional[str]): The time of the deposit, formatted as a string, aliased as &#39;deposit-time&#39;.</span>
-<span class="sd">        deposit_status (DepositStatus): The status of the deposit, aliased as &#39;deposit-status&#39;.</span>
+<span class="sd">        deposit_status (Optional[DepositStatus]): The status of the deposit, aliased as &#39;deposit-status&#39;.</span>
+<span class="sd">        payload (Optional[str]): The payload data associated with the deposit.</span>
 <span class="sd">        notes (Optional[str]): Any message or text associated with the deposit.</span>
 <span class="sd">        response (TargetResponse): The response data associated with the deposit.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">deposit_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">),</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;deposit-time&#39;</span><span class="p">)</span>
-    <span class="n">deposit_status</span><span class="p">:</span> <span class="n">DepositStatus</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">UNDEFINED</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;deposit-status&#39;</span><span class="p">)</span>
-    <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span> <span class="c1"># This is for any message/text</span>
+    <span class="n">deposit_time</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">(</span><span class="n">timezone</span><span class="o">.</span><span class="n">utc</span><span class="p">)</span><span class="o">.</span><span class="n">isoformat</span><span class="p">(),</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;deposit-time&#39;</span><span class="p">)</span>
+    <span class="n">deposit_status</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">DepositStatus</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;deposit-status&#39;</span><span class="p">)</span>
+    <span class="n">payload</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;payload&#39;</span><span class="p">)</span>
+    <span class="n">notes</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="kc">None</span><span class="p">)</span>  <span class="c1"># This is for any message/text</span>
     <span class="n">response</span><span class="p">:</span> <span class="n">TargetResponse</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="n">TargetResponse</span><span class="p">)</span></div>
 
 
 
-<span class="n">json_output_model</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;deposit-time&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;deposit-status&quot;</span><span class="p">:</span> <span class="s2">&quot;initial&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;duration&quot;</span><span class="p">:</span> <span class="mf">0.0</span><span class="p">,</span>
-    <span class="s2">&quot;response&quot;</span><span class="p">:</span> <span class="p">{</span>
-        <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;status-code&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-        <span class="s2">&quot;status&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Any message from response.&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;identifiers&quot;</span><span class="p">:</span> <span class="p">[</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;doi&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="s2">&quot;doi&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span>
-            <span class="p">},</span>
-            <span class="p">{</span>
-                <span class="s2">&quot;value&quot;</span><span class="p">:</span> <span class="s2">&quot;doi&quot;</span><span class="p">,</span>
-                <span class="s2">&quot;protocol&quot;</span><span class="p">:</span> <span class="n">IdentifierProtocol</span><span class="o">.</span><span class="n">DOI</span>
-            <span class="p">}</span>
-        <span class="p">],</span>
-        <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;content-type&quot;</span><span class="p">:</span> <span class="n">ResponseContentType</span><span class="o">.</span><span class="n">XML</span>
-    <span class="p">}</span>
-<span class="p">}</span>
-<span class="n">response_json</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;url&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;status-code&quot;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
-    <span class="s2">&quot;error&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;message&quot;</span><span class="p">:</span> <span class="s2">&quot;Any message from response.&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;identifiers&quot;</span><span class="p">:</span> <span class="p">[],</span>
-    <span class="s2">&quot;content&quot;</span><span class="p">:</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
-    <span class="s2">&quot;content-type&quot;</span><span class="p">:</span> <span class="n">ResponseContentType</span><span class="o">.</span><span class="n">XML</span>
-<span class="p">}</span>
+<div class="viewcode-block" id="Credentials">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.bridge_output_model.Credentials">[docs]</a>
+<span class="k">class</span> <span class="nc">Credentials</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for credentials.</span>
 
+<span class="sd">    Attributes:</span>
+<span class="sd">        password (Optional[str]): The password for the credentials.</span>
+<span class="sd">        username (Optional[str]): The username for the credentials.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">password</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">username</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="TargetsCredential">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.bridge_output_model.TargetsCredential">[docs]</a>
+<span class="k">class</span> <span class="nc">TargetsCredential</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for target credentials.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        target_repo_name (str): The name of the target repository, aliased as &#39;target-repo-name&#39;.</span>
+<span class="sd">        credentials (Optional[Credentials]): The credentials associated with the target repository.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">target_repo_name</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;target-repo-name&#39;</span><span class="p">)</span>
+    <span class="n">credentials</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Credentials</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span></div>
+
+
+
+<div class="viewcode-block" id="TargetsCredentialsModel">
+<a class="viewcode-back" href="../../../source/src.models.html#src.models.bridge_output_model.TargetsCredentialsModel">[docs]</a>
+<span class="k">class</span> <span class="nc">TargetsCredentialsModel</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Data model for a list of target credentials.</span>
+
+<span class="sd">    Attributes:</span>
+<span class="sd">        targets_credentials (List[TargetsCredential]): The list of target credentials, aliased as &#39;targets-credentials&#39;.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">targets_credentials</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="n">TargetsCredential</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+        <span class="o">...</span><span class="p">,</span> <span class="n">alias</span><span class="o">=</span><span class="s1">&#39;targets-credentials&#39;</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

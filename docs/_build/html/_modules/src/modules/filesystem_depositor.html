@@ -68,19 +68,51 @@
   <h1>Source code for src.modules.filesystem_depositor</h1><div class="highlight"><pre>
 <span></span><span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">annotations</span>
 
+<span class="kn">import</span> <span class="nn">urllib.parse</span>
+<span class="kn">import</span> <span class="nn">json</span>
+
 <span class="kn">from</span> <span class="nn">src.bridge</span> <span class="kn">import</span> <span class="n">Bridge</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span>
+<span class="kn">from</span> <span class="nn">src.commons</span> <span class="kn">import</span> <span class="n">logger</span><span class="p">,</span> <span class="n">settings</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span>
 
 
 <div class="viewcode-block" id="FileSystem">
 <a class="viewcode-back" href="../../../source/src.modules.html#src.modules.filesystem_depositor.FileSystem">[docs]</a>
 <span class="k">class</span> <span class="nc">FileSystem</span><span class="p">(</span><span class="n">Bridge</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the deposit of metadata to the filesystem.</span>
 
-<div class="viewcode-block" id="FileSystem.execute">
-<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.filesystem_depositor.FileSystem.execute">[docs]</a>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+<span class="sd">    Inherits from:</span>
+<span class="sd">        Bridge: The base class for all bridge implementations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
 
-        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">()</span>
+<div class="viewcode-block" id="FileSystem.job">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.filesystem_depositor.FileSystem.job">[docs]</a>
+    <span class="k">def</span> <span class="nf">job</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetDataModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the deposit process to the filesystem.</span>
+
+<span class="sd">        This method logs the start of the deposit process, parses the target URL, and saves the metadata to a file.</span>
+<span class="sd">        It raises a ValueError if the URL scheme is not &#39;file&#39; or if the path is invalid.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        BridgeOutputDataModel: The output model for the filesystem deposit process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Depositing to File: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">repo_name</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">app_name</span><span class="p">)</span>
+        <span class="n">metadata</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_rec</span><span class="o">.</span><span class="n">md</span><span class="p">)</span>
+
+        <span class="n">parsed_url</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">parse</span><span class="o">.</span><span class="n">urlparse</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">scheme</span> <span class="o">!=</span> <span class="s1">&#39;file&#39;</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid file URL&quot;</span><span class="p">)</span>
+
+        <span class="n">file_path</span> <span class="o">=</span> <span class="n">parsed_url</span><span class="o">.</span><span class="n">path</span>
+        <span class="nb">print</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
+        <span class="c1"># save to file</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">dataset_dir</span><span class="si">}</span><span class="s1">/</span><span class="si">{</span><span class="n">metadata</span><span class="p">[</span><span class="s2">&quot;title&quot;</span><span class="p">]</span><span class="si">}</span><span class="s1">.json&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">metadata</span><span class="p">)</span>
+
+        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">()</span>
 
         <span class="k">return</span> <span class="n">bridge_output_model</span></div>
 </div>

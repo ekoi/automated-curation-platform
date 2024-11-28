@@ -75,21 +75,36 @@
 
 <span class="kn">from</span> <span class="nn">src.bridge</span> <span class="kn">import</span> <span class="n">Bridge</span>
 <span class="kn">from</span> <span class="nn">src.dbz</span> <span class="kn">import</span> <span class="n">DepositStatus</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span><span class="p">,</span> <span class="n">ResponseContentType</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span><span class="p">,</span> <span class="n">ResponseContentType</span>
 
 
 <div class="viewcode-block" id="DataverseDatasetDelete">
 <a class="viewcode-back" href="../../../source/src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete">[docs]</a>
 <span class="k">class</span> <span class="nc">DataverseDatasetDelete</span><span class="p">(</span><span class="n">Bridge</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A class to handle the deletion of datasets from a Dataverse repository.</span>
 
-<div class="viewcode-block" id="DataverseDatasetDelete.execute">
-<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.execute">[docs]</a>
-    <span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">BridgeOutputDataModel</span><span class="p">:</span>
+<span class="sd">    Inherits from:</span>
+<span class="sd">        Bridge: The base class for all bridge implementations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DataverseDatasetDelete.job">
+<a class="viewcode-back" href="../../../source/src.modules.html#src.modules.dataverse_dataset_delete.DataverseDatasetDelete.job">[docs]</a>
+    <span class="k">def</span> <span class="nf">job</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">TargetDataModel</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Executes the dataset deletion process from the Dataverse repository.</span>
+
+<span class="sd">        This method parses the metadata to retrieve the dataset persistent ID, constructs the appropriate URL for deletion,</span>
+<span class="sd">        sends the deletion request, and constructs the bridge output model based on the response.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        BridgeOutputDataModel: The output model containing the response from the Dataverse repository and the status of the deletion process.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">md_json</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">metadata_rec</span><span class="o">.</span><span class="n">md</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">dv_pid</span> <span class="o">=</span> <span class="n">md_json</span><span class="p">[</span><span class="s2">&quot;datasetVersion&quot;</span><span class="p">][</span><span class="s2">&quot;datasetPersistentId&quot;</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Dataset ID not found in metadata&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset ID not found in metadata&quot;</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Dataset ID not found in metadata&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset ID not found in metadata&quot;</span><span class="p">)</span>
 
         <span class="n">headers</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;X-Dataverse-key&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">password</span>
@@ -100,25 +115,25 @@
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span> <span class="o">+</span> <span class="s2">&quot;/destroy/&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url_params</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$PID&quot;</span><span class="p">,</span> <span class="n">dv_pid</span><span class="p">)</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Failed&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset not found&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Failed&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset not found&quot;</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Delete draft version</span>
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url</span> <span class="o">+</span> <span class="s2">&quot;?&quot;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">target_url_params</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;$PID&quot;</span><span class="p">,</span> <span class="n">dv_pid</span><span class="p">)</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Failed&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset not found&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Failed&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset not found&quot;</span><span class="p">)</span>
 
             <span class="n">dv_id</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()[</span><span class="s2">&quot;data&quot;</span><span class="p">][</span><span class="s2">&quot;id&quot;</span><span class="p">]</span>
             <span class="n">url</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">target</span><span class="o">.</span><span class="n">base_url</span> <span class="o">+</span> <span class="s2">&quot;/api/datasets/&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">dv_id</span><span class="p">)</span>
             <span class="n">response</span> <span class="o">=</span> <span class="n">requests</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">headers</span><span class="o">=</span><span class="n">headers</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span> <span class="o">!=</span> <span class="mi">200</span><span class="p">:</span>
-                <span class="k">return</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Failed&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset not found&quot;</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">deposit_status</span><span class="o">=</span><span class="s2">&quot;Failed&quot;</span><span class="p">,</span> <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;Dataset not found&quot;</span><span class="p">)</span>
 
         <span class="n">target_repo</span> <span class="o">=</span> <span class="n">TargetResponse</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">status</span><span class="o">=</span><span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span><span class="p">,</span>
                                      <span class="n">message</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">response</span><span class="o">.</span><span class="n">json</span><span class="p">()),</span> <span class="n">content_type</span><span class="o">=</span><span class="n">ResponseContentType</span><span class="o">.</span><span class="n">JSON</span><span class="p">)</span>
         <span class="n">target_repo</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">url</span>
         <span class="n">target_repo</span><span class="o">.</span><span class="n">status_code</span> <span class="o">=</span> <span class="n">response</span><span class="o">.</span><span class="n">status_code</span>
-        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">target_repo</span><span class="p">)</span>
+        <span class="n">bridge_output_model</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">(</span><span class="n">notes</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">response</span><span class="o">=</span><span class="n">target_repo</span><span class="p">)</span>
         <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">FINISH</span>
         <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">response</span> <span class="o">=</span> <span class="n">target_repo</span>
         <span class="n">bridge_output_model</span><span class="o">.</span><span class="n">deposit_time</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M:%S.</span><span class="si">%f</span><span class="s2">&quot;</span><span class="p">)</span>

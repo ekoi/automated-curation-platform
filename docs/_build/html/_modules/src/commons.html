@@ -76,6 +76,7 @@
 <span class="kn">import</span> <span class="nn">re</span>
 <span class="kn">from</span> <span class="nn">tempfile</span> <span class="kn">import</span> <span class="n">NamedTemporaryFile</span>
 
+<span class="kn">import</span> <span class="nn">boto3</span>
 <span class="kn">import</span> <span class="nn">psutil</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="kn">import</span> <span class="n">datetime</span>
@@ -95,7 +96,7 @@
 <span class="kn">from</span> <span class="nn">starlette</span> <span class="kn">import</span> <span class="n">status</span>
 
 <span class="kn">from</span> <span class="nn">src.dbz</span> <span class="kn">import</span> <span class="n">DatabaseManager</span><span class="p">,</span> <span class="n">DepositStatus</span>
-<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">BridgeOutputDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span>
+<span class="kn">from</span> <span class="nn">src.models.bridge_output_model</span> <span class="kn">import</span> <span class="n">TargetDataModel</span><span class="p">,</span> <span class="n">TargetResponse</span>
 
 <span class="n">LOG_NAME_ACP</span> <span class="o">=</span> <span class="s1">&#39;acp&#39;</span>
 <span class="n">base_dir</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="vm">__file__</span><span class="p">)))</span>
@@ -124,6 +125,15 @@
 <div class="viewcode-block" id="get_version">
 <a class="viewcode-back" href="../../source/src.html#src.commons.get_version">[docs]</a>
 <span class="k">def</span> <span class="nf">get_version</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the version of the package from the `pyproject.toml` file.</span>
+
+<span class="sd">    This function opens the `pyproject.toml` file located in the base directory of the project,</span>
+<span class="sd">    reads its contents, and returns the version of the package as specified under the `[tool.poetry]` section.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    str: The version of the package.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;BASE_DIR&quot;</span><span class="p">),</span> <span class="s1">&#39;pyproject.toml&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
         <span class="n">package_details</span> <span class="o">=</span> <span class="n">tomli</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">package_details</span><span class="p">[</span><span class="s1">&#39;tool&#39;</span><span class="p">][</span><span class="s1">&#39;poetry&#39;</span><span class="p">][</span><span class="s1">&#39;version&#39;</span><span class="p">]</span></div>
@@ -132,6 +142,15 @@
 <div class="viewcode-block" id="get_name">
 <a class="viewcode-back" href="../../source/src.html#src.commons.get_name">[docs]</a>
 <span class="k">def</span> <span class="nf">get_name</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Retrieves the name of the package from the `pyproject.toml` file.</span>
+
+<span class="sd">    This function opens the `pyproject.toml` file located in the base directory of the project,</span>
+<span class="sd">    reads its contents, and returns the name of the package as specified under the `[tool.poetry]` section.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    str: The name of the package.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getenv</span><span class="p">(</span><span class="s2">&quot;BASE_DIR&quot;</span><span class="p">),</span> <span class="s1">&#39;pyproject.toml&#39;</span><span class="p">),</span> <span class="s1">&#39;rb&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">file</span><span class="p">:</span>
         <span class="n">package_details</span> <span class="o">=</span> <span class="n">tomli</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">file</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">package_details</span><span class="p">[</span><span class="s1">&#39;tool&#39;</span><span class="p">][</span><span class="s1">&#39;poetry&#39;</span><span class="p">][</span><span class="s1">&#39;name&#39;</span><span class="p">]</span></div>
@@ -220,6 +239,24 @@
 <div class="viewcode-block" id="transform">
 <a class="viewcode-back" href="../../source/src.html#src.commons.transform">[docs]</a>
 <span class="k">def</span> <span class="nf">transform</span><span class="p">(</span><span class="n">transformer_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">str_tobe_transformed</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">headers</span><span class="p">:</span> <span class="p">{}</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms a given string using a specified transformer service.</span>
+
+<span class="sd">    This function sends a POST request to the transformer service with the string to be transformed.</span>
+<span class="sd">    If the transformation is successful (HTTP status code 200), it returns the transformed result.</span>
+<span class="sd">    Otherwise, it raises a ValueError with the response status code.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    transformer_url (str): The URL of the transformer service.</span>
+<span class="sd">    str_tobe_transformed (str): The string to be transformed.</span>
+<span class="sd">    headers (dict, optional): The headers to include in the request. Defaults to `transformer_headers`.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    str: The transformed string if the request is successful.</span>
+
+<span class="sd">    Raises:</span>
+<span class="sd">    ValueError: If `str_tobe_transformed` is not a string or if the response status code is not 200.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;transformer_url: </span><span class="si">{</span><span class="n">transformer_url</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">str_tobe_transformed</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Error - str_tobe_transformed is not a string. It is : </span><span class="si">{</span><span class="nb">type</span><span class="p">(</span><span class="n">str_tobe_transformed</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
@@ -237,7 +274,20 @@
 <div class="viewcode-block" id="transform_json">
 <a class="viewcode-back" href="../../source/src.html#src.commons.transform_json">[docs]</a>
 <span class="k">def</span> <span class="nf">transform_json</span><span class="p">(</span><span class="n">transformer_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">str_tobe_transformed</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-   <span class="n">transform</span><span class="p">(</span><span class="n">transformer_url</span><span class="p">,</span> <span class="n">str_tobe_transformed</span><span class="p">,</span> <span class="n">transformer_headers</span><span class="p">)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms a given string using a specified transformer service with JSON headers.</span>
+
+<span class="sd">    This function calls the `transform` function with the provided transformer URL and string to be transformed,</span>
+<span class="sd">    using the `transformer_headers` for the request headers.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    transformer_url (str): The URL of the transformer service.</span>
+<span class="sd">    str_tobe_transformed (str): The string to be transformed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    str: The transformed string if the request is successful.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">transform</span><span class="p">(</span><span class="n">transformer_url</span><span class="p">,</span> <span class="n">str_tobe_transformed</span><span class="p">,</span> <span class="n">transformer_headers</span><span class="p">)</span></div>
 
 
 
@@ -245,7 +295,20 @@
 <div class="viewcode-block" id="transform_xml">
 <a class="viewcode-back" href="../../source/src.html#src.commons.transform_xml">[docs]</a>
 <span class="k">def</span> <span class="nf">transform_xml</span><span class="p">(</span><span class="n">transformer_url</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">str_tobe_transformed</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-    <span class="n">transform</span><span class="p">(</span><span class="n">transformer_url</span><span class="p">,</span> <span class="n">str_tobe_transformed</span><span class="p">,</span> <span class="n">transformer_headers_xml</span><span class="p">)</span></div>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Transforms a given string using a specified transformer service with XML headers.</span>
+
+<span class="sd">    This function calls the `transform` function with the provided transformer URL and string to be transformed,</span>
+<span class="sd">    using the `transformer_headers_xml` for the request headers.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    transformer_url (str): The URL of the transformer service.</span>
+<span class="sd">    str_tobe_transformed (str): The string to be transformed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    str: The transformed string if the request is successful.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">transform</span><span class="p">(</span><span class="n">transformer_url</span><span class="p">,</span> <span class="n">str_tobe_transformed</span><span class="p">,</span> <span class="n">transformer_headers_xml</span><span class="p">)</span></div>
 
 
 <span class="c1"># def transform(transformer_url: str, input: str) -&gt; str:</span>
@@ -302,7 +365,7 @@
 <div class="viewcode-block" id="handle_deposit_exceptions">
 <a class="viewcode-back" href="../../source/src.html#src.commons.handle_deposit_exceptions">[docs]</a>
 <span class="k">def</span> <span class="nf">handle_deposit_exceptions</span><span class="p">(</span>
-        <span class="n">func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">BridgeOutputDataModel</span> <span class="o">|</span> <span class="n">Any</span><span class="p">]:</span>
+        <span class="n">func</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Callable</span><span class="p">[[</span><span class="nb">tuple</span><span class="p">[</span><span class="n">Any</span><span class="p">,</span> <span class="o">...</span><span class="p">],</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]],</span> <span class="n">TargetDataModel</span> <span class="o">|</span> <span class="n">Any</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    This function is a decorator that wraps around a function to handle exceptions during the deposit process.</span>
 
@@ -329,7 +392,7 @@
             <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Errors in </span><span class="si">{</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="si">}</span><span class="s1">: </span><span class="si">{</span><span class="n">ex</span><span class="si">}</span><span class="s1"> - </span><span class="si">{</span><span class="n">ex</span><span class="o">.</span><span class="n">with_traceback</span><span class="p">(</span><span class="n">ex</span><span class="o">.</span><span class="n">__traceback__</span><span class="p">)</span><span class="si">}</span><span class="s1">&#39;</span><span class="p">,</span>
                    <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span>
             <span class="n">target</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">target</span>
-            <span class="n">bom</span> <span class="o">=</span> <span class="n">BridgeOutputDataModel</span><span class="p">()</span>
+            <span class="n">bom</span> <span class="o">=</span> <span class="n">TargetDataModel</span><span class="p">()</span>
             <span class="n">bom</span><span class="o">.</span><span class="n">deposit_status</span> <span class="o">=</span> <span class="n">DepositStatus</span><span class="o">.</span><span class="n">ERROR</span>
             <span class="n">tr</span> <span class="o">=</span> <span class="n">TargetResponse</span><span class="p">()</span>
             <span class="n">tr</span><span class="o">.</span><span class="n">url</span> <span class="o">=</span> <span class="n">target</span><span class="o">.</span><span class="n">target_url</span>
@@ -487,7 +550,32 @@
 <div class="viewcode-block" id="upload_large_file">
 <a class="viewcode-back" href="../../source/src.html#src.commons.upload_large_file">[docs]</a>
 <span class="k">def</span> <span class="nf">upload_large_file</span><span class="p">(</span><span class="n">url</span><span class="p">,</span> <span class="n">file_path</span><span class="p">,</span> <span class="n">json_data</span><span class="p">,</span> <span class="n">api_key</span><span class="p">,</span> <span class="n">file_name</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Uploads a large file to a specified URL with progress logging.</span>
+
+<span class="sd">    This function uploads a file to the given URL using the `requests` library and the `MultipartEncoder` for handling</span>
+<span class="sd">    large file uploads. It logs the upload progress at intervals of 5% or when the progress exceeds 95%.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    url (str): The URL to which the file will be uploaded.</span>
+<span class="sd">    file_path (str): The path to the file to be uploaded.</span>
+<span class="sd">    json_data (dict): A dictionary containing JSON data to be included in the upload.</span>
+<span class="sd">    api_key (str): The API key for authentication.</span>
+<span class="sd">    file_name (str, optional): The name of the file to be uploaded. If not provided, the basename of `file_path` is used.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    requests.Response: The response from the server after the file upload.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="nf">create_callback</span><span class="p">(</span><span class="n">encoder</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Creates a callback function to log the upload progress.</span>
+
+<span class="sd">        Parameters:</span>
+<span class="sd">        encoder (MultipartEncoder): The encoder handling the file upload.</span>
+
+<span class="sd">        Returns:</span>
+<span class="sd">        function: A callback function that logs the upload progress.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">encoder_len</span> <span class="o">=</span> <span class="n">encoder</span><span class="o">.</span><span class="n">len</span>
         <span class="n">last_reported_progress</span> <span class="o">=</span> <span class="o">-</span><span class="mi">5</span>  <span class="c1"># Initialize to -5 so it prints at 0%</span>
 
@@ -525,6 +613,18 @@
 <div class="viewcode-block" id="zip_with_progress">
 <a class="viewcode-back" href="../../source/src.html#src.commons.zip_with_progress">[docs]</a>
 <span class="k">def</span> <span class="nf">zip_with_progress</span><span class="p">(</span><span class="n">file_path</span><span class="p">,</span> <span class="n">zip_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compresses a file into a zip archive with progress logging.</span>
+
+<span class="sd">    This function compresses the specified file into a zip archive, logging the progress at intervals of 10%.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    file_path (str): The path to the file to be compressed.</span>
+<span class="sd">    zip_path (str): The path where the zip archive will be created.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Resolve the file_path if it&#39;s a symlink</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">file_path</span><span class="p">):</span>
         <span class="n">real_file_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">file_path</span><span class="p">)</span>
@@ -568,6 +668,19 @@
 <div class="viewcode-block" id="delete_symlink_and_target">
 <a class="viewcode-back" href="../../source/src.html#src.commons.delete_symlink_and_target">[docs]</a>
 <span class="k">def</span> <span class="nf">delete_symlink_and_target</span><span class="p">(</span><span class="n">link_name</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Deletes a symbolic link and its target.</span>
+
+<span class="sd">    This function checks if the given `link_name` is a symbolic link. If it is, it reads the target of the symbolic link.</span>
+<span class="sd">    If the target is a directory, it removes the directory and its contents. If the target is a file, it removes the file.</span>
+<span class="sd">    Finally, it removes the symbolic link itself and logs the deletion.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    link_name (str): The name of the symbolic link to be deleted.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">islink</span><span class="p">(</span><span class="n">link_name</span><span class="p">):</span>
         <span class="n">target</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">readlink</span><span class="p">(</span><span class="n">link_name</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">isdir</span><span class="p">(</span><span class="n">target</span><span class="p">):</span>
@@ -578,10 +691,22 @@
         <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;</span><span class="si">{</span><span class="n">link_name</span><span class="si">}</span><span class="s1"> and its target </span><span class="si">{</span><span class="n">target</span><span class="si">}</span><span class="s1"> DELETED successfully.&#39;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span></div>
 
 
-
 <div class="viewcode-block" id="compress_zip_file">
 <a class="viewcode-back" href="../../source/src.html#src.commons.compress_zip_file">[docs]</a>
 <span class="k">def</span> <span class="nf">compress_zip_file</span><span class="p">(</span><span class="n">original_zip_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compresses an existing zip file to reduce its size.</span>
+
+<span class="sd">    This function reads the contents of the specified zip file, compresses them with the highest compression level,</span>
+<span class="sd">    and writes the compressed contents to a temporary file. The temporary file is then moved to replace the original zip file.</span>
+<span class="sd">    Progress is printed to the console.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    original_zip_path (str): The path to the original zip file to be compressed.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">original_zip_path</span><span class="p">):</span>
         <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;File </span><span class="si">{</span><span class="n">original_zip_path</span><span class="si">}</span><span class="s2"> does not exist.&quot;</span><span class="p">)</span>
         <span class="k">return</span>
@@ -615,9 +740,23 @@
 <div class="viewcode-block" id="zip_a_zipfile_with_progress">
 <a class="viewcode-back" href="../../source/src.html#src.commons.zip_a_zipfile_with_progress">[docs]</a>
 <span class="k">def</span> <span class="nf">zip_a_zipfile_with_progress</span><span class="p">(</span><span class="n">original_zip_path</span><span class="p">,</span> <span class="n">new_zip_path</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Compresses an existing zip file into a new zip file with progress logging.</span>
+
+<span class="sd">    This function creates a new zip file and adds the original zip file to it. The progress is logged as 100%</span>
+<span class="sd">    since the file is added in one go.</span>
+
+<span class="sd">    Parameters:</span>
+<span class="sd">    original_zip_path (str): The path to the original zip file to be compressed.</span>
+<span class="sd">    new_zip_path (str): The path where the new zip file will be created.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">    None</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Get the size of the original zip file</span>
     <span class="n">original_zip_size</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">getsize</span><span class="p">(</span><span class="n">original_zip_path</span><span class="p">)</span>
     <span class="n">arcname</span> <span class="o">=</span> <span class="n">original_zip_path</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
     <span class="c1"># Create a new zip file (outer zip)</span>
     <span class="k">with</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZipFile</span><span class="p">(</span><span class="n">new_zip_path</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">,</span> <span class="n">zipfile</span><span class="o">.</span><span class="n">ZIP_DEFLATED</span><span class="p">)</span> <span class="k">as</span> <span class="n">new_zip</span><span class="p">:</span>
         <span class="c1"># Add the original zip file to the new zip file</span>
@@ -630,10 +769,6 @@
         <span class="n">logger</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Zipping Progress of </span><span class="si">{</span><span class="n">arcname</span><span class="si">}</span><span class="s2"> : </span><span class="si">{</span><span class="n">progress</span><span class="si">}</span><span class="s2">%&quot;</span><span class="p">,</span> <span class="n">settings</span><span class="o">.</span><span class="n">LOG_LEVEL</span><span class="p">,</span> <span class="n">LOG_NAME_ACP</span><span class="p">)</span></div>
 
 
-
-
-
-
 <div class="viewcode-block" id="escape_invalid_json_characters">
 <a class="viewcode-back" href="../../source/src.html#src.commons.escape_invalid_json_characters">[docs]</a>
 <span class="k">def</span> <span class="nf">escape_invalid_json_characters</span><span class="p">(</span><span class="n">json_string</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
@@ -642,6 +777,26 @@
     <span class="k">return</span> <span class="n">escaped_string</span></div>
 
 
+<div class="viewcode-block" id="create_s3_client">
+<a class="viewcode-back" href="../../source/src.html#src.commons.create_s3_client">[docs]</a>
+<span class="k">def</span> <span class="nf">create_s3_client</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Initializes and returns an S3 client using the provided settings.</span>
+
+<span class="sd">    The settings for the S3 client are retrieved from the global `settings` object, which includes:</span>
+<span class="sd">    - `S3_STORAGE_ENDPOINT`: The endpoint URL for the S3 storage.</span>
+<span class="sd">    - `S3_ACCESS_KEY_ID`: The AWS access key ID.</span>
+<span class="sd">    - `S3_ACCESS_KEY_SECRET`: The AWS secret access key.</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        boto3.client: An S3 client instance configured with the specified settings.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">boto3</span><span class="o">.</span><span class="n">client</span><span class="p">(</span>
+        <span class="s1">&#39;s3&#39;</span><span class="p">,</span>
+        <span class="n">endpoint_url</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">S3_STORAGE_ENDPOINT</span><span class="p">,</span>
+        <span class="n">aws_access_key_id</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">S3_ACCESS_KEY_ID</span><span class="p">,</span>
+        <span class="n">aws_secret_access_key</span><span class="o">=</span><span class="n">settings</span><span class="o">.</span><span class="n">S3_ACCESS_KEY_SECRET</span>
+    <span class="p">)</span></div>
 
 </pre></div>
 

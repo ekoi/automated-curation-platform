@@ -80,7 +80,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#module-src.models.app_model">src.models.app_model module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#module-src.models.assistant_datamodel">src.models.assistant_datamodel module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#module-src.models.bridge_output_model">src.models.bridge_output_model module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.models.html#module-src.models.target_datamodel">src.models.target_datamodel module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.models.html#src-models-target-datamodel-module">src.models.target_datamodel module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#module-src.models.upload_files_model">src.models.upload_files_model module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.models.html#module-src.models">Module contents</a></li>
 </ul>
@@ -91,7 +91,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#module-src.modules.dataverse_dataset_delete">src.modules.dataverse_dataset_delete module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#module-src.modules.filesystem_depositor">src.modules.filesystem_depositor module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#module-src.modules.mail_depositor">src.modules.mail_depositor module</a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.modules.html#module-src.modules.oai_harverster_client_get_record">src.modules.oai_harverster_client_get_record module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.modules.html#src-modules-oai-harverster-client-get-record-module">src.modules.oai_harverster_client_get_record module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#module-src.modules.swh_api_depositor">src.modules.swh_api_depositor module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#module-src.modules.swh_sword_depositor">src.modules.swh_sword_depositor module</a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.modules.html#module-src.modules.zenodo_depositor">src.modules.zenodo_depositor module</a></li>
@@ -119,7 +119,7 @@
 <li class="toctree-l4"><a class="reference internal" href="src.html#id3"><code class="docutils literal notranslate"><span class="pre">Bridge.dataset_id</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.html#id4"><code class="docutils literal notranslate"><span class="pre">Bridge.db_manager</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.html#src.bridge.Bridge.deposit_files"><code class="docutils literal notranslate"><span class="pre">Bridge.deposit_files()</span></code></a></li>
-<li class="toctree-l4"><a class="reference internal" href="src.html#src.bridge.Bridge.execute"><code class="docutils literal notranslate"><span class="pre">Bridge.execute()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="src.html#src.bridge.Bridge.job"><code class="docutils literal notranslate"><span class="pre">Bridge.job()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.html#id5"><code class="docutils literal notranslate"><span class="pre">Bridge.metadata_rec</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.html#src.bridge.Bridge.save_state"><code class="docutils literal notranslate"><span class="pre">Bridge.save_state()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="src.html#id6"><code class="docutils literal notranslate"><span class="pre">Bridge.target</span></code></a></li>
@@ -129,6 +129,7 @@
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src.html#module-src.commons">src.commons module</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="src.html#src.commons.compress_zip_file"><code class="docutils literal notranslate"><span class="pre">compress_zip_file()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.commons.create_s3_client"><code class="docutils literal notranslate"><span class="pre">create_s3_client()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="src.html#src.commons.delete_symlink_and_target"><code class="docutils literal notranslate"><span class="pre">delete_symlink_and_target()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="src.html#src.commons.dmz_dataverse_headers"><code class="docutils literal notranslate"><span class="pre">dmz_dataverse_headers()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="src.html#src.commons.escape_invalid_json_characters"><code class="docutils literal notranslate"><span class="pre">escape_invalid_json_characters()</span></code></a></li>
@@ -322,7 +323,7 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="src.html#module-src.protected">src.protected module</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="src.html#src.protected.bridge_task"><code class="docutils literal notranslate"><span class="pre">bridge_task()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="src.html#src.protected.bridge_job"><code class="docutils literal notranslate"><span class="pre">bridge_job()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="src.html#src.protected.count_files_in_directory"><code class="docutils literal notranslate"><span class="pre">count_files_in_directory()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="src.html#src.protected.delete_all_recs"><code class="docutils literal notranslate"><span class="pre">delete_all_recs()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="src.html#src.protected.delete_dataset_and_its_folder"><code class="docutils literal notranslate"><span class="pre">delete_dataset_and_its_folder()</span></code></a></li>
