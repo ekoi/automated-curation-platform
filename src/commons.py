@@ -28,7 +28,7 @@ from fastapi import HTTPException
 from starlette import status
 
 from src.dbz import DatabaseManager, DepositStatus
-from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
+from src.models.bridge_output_model import TargetDataModel, TargetResponse
 
 LOG_NAME_ACP = 'acp'
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -271,7 +271,7 @@ def transform_xml(transformer_url: str, str_tobe_transformed: str) -> str:
 
 
 def handle_deposit_exceptions(
-        func) -> Callable[[tuple[Any, ...], dict[str, Any]], BridgeOutputDataModel | Any]:
+        func) -> Callable[[tuple[Any, ...], dict[str, Any]], TargetDataModel | Any]:
     """
     This function is a decorator that wraps around a function to handle exceptions during the deposit process.
 
@@ -298,7 +298,7 @@ def handle_deposit_exceptions(
             logger(f'Errors in {func.__name__}: {ex} - {ex.with_traceback(ex.__traceback__)}',
                    settings.LOG_LEVEL, LOG_NAME_ACP)
             target = args[0].target
-            bom = BridgeOutputDataModel()
+            bom = TargetDataModel()
             bom.deposit_status = DepositStatus.ERROR
             tr = TargetResponse()
             tr.url = target.target_url

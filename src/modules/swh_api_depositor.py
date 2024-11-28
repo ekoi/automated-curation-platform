@@ -9,7 +9,7 @@ import requests
 from src.bridge import Bridge
 from src.commons import logger, settings
 from src.dbz import DepositStatus
-from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse, ResponseContentType, IdentifierItem, \
+from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem, \
     IdentifierProtocol
 
 
@@ -21,7 +21,7 @@ class SwhApiDepositor(Bridge):
         Bridge: The base class for all bridge implementations.
     """
 
-    def execute(self) -> BridgeOutputDataModel:
+    def job(self) -> TargetDataModel:
         """
         Executes the deposit process to the SWH API.
 
@@ -36,7 +36,7 @@ class SwhApiDepositor(Bridge):
         target_response = TargetResponse()
         target_swh = jmespath.search("metadata[*].fields[?name=='repository_url'].value",
                                      json.loads(self.metadata_rec.md))
-        bridge_output_model = BridgeOutputDataModel(response=target_response)
+        bridge_output_model = TargetDataModel(response=target_response)
         headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {settings.SWH_ACCESS_TOKEN}'}
         logger(f'self.target.target_url: {self.target.target_url}', settings.LOG_LEVEL, self.app_name)
         swh_url = f'{self.target.target_url}/{target_swh[0][0]}/'
@@ -64,7 +64,6 @@ class SwhApiDepositor(Bridge):
                         target_response.status_code = check_resp.status_code
                         target_response.content_type = ResponseContentType.JSON
                         target_response.content = json.dumps(swh_resp_json)
-                        target_response.status = DepositStatus.SUCCESS
                         identifier_items = []
                         target_response.identifiers = identifier_items
                         ideni = IdentifierItem(value=swh_resp_json.get('snapshot_swhid'), url=swh_url,

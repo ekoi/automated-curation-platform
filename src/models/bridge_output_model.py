@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import StrEnum, auto
 from typing import List, Optional
 
@@ -79,63 +79,61 @@ class TargetResponse(BaseModel):
     url: Optional[str] = None
     status_code: int = Field(default=-10122004, alias='status-code')
     duration: float = 0.0
-    status: Optional[str] = None
     error: Optional[str] = None
-    message: str = None
     identifiers: Optional[List[IdentifierItem]] = None
     content: str = None
     content_type: ResponseContentType = Field(None, alias='content-type')
 
 
-class BridgeOutputDataModel(BaseModel):
+class TargetDataModel(BaseModel):
     """
     Data model for bridge output data.
 
     Attributes:
         deposit_time (Optional[str]): The time of the deposit, formatted as a string, aliased as 'deposit-time'.
-        deposit_status (DepositStatus): The status of the deposit, aliased as 'deposit-status'.
+        deposit_status (Optional[DepositStatus]): The status of the deposit, aliased as 'deposit-status'.
+        payload (Optional[str]): The payload data associated with the deposit.
         notes (Optional[str]): Any message or text associated with the deposit.
         response (TargetResponse): The response data associated with the deposit.
     """
-    deposit_time: Optional[str] = Field(datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f"), alias='deposit-time')
-    deposit_status: DepositStatus = Field(DepositStatus.UNDEFINED, alias='deposit-status')
-    notes: Optional[str] = "" # This is for any message/text
+    deposit_time: Optional[str] = Field(datetime.now(timezone.utc).isoformat(), alias='deposit-time')
+    deposit_status: Optional[DepositStatus] = Field(None, alias='deposit-status')
+    payload: Optional[str] = Field(None, alias='payload')
+    notes: Optional[str] = Field(None)  # This is for any message/text
     response: TargetResponse = Field(default_factory=TargetResponse)
 
 
-json_output_model = {
-    "deposit-time": "",
-    "deposit-status": "initial",
-    "duration": 0.0,
-    "response": {
-        "url": "",
-        "status-code": 200,
-        "status": "",
-        "error": "",
-        "message": "Any message from response.",
-        "identifiers": [
-            {
-                "value": "doi",
-                "protocol": "doi",
-                "url": ""
-            },
-            {
-                "value": "doi",
-                "protocol": IdentifierProtocol.DOI
-            }
-        ],
-        "content": "",
-        "content-type": ResponseContentType.XML
-    }
-}
-response_json = {
-    "url": "",
-    "status-code": 200,
-    "error": "",
-    "message": "Any message from response.",
-    "identifiers": [],
-    "content": "",
-    "content-type": ResponseContentType.XML
-}
+class Credentials(BaseModel):
+    """
+    Data model for credentials.
+
+    Attributes:
+        password (Optional[str]): The password for the credentials.
+        username (Optional[str]): The username for the credentials.
+    """
+    password: Optional[str] = None
+    username: Optional[str] = None
 
 
+class TargetsCredential(BaseModel):
+    """
+    Data model for target credentials.
+
+    Attributes:
+        target_repo_name (str): The name of the target repository, aliased as 'target-repo-name'.
+        credentials (Optional[Credentials]): The credentials associated with the target repository.
+    """
+    target_repo_name: str = Field(..., alias='target-repo-name')
+    credentials: Optional[Credentials] = None
+
+
+class TargetsCredentialsModel(BaseModel):
+    """
+    Data model for a list of target credentials.
+
+    Attributes:
+        targets_credentials (List[TargetsCredential]): The list of target credentials, aliased as 'targets-credentials'.
+    """
+    targets_credentials: List[TargetsCredential] = Field(
+        ..., alias='targets-credentials'
+    )

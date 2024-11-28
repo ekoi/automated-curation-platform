@@ -26,7 +26,7 @@ from src.dbz import TargetRepo, DataFile, Dataset, ReleaseVersion, DepositStatus
 from src.models.app_model import ResponseDataModel, InboxDatasetDataModel
 # Import custom modules and classes
 from src.models.assistant_datamodel import RepoAssistantDataModel, Target
-from src.models.target_datamodel import TargetsCredentialsModel
+from src.models.bridge_output_model import TargetsCredentialsModel
 
 # Create an API router instance
 router = APIRouter()
@@ -79,6 +79,21 @@ async def register_module(name: str, bridge_file: Request, overwrite: bool | Non
 @handle_ps_exceptions
 async def get_inbox_dataset_dc(request: Request, release_version: ReleaseVersion) -> (
         Callable)[[Request, ReleaseVersion], Awaitable[InboxDatasetDataModel]]:
+    """
+    Process inbox dataset metadata.
+
+    This function processes the metadata of an inbox dataset for the given release version.
+    It extracts necessary information from the request headers and body to create an
+    InboxDatasetDataModel instance.
+
+    Args:
+        request (Request): The request object containing the dataset metadata.
+        release_version (ReleaseVersion): The release version of the dataset.
+
+    Returns:
+        Callable[[Request, ReleaseVersion], Awaitable[InboxDatasetDataModel]]:
+        An awaitable function that returns an InboxDatasetDataModel instance.
+    """
     req_body = await request.json()
     return InboxDatasetDataModel(assistant_name=request.headers.get('assistant-config-name'),
                                  release_version=release_version, owner_id=request.headers.get('user-id'),
@@ -131,6 +146,23 @@ async def process_inbox_dataset_metadata(request: Request, release_version: Opti
 
 
 async def process_inbox(release_version, request):
+    """
+    Process the inbox dataset metadata.
+
+    This function processes the metadata of an inbox dataset for the given release version.
+    It validates the dataset, retrieves the repository configuration, processes target repositories,
+    metadata records, and database records. It also checks if the dataset is ready for submission.
+
+    Args:
+        release_version (ReleaseVersion): The release version of the dataset.
+        request (Request): The request object containing the dataset metadata.
+
+    Returns:
+        ResponseDataModel: A data model containing the status and dataset ID.
+
+    Raises:
+        HTTPException: If the dataset is already published.
+    """
     idh = await get_inbox_dataset_dc(request, release_version)
     file_metadata = jmespath.search('"file-metadata"[*]', idh.metadata)
     if file_metadata:
@@ -151,7 +183,7 @@ async def process_inbox(release_version, request):
     if db_manager.is_dataset_ready(dataset_id) and db_manager.are_files_uploaded(dataset_id):
         logger(f'SUBMIT DATASET with version {release_version.name} is_dataset_ready {dataset_id}', settings.LOG_LEVEL,
                LOG_NAME_ACP)
-        bridge_task(dataset_id, f"/inbox/dataset/{idh.release_version}")
+        bridge_job(dataset_id, f"/inbox/dataset/{idh.release_version}")
     else:
         logger(f'NOT READY to submit dataset with version {release_version.name} dataset_id: {dataset_id} '
                f'\nNumber still registered: {len(db_manager.find_registered_files(dataset_id))}', settings.LOG_LEVEL,
@@ -207,6 +239,19 @@ def delete_dataset_metadata(request: Request, metadata_id: str):
 
 
 def delete_dataset_and_its_folder(metadata_id):
+    """
+    Delete a dataset and its associated folder.
+
+    This function deletes the dataset identified by the given metadata ID and its associated folder.
+    It first checks if the dataset folder exists and deletes it if found. It then deletes the dataset
+    record from the database and checks again if the folder exists to ensure it is removed.
+
+    Args:
+        metadata_id (str): The ID of the dataset metadata to be deleted.
+
+    Returns:
+        dict: A dictionary containing the status of the deletion and the metadata ID.
+    """
     dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, db_manager.find_dataset(metadata_id).app_name,
                                   metadata_id)
     logger(f'Delete dataset folder: {dataset_folder}', settings.LOG_LEVEL, LOG_NAME_ACP)
@@ -225,6 +270,21 @@ def delete_dataset_and_its_folder(metadata_id):
 
 @handle_ps_exceptions
 def process_db_records(datasetId, db_record_metadata, db_recs_target_repo, registered_files) -> type(None):
+    """
+    Process database records for a dataset.
+
+    This function processes the database records for the given dataset ID by either inserting new records
+    or updating existing ones. It handles dataset metadata, target repository records, and registered files.
+
+    Args:
+        datasetId (str): The ID of the dataset to process the records for.
+        db_record_metadata (Dataset): The dataset metadata record to be processed.
+        db_recs_target_repo (list[TargetRepo]): A list of target repository records to be processed.
+        registered_files (list[DataFile]): A list of registered files to be processed.
+
+    Returns:
+        None
+    """
     if not db_manager.is_dataset_exist(datasetId):
         logger(f'Insert dataset and target repo records for {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
         db_manager.insert_dataset_and_target_repo(db_record_metadata, db_recs_target_repo)
@@ -242,9 +302,24 @@ def process_db_records(datasetId, db_record_metadata, db_recs_target_repo, regis
         except ValueError as e:
             logger(f'Error inserting datafiles: {e}', 'error', LOG_NAME_ACP)
 
-
 @handle_ps_exceptions
 def process_metadata_record(datasetId, idh, repo_assistant, tmp_dir):
+    """
+    Process the metadata record for a dataset.
+
+    This function processes the metadata record for the given dataset ID by validating and updating file permissions,
+    deleting files that are no longer needed, and registering new files. It also updates the dataset state based on
+    the presence of new files.
+
+    Args:
+        datasetId (str): The ID of the dataset to process the metadata for.
+        idh (InboxDatasetDataModel): The data model containing the dataset metadata.
+        repo_assistant (RepoAssistantDataModel): The assistant data model containing repository information.
+        tmp_dir (str): The temporary directory path where files are stored.
+
+    Returns:
+        tuple: A tuple containing the dataset metadata record and a list of registered files.
+    """
     logger(f'Processing metadata record for {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
     registered_files = []
     file_names = []
@@ -309,6 +384,22 @@ def process_metadata_record(datasetId, idh, repo_assistant, tmp_dir):
 
 @handle_ps_exceptions
 def process_target_repos(repo_assistant, target_creds) -> [TargetRepo]:
+    """
+    Process target repositories for a given assistant.
+
+    This function processes the target repositories for the given assistant by validating
+    the target credentials and updating the repository configuration.
+
+    Args:
+        repo_assistant (RepoAssistantDataModel): The assistant data model containing target repository information.
+        target_creds (str): A JSON string containing the target credentials.
+
+    Returns:
+        list[TargetRepo]: A list of TargetRepo objects representing the processed target repositories.
+
+    Raises:
+        HTTPException: If a specified bridge module class is not found in the data keys.
+    """
     db_recs_target_repo = []
     tgc = {"targets-credentials": json.loads(target_creds)}
     input_target_cred_model = TargetsCredentialsModel.model_validate(tgc)
@@ -331,6 +422,22 @@ def process_target_repos(repo_assistant, target_creds) -> [TargetRepo]:
 
 
 def count_files_in_directory(directory: str) -> int:
+    """
+    Count the number of files in a directory.
+
+    This function lists all items in the specified directory, filters the list to include only files,
+    and returns the count of files.
+
+    Args:
+        directory (str): The path of the directory to count files in.
+
+    Returns:
+        int: The number of files in the directory.
+
+    Raises:
+        FileNotFoundError: If the specified directory does not exist.
+        Exception: If any other error occurs during the process.
+    """
     try:
         # List all items in the directory
         items = os.listdir(directory)
@@ -359,58 +466,6 @@ def list_files_with_suffix(directory: str, suffix: str) -> list:
     """
     return [file for file in os.listdir(directory) if
             os.path.isfile(os.path.join(directory, file)) and file.endswith(suffix)]
-
-
-# @router.post("/inbox/file")
-# async def process_inbox_dataset_file(datasetId: str = Form(), fileName: str = Form(),
-#                                      file: UploadFile = File(...)) -> {}:
-#     files_name = []
-#     submitted_filename = fileName
-#     logger(f"submitted_filename: {submitted_filename} from metadataid: {datasetId}", settings.LOG_LEVEL, LOG_NAME_PS)
-#     db_record_metadata = db_manager.find_dataset(datasetId)
-#     dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, db_record_metadata.app_name, datasetId)
-#
-#     db_records_uploaded_file = db_manager.find_files(datasetId)
-#     # Process the files
-#     f_upload_st = []
-#     for db_rec_uploaded_f in db_records_uploaded_file:
-#         # Save the uploaded file
-#         if submitted_filename == db_rec_uploaded_f.name:
-#             file_contents = await file.read()
-#             md5_hash = hashlib.md5(file_contents).hexdigest()
-#             file_path = os.path.join(str(dataset_folder), submitted_filename)
-#             with open(file_path, "wb") as f:
-#                 f.write(file_contents)
-#
-#             # NOTES: There are many way to get the mime type of file, This rather the simplest then the best.
-#             file_mimetype = mimetypes.guess_type(file_path)[0]
-#             db_manager.update_file(df=DataFile(ds_id=datasetId, name=submitted_filename, checksum_value=md5_hash,
-#                                                size=os.path.getsize(file_path), mime_type=file_mimetype, path=file_path,
-#                                                date_added=datetime.utcnow(), state=DataFileWorkState.UPLOADED))
-#             f_upload_st.append({"name": db_rec_uploaded_f.name, "uploaded": True})
-#         else:
-#             f_upload_st.append(
-#                 {"name": db_rec_uploaded_f.name, "uploaded": False}) if db_rec_uploaded_f.date_added is None \
-#                 else f_upload_st.append({"name": db_rec_uploaded_f.name, "uploaded": True})
-#
-#     all_files_uploaded = True
-#     for fus in f_upload_st:
-#         if fus['uploaded'] is False:
-#             all_files_uploaded = False
-#             break
-#     # Update record
-#     if all_files_uploaded:
-#         db_manager.set_dataset_ready_for_ingest(datasetId)
-#
-#     start_process = db_manager.is_dataset_ready(datasetId)
-#
-#     if start_process:
-#         bridge_task(datasetId, f'/inbox/file/{fileName}')
-#
-#     rdm = ResponseDataModel(status="OK")
-#     rdm.dataset_id = datasetId
-#     rdm.start_process = start_process
-#     return rdm.model_dump(by_alias=True)
 
 
 async def delete_file(file_id: str):
@@ -530,7 +585,7 @@ async def update_file_metadata(metadata_id: str, file_uuid: str) -> {}:
     start_process = db_manager.is_dataset_ready(metadata_id)
     if start_process:
         logger(f'Start Bridge task for {metadata_id} from the PATCH file endpoint', settings.LOG_LEVEL, LOG_NAME_ACP)
-        bridge_task(metadata_id, f'/inbox/files/{metadata_id}/{file_uuid}')
+        bridge_job(metadata_id, f'/inbox/files/{metadata_id}/{file_uuid}')
         logger(f'Bridge task for {metadata_id} started successfully', settings.LOG_LEVEL, LOG_NAME_ACP)
     else:
         logger(f'Bridge task for {metadata_id} NOT started', settings.LOG_LEVEL, LOG_NAME_ACP)
@@ -543,7 +598,20 @@ async def update_file_metadata(metadata_id: str, file_uuid: str) -> {}:
     return rdm.model_dump(by_alias=True)
 
 
-def bridge_task(datasetId: str, msg: str) -> None:
+def bridge_job(datasetId: str, msg: str) -> None:
+    """
+    Start a new thread to follow the bridge process for a dataset.
+
+    This function starts a new thread to execute the `follow_bridge` function for the given dataset ID.
+    It logs the start of the threading process and handles any exceptions that occur.
+
+    Args:
+        datasetId (str): The ID of the dataset to follow the bridge process for.
+        msg (str): A message to log when starting the threading process.
+
+    Returns:
+        None
+    """
     logger(f"Starting threading for {msg} with datasetId: {datasetId}", settings.LOG_LEVEL, LOG_NAME_ACP)
     try:
         threading.Thread(target=follow_bridge, args=(datasetId,)).start()
@@ -553,6 +621,18 @@ def bridge_task(datasetId: str, msg: str) -> None:
 
 
 def follow_bridge(datasetId) -> type(None):
+    """
+    Follow the bridge process for a dataset.
+
+    This function logs the start time of the thread, marks the dataset as submitted,
+    retrieves the target repositories associated with the dataset, and executes the bridge process.
+
+    Args:
+        datasetId (str): The ID of the dataset to follow the bridge process for.
+
+    Returns:
+        None
+    """
     # Log the start time of the thread
     start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     logger(f"Thread for datasetId: {datasetId} started at {start_time}", settings.LOG_LEVEL, LOG_NAME_ACP)
@@ -565,6 +645,19 @@ def follow_bridge(datasetId) -> type(None):
 
 
 def execute_bridges(datasetId, targets) -> None:
+    """
+    Execute the bridge process for a dataset.
+
+    This function iterates over the target repositories associated with the dataset,
+    executes the bridge process for each target, and handles the results.
+
+    Args:
+        datasetId (str): The ID of the dataset to execute the bridge process for.
+        targets (list): A list of target repositories to process.
+
+    Returns:
+        None
+    """
     logger("execute_bridges", settings.LOG_LEVEL, LOG_NAME_ACP)
     results = []
     for target_repo_rec in targets:
@@ -574,7 +667,7 @@ def execute_bridges(datasetId, targets) -> None:
         start = time.perf_counter()
         bridge_instance = get_class(bridge_class)(dataset_id=datasetId,
                                                   target=Target(**json.loads(target_repo_rec.config)))
-        deposit_result = bridge_instance.execute()
+        deposit_result = bridge_instance.job()
         deposit_result.response.duration = round(time.perf_counter() - start, 2)
 
         logger(f'Result from Deposit: {deposit_result.model_dump_json()}', settings.LOG_LEVEL, LOG_NAME_ACP)
@@ -603,6 +696,21 @@ def execute_bridges(datasetId, targets) -> None:
 
 @handle_ps_exceptions
 def retrieve_targets_configuration(assistant_config_name: str) -> str:
+    """
+    Retrieve the configuration for the specified assistant.
+
+    This function retrieves the configuration for the given assistant by making a request
+    to the assistant configuration URL.
+
+    Args:
+        assistant_config_name (str): The name of the assistant configuration to retrieve.
+
+    Returns:
+        str: The JSON response containing the assistant configuration.
+
+    Raises:
+        HTTPException: If the configuration URL returns a status code other than 200.
+    """
     repo_url = f'{settings.ASSISTANT_CONFIG_URL}/{assistant_config_name}'
     logger(f'Retrieve targets configuration from {repo_url}', settings.LOG_LEVEL, LOG_NAME_ACP)
     rsp = requests.get(repo_url, headers=assistant_repo_headers)
@@ -708,6 +816,14 @@ def delete_inbox(dir: str):
 # Endpoint to retrieve application settings
 @router.get("/settings-reload", include_in_schema=False)
 async def get_settings():
+    """
+    Endpoint to retrieve and reload application settings.
+
+    This endpoint retrieves the current application settings, reloads them, and returns the updated settings.
+
+    Returns:
+        dict: A dictionary containing the updated application settings.
+    """
     logger(f"Getting settings Before Load: {settings.as_dict()}", "debug", LOG_NAME_ACP)
     logger("Reload settings", "debug", LOG_NAME_ACP)
     settings.reload()
@@ -717,6 +833,20 @@ async def get_settings():
 
 @router.get('/logs/{app_name}', include_in_schema=False)
 def get_log(app_name: str):
+    """
+    Endpoint to retrieve a specific log file.
+
+    This endpoint returns the log file for the specified application name.
+
+    Args:
+        app_name (str): The name of the application whose log file is to be retrieved.
+
+    Returns:
+        FileResponse: A response object that allows the client to download the log file.
+
+    Logs:
+        Logs the action of retrieving the log file.
+    """
     logger('logs', settings.LOG_LEVEL, LOG_NAME_ACP)
     return FileResponse(path=f"{os.environ['BASE_DIR']}/logs/{app_name}.log", filename=f"{app_name}.log",
                         media_type='text/plain')
@@ -724,12 +854,34 @@ def get_log(app_name: str):
 
 @router.get("/logs-list", include_in_schema=False)
 def get_log_list():
+    """
+    Endpoint to retrieve the list of log files.
+
+    This endpoint returns a list of log files present in the logs directory.
+
+    Returns:
+        list: A list of log file names.
+
+    Raises:
+        FileNotFoundError: If the logs directory does not exist.
+    """
     logger('logs-list', settings.LOG_LEVEL, LOG_NAME_ACP)
     return os.listdir(path=f"{os.environ['BASE_DIR']}/logs")
 
 
 @router.get("/db-download", include_in_schema=False)
 def get_db():
+    """
+    Endpoint to download the database file.
+
+    This endpoint returns the database file as a downloadable response.
+
+    Returns:
+        FileResponse: A response object that allows the client to download the database file.
+
+    Logs:
+        Logs the action of downloading the database file.
+    """
     logger('db-download', settings.LOG_LEVEL, LOG_NAME_ACP)
     return FileResponse(path=settings.DB_URL, filename="acp.db",
                         media_type='application/octet-stream')
@@ -737,9 +889,20 @@ def get_db():
 
 @router.delete("/db-delete-all", include_in_schema=False)
 def delete_all_recs():
+    """
+    Endpoint to delete all records from the database.
+
+    This endpoint deletes all records from the database by calling the `delete_all` method
+    of the `db_manager` object.
+
+    Returns:
+        dict: A dictionary containing the status of the deletion.
+
+    Logs:
+        Logs the action of deleting all records.
+    """
     logger('Deleting all', settings.LOG_LEVEL, LOG_NAME_ACP)
     return db_manager.delete_all()
-
 
 @router.get("/datasets", include_in_schema=False)
 async def get_db():

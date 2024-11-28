@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import urllib
+from enum import StrEnum
 from typing import List, Optional
 
 from pydantic import BaseModel, Field, field_validator
@@ -35,7 +36,25 @@ class Metadata(BaseModel):
 
 
 class Input(BaseModel):
+    """
+    Represents input data for a target.
+
+    Attributes:
+    - from_target_name (str): The name of the target from which the input is derived.
+    """
     from_target_name: str = Field(default=None, alias='from-target-name')
+
+
+class StorageType(StrEnum):
+    """
+    Enum representing different types of storage.
+
+    Attributes:
+    - FILE_SYSTEM: Represents file system storage.
+    - S3: Represents Amazon S3 storage.
+    """
+    FILE_SYSTEM = 'FILE_SYSTEM'
+    S3 = 's3'
 
 
 class Target(BaseModel):
@@ -61,7 +80,7 @@ class Target(BaseModel):
     username: Optional[str] = None
     password: Optional[str] = None
     metadata: Optional[Metadata] = None
-    storage_type: Optional[str] = Field(default=None, alias='store-type')
+    storage_type: Optional[StorageType] = Field(default=StorageType.FILE_SYSTEM, alias='storage-type')
     initial_release_version: Optional[str] = Field(default=None, alias='initial-release-version')
     input: Optional[Input] = None
 

@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from src.commons import settings, db_manager, logger
 from src.dbz import TargetRepo, DepositStatus, DatabaseManager, Dataset, DataFile
 from src.models.assistant_datamodel import Target
-from src.models.bridge_output_model import BridgeOutputDataModel
+from src.models.bridge_output_model import TargetDataModel
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -63,18 +63,16 @@ class Bridge(ABC):
 
     @classmethod
     @abstractmethod
-    def execute(cls) -> BridgeOutputDataModel:
+    def job(cls) -> TargetDataModel:
         """
-        Abstract method to deposit data into the target repository.
-
-        Subclasses must provide a concrete implementation of this method.
+        Abstract method to be implemented by subclasses to perform a specific job.
 
         Returns:
-            BridgeOutputDataModel: An instance of BridgeOutputModel representing the output of the deposit process.
+            TargetDataModel: The result of the job execution.
         """
         ...
 
-    def save_state(self, output_data_model: BridgeOutputDataModel = None) -> type(None):
+    def save_state(self, output_data_model: TargetDataModel = None) -> type(None):
         """
         Saves the state of the deposit process, updating the deposit status in the database.
 

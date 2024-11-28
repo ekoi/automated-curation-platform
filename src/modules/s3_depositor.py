@@ -5,7 +5,7 @@ import json
 
 from src.bridge import Bridge
 from src.commons import logger, settings, create_s3_client
-from src.models.bridge_output_model import BridgeOutputDataModel
+from src.models.bridge_output_model import TargetDataModel
 
 
 class S3Depositor(Bridge):
@@ -16,7 +16,7 @@ class S3Depositor(Bridge):
         Bridge: The base class for all bridge implementations.
     """
 
-    def execute(self) -> BridgeOutputDataModel:
+    def job(self) -> TargetDataModel:
         """
         Executes the deposit process to the S3 bucket.
 
@@ -32,6 +32,6 @@ class S3Depositor(Bridge):
         s3_client = create_s3_client()
         s3_client.put_object(Bucket=settings.S3_BUCKET_NAME, Key=f'{settings.S3_Key}', Body=json.dumps(metadata))
 
-        bridge_output_model = BridgeOutputDataModel()
+        bridge_output_model = TargetDataModel()
 
         return bridge_output_model

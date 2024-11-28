@@ -10,7 +10,7 @@ from requests.auth import HTTPBasicAuth
 
 from src.bridge import Bridge
 from src.commons import settings, DepositStatus, transform, logger, db_manager
-from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse
+from src.models.bridge_output_model import TargetDataModel, TargetResponse
 
 
 class SwhSwordDepositor(Bridge):
@@ -21,7 +21,7 @@ class SwhSwordDepositor(Bridge):
         Bridge: The base class for all bridge implementations.
     """
 
-    def execute(self) -> BridgeOutputDataModel:
+    def job(self) -> TargetDataModel:
         """
         Executes the deposit process to the SWH API using the SWORD protocol.
 
@@ -32,7 +32,7 @@ class SwhSwordDepositor(Bridge):
         Returns:
         BridgeOutputDataModel: The output model containing the response from the SWH API and the status of the deposit.
         """
-        bridge_output_model = BridgeOutputDataModel()
+        bridge_output_model = TargetDataModel()
         # Create SWORD payload
         swh_form_md = json.loads(self.metadata_rec.md)
         dv_target = db_manager.find_target_repo(self.dataset_id, self.target.input.from_target_name)
@@ -58,7 +58,7 @@ class SwhSwordDepositor(Bridge):
 
             deposit_response = dr.Deposit_Receipt(xml_deposit_receipt=rt)
             if deposit_response.metadata['atom_deposit_status'][0] == 'deposited':
-                return BridgeOutputDataModel(deposit_status=DepositStatus.DEPOSITED, notes=rt)
+                return TargetDataModel(deposit_status=DepositStatus.DEPOSITED, notes=rt)
             status_url = deposit_response.alternate
             logger(f'Status request send to {status_url}', settings.LOG_LEVEL, self.app_name)
             counter = 0
@@ -74,7 +74,7 @@ class SwhSwordDepositor(Bridge):
                     swh_metadata = rsp_dep.metadata
                     swh_deposit_status = swh_metadata.get('atom_deposit_status')
                     if swh_deposit_status and swh_deposit_status[0] == 'rejected':
-                        return BridgeOutputDataModel(deposit_status=DepositStatus.FAILED, notes=rsp_text)
+                        return TargetDataModel(deposit_status=DepositStatus.FAILED, notes=rsp_text)
                     if swh_deposit_status and swh_deposit_status[0] in [DepositStatus.DEPOSITED, "done"]:
                         target_repo = TargetResponse(url=self.target.target_url, status=DepositStatus.FINISH,
                                                      message=rsp_text, content=rsp_text)

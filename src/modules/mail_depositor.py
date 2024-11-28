@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from src.bridge import Bridge
-from src.models.bridge_output_model import BridgeOutputDataModel
+from src.models.bridge_output_model import TargetDataModel
 
 
 class Mail(Bridge):
@@ -12,7 +12,7 @@ class Mail(Bridge):
         Bridge: The base class for all bridge implementations.
     """
 
-    def execute(self) -> BridgeOutputDataModel:
+    def job(self) -> TargetDataModel:
         """
         Executes the deposit process via email.
 
@@ -21,6 +21,6 @@ class Mail(Bridge):
         Returns:
         BridgeOutputDataModel: The output model for the email deposit process.
         """
-        bridge_output_model = BridgeOutputDataModel()
+        bridge_output_model = TargetDataModel()
 
         return bridge_output_model

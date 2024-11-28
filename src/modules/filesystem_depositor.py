@@ -5,7 +5,7 @@ import json
 
 from src.bridge import Bridge
 from src.commons import logger, settings
-from src.models.bridge_output_model import BridgeOutputDataModel
+from src.models.bridge_output_model import TargetDataModel
 
 
 class FileSystem(Bridge):
@@ -16,7 +16,7 @@ class FileSystem(Bridge):
         Bridge: The base class for all bridge implementations.
     """
 
-    def execute(self) -> BridgeOutputDataModel:
+    def job(self) -> TargetDataModel:
         """
         Executes the deposit process to the filesystem.
 
@@ -40,6 +40,6 @@ class FileSystem(Bridge):
         with open(f'{self.dataset_dir}/{metadata["title"]}.json', 'w') as f:
             f.write(metadata)
 
-        bridge_output_model = BridgeOutputDataModel()
+        bridge_output_model = TargetDataModel()
 
         return bridge_output_model

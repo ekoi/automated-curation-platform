@@ -8,7 +8,7 @@ from sickle import Sickle
 from src.bridge import Bridge
 from src.commons import logger, db_manager, transform, transform_xml, settings
 from src.dbz import DepositStatus
-from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse, ResponseContentType, IdentifierItem
+from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem
 
 
 class OaiHarvesterClientGetRecord(Bridge):
@@ -19,7 +19,7 @@ class OaiHarvesterClientGetRecord(Bridge):
         Bridge: The base class for all bridge implementations.
     """
 
-    def execute(self) -> BridgeOutputDataModel:
+    def job(self) -> TargetDataModel:
         """
         Executes the harvesting process from the OAI-PMH repository.
 
@@ -41,6 +41,7 @@ class OaiHarvesterClientGetRecord(Bridge):
             str_tobe_transformed=record.raw
         )
         print(dv_metadata)
+
         db_manager.update_dataset_md(self.dataset_id, dv_metadata)
         target_repo = TargetResponse(url=self.target.target_url, status=DepositStatus.FINISH,
                                      message="", content=record.raw, content_type=ResponseContentType.XML)
@@ -48,8 +49,44 @@ class OaiHarvesterClientGetRecord(Bridge):
         target_repo.status_code = 200
         identi = IdentifierItem(value=oai_metadata['title'], url="")
         target_repo.identifiers = [identi]
-        bridge_output_model = BridgeOutputDataModel(notes="", response=target_repo)
+        bridge_output_model = TargetDataModel(notes="", response=target_repo)
         bridge_output_model.deposit_status = DepositStatus.FINISH
         bridge_output_model.response = target_repo
         bridge_output_model.deposit_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
         return bridge_output_model
+
+    def _version(self) -> str:
+        """
+        Returns the version of the OAI-PMH harvester client.
+
+        Returns:versioning
+
+        str: The version of the OAI-PMH harvester client.
+        """
+        return {"workflow_orchestrator": null, "created_on": "26-11-2024 12:05:19", "DANS-transformer-service": {"name": "DANS-transformer-service", "version": "0.5.9", "docker-image": "ekoindarto/dans-transformer-service:0.5.9", "endpoint": "https://transformer.labs.dansdemo.nl/transform-xml-to-json/true"}, "dataverse-importer": {"name": "dataverse-importer", "version": null, "docker-image": "fjodorvr/dataverse-importer:0.1.1", "endpoint": "https://dataverse-importer.labs.dansdemo.nl", "github-release": "https://github.com/odissei-data/dataverse-importer/releases/tag/v0.1.0-alpha"}}
+
+    def store_workflow_version(version_dict):
+        """ Stores the workflow version dictionary.
+
+        The workflow version dictionary is stored using the version-tracker.
+        A POST request is made to store the dict, which then response with an ID.
+        This ID is used to formulate a GET request that can be used to fetch
+        the dictionary.
+
+        :param version_dict: The complete version dictionary of the workflow.
+        :return: A GET request.
+        """
+        url = 'https://version-tracker.labs.dansdemo.nl/store'
+        headers = {
+            'accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+
+        response = requests.post(url, headers=headers,
+                                 data=json.dumps(version_dict))
+        if not response.ok:
+            print(response.text)
+            return None
+
+        version_id = response.json()['id']
+        return 'https://version-tracker.labs.dansdemo.nl/retrieve/' + version_id

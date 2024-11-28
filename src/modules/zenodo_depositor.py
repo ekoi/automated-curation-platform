@@ -11,7 +11,7 @@ from starlette import status
 from src.bridge import Bridge
 from src.commons import transform, logger, handle_deposit_exceptions, db_manager, settings
 from src.dbz import DepositStatus
-from src.models.bridge_output_model import BridgeOutputDataModel, TargetResponse, ResponseContentType, IdentifierItem
+from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem
 
 
 class ZenodoApiDepositor(Bridge):
@@ -23,7 +23,7 @@ class ZenodoApiDepositor(Bridge):
     """
 
     @handle_deposit_exceptions
-    def execute(self) -> BridgeOutputDataModel:
+    def job(self) -> TargetDataModel:
         """
         Executes the deposit process to the Zenodo API.
 
@@ -35,7 +35,7 @@ class ZenodoApiDepositor(Bridge):
         """
         zenodo_resp = self.__create_initial_dataset()
         if zenodo_resp is None:
-            return BridgeOutputDataModel(notes="Error occurs: status code: 500", deposit_status=DepositStatus.ERROR)
+            return TargetDataModel(notes="Error occurs: status code: 500", deposit_status=DepositStatus.ERROR)
         zenodo_id = zenodo_resp.get("id")
         str_zenodo_dataset_metadata = transform(self.target.metadata.transformed_metadata[0].transformer_url,
                                                 self.metadata_rec.md)
@@ -45,12 +45,12 @@ class ZenodoApiDepositor(Bridge):
         zen_resp = requests.put(url, data=str_zenodo_dataset_metadata, headers={"Content-Type": "application/json"})
         logger(f'Zenodo response status code: {zen_resp.status_code}. Zenodo response: {zen_resp.text}',
                settings.LOG_LEVEL, self.app_name)
-        bridge_output_model = BridgeOutputDataModel()
+        bridge_output_model = TargetDataModel()
         if zen_resp.status_code != status.HTTP_200_OK:
             logger(f'Error occurs: status code: {zen_resp.status_code}', 'error', self.app_name)
             bridge_output_model.notes = "Error occurs: status code: " + str(zen_resp.status_code)
             bridge_output_model.response = zen_resp.text
-            bridge_output_model = BridgeOutputDataModel(notes=zen_resp.text, response=zen_resp)
+            bridge_output_model = TargetDataModel(notes=zen_resp.text, response=zen_resp)
             bridge_output_model.deposit_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
             bridge_output_model.deposit_status = DepositStatus.ERROR
             return bridge_output_model
@@ -99,7 +99,7 @@ class ZenodoApiDepositor(Bridge):
         logger(f'Ingesting files to {bucket_url}', "debug", self.app_name)
         params = {'access_token': self.target.password, 'access_right': 'restricted'}
         for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):
-            file_path = f"{file.path}/{file.name}"
+            file_path = f"{file.path}"
             logger(f'Ingesting file {file_path}', "debug", self.app_name)
             with open(file_path, "rb") as fp:
                 response = requests.put(f"{bucket_url}/{file.name}", data=fp, params=params)
