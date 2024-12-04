@@ -89,7 +89,7 @@ At DANS, we have developed several implementations of the Automated Curation Pla
   - [OH-SMART](https://ohsmart.datastations.nl/). Target repository: [DANS SSH Datastations](https://ssh.datastations.nl/)
   - [RDA](https://rda.dansdemo.nl/). Target repository: [Zenodo](https://zenodo.org/)
 
-- **Multiple Target Implementation**: This version of ACP supports curation and deposition to multiple repository targets, providing greater flexibility and scalability.
+- **Multiple Target Implementation**: The ACP supports curation and deposition to multiple repository targets, providing greater flexibility and scalability.
   - [Software Heritage](https://swh.dansdemo.nl/). Targets: [Software Heritage - API & SWORD2](https://www.softwareheritage.org/) and [Dataverse](https://dataverse.eosc.dansdemo.nl/dataverse/eosc) 
     ![SWH Flow diagram](./resources/images/swh.png)
 - **Rule-Engines Pre-Processing**: This implementation leverages rule engines for pre-processing data, ensuring that the content meets specific criteria before curation and deposition.
