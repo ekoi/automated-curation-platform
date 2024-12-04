@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Optional, List, Dict, Any
 
 from pydantic import BaseModel, Field
@@ -68,10 +69,10 @@ class TargetApp(BaseModel):
     repo_name: str = Field(None, alias='repo-name')
     display_name: str = Field(None, alias='display-name')
     deposit_status: str = Field(None, alias='deposit-status')
-    deposit_time: str = Field(None, alias='deposit-time')
-    duration: str = ''
-    output_response: Dict[str, Any] = Field('', alias='output-response')
-    diff: Dict[Any, Any] = {}
+    deposit_time: datetime|str = Field(None, alias='deposit-time')
+    duration: float|str = ''
+    output_response: dict = Field(None, alias='output-response')
+    diff: dict = {}
 
 
 class Asset(BaseModel):
@@ -95,10 +96,10 @@ class Asset(BaseModel):
     """
     dataset_id: str = Field(None, alias='dataset-id')
     title: str = ''
-    md: str = ''
-    created_date: str = Field(None, alias='created-date')
-    saved_date: str = Field(None, alias='saved-date')
-    submitted_date: str = Field(None, alias='submitted-date')
+    md: dict|str = ''
+    created_date: datetime|str = Field(None, alias='created-date')
+    saved_date: datetime|str = Field(None, alias='saved-date')
+    submitted_date: datetime|str = Field(None, alias='submitted-date')
     release_version: str = Field(None, alias='release-version')
     version: str = ''
     targets: List[TargetApp] = []

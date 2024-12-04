@@ -260,38 +260,34 @@ class DatabaseManager:
     def find_dataset_and_targets(self, dataset_id: str) -> Asset:
         with Session(self.engine) as session:
             dataset = session.exec(select(Dataset).where(Dataset.id == dataset_id)).one_or_none()
-            if not dataset:
-                return Asset()
-
-            dataset.decrypt_md(self.cipher_suite)
-            asset = Asset(
-                dataset_id=dataset.id,
-                release_version=dataset.release_version,
-                title=dataset.title,
-                md=dataset.md,
-                created_date=dataset.created_date,
-                saved_date=dataset.saved_date,
-                submitted_date=dataset.submitted_date,
-                version=dataset.version
-            )
-
-            targets_repo = session.exec(
-                select(TargetRepo).where(TargetRepo.ds_id == dataset.id).order_by(TargetRepo.id)
-            ).all()
-
-            for target_repo in targets_repo:
-                target_repo.decrypt_config(self.cipher_suite)
-                target = TargetApp(
-                    repo_name=target_repo.name,
-                    display_name=target_repo.display_name,
-                    deposit_status=target_repo.deposit_status,
-                    deposit_time=target_repo.deposit_time,
-                    duration=target_repo.duration,
-                    output_response=json.loads(target_repo.target_output) if target_repo.target_output else None
-                )
-                asset.targets.append(target)
-
-            return asset
+            if dataset:
+                dataset.decrypt_md(self.cipher_suite)
+                asset = Asset()
+                asset.dataset_id = dataset.id
+                asset.release_version = dataset.release_version
+                asset.title = dataset.title
+                asset.md = dataset.md
+                asset.created_date = dataset.created_date
+                asset.saved_date = dataset.saved_date
+                asset.submitted_date = dataset.submitted_date
+                asset.release_version = dataset.release_version
+                asset.version = dataset.version
+                # Fetch TargetRepo objects associated with the Dataset and order them
+                targets_repo = session.exec(
+                    select(TargetRepo).where(TargetRepo.ds_id == dataset.id).order_by(TargetRepo.id)).all()
+                for target_repo in targets_repo:
+                    target_repo.decrypt_config(self.cipher_suite)
+                    target = TargetApp()
+                    target.repo_name = target_repo.name
+                    target.display_name = target_repo.display_name
+                    target.deposit_status = target_repo.deposit_status
+                    target.deposit_time = target_repo.deposit_time
+                    target.duration = target_repo.duration
+                    if target_repo.target_output is not None and target_repo.target_output != '':
+                        target.output_response = json.loads(target_repo.target_output)
+                    asset.targets.append(target)
+                return asset
+            return Asset()
 
     def find_dataset_ids_by_owner(self, owner_id: str) -> [TargetRepo]:
         with Session(self.engine) as session:
@@ -497,9 +493,11 @@ class DatabaseManager:
                 session.commit()
                 session.refresh(md_record)
 
-    def update_file(self, df: DataFile) -> None:
+    def update_file(self, df: DataFile) -> type(None):
         with Session(self.engine) as session:
-            f_record = session.exec(select(DataFile).where(DataFile.ds_id == df.ds_id, DataFile.name == df.name)).one_or_none()
+            statement = select(DataFile).where(DataFile.ds_id == df.ds_id, DataFile.name == df.name)
+            results = session.exec(statement)
+            f_record = results.one_or_none()
             if f_record:
                 f_record.date_added = datetime.utcnow()
                 f_record.path = df.path
@@ -549,32 +547,3 @@ class DatabaseManager:
                                                           DataFile.state == DataFileWorkState.REGISTERED)).all()
 
         return len(results) == 0
-
-
-# import decimal, datetime
-#
-#
-# def alchemyencoder(obj):
-#     """JSON encoder function for SQLAlchemy special classes."""
-#     if isinstance(obj, datetime.date):
-#         return obj.isoformat()
-#     elif isinstance(obj, decimal.Decimal):
-#         return float(obj)
-
-
-class ProgressTarget(BaseModel):
-    target_repo_name: str = Field(..., alias='target-repo-name')
-    target_repo_display_name: str = Field(..., alias='target-repo-display-name')
-    target_url: str = Field(..., alias='target-url')
-    ingest_status: str = Field(..., alias='ingest-status')
-    target_output: Optional[str] = Field(..., alias='target-output')
-
-
-class ProgressModel(BaseModel):
-    metadata_id: str = Field(..., alias='metadata-id')
-    title: str
-    created_date: str = Field(..., alias='created-date')
-    submitted_date: str = Field(..., alias='submitted-date')
-    saved_date: str = Field(..., alias='saved-date')
-    release_version: str = Field(..., alias='release-version')
-    targets: List[ProgressTarget]

@@ -81,7 +81,7 @@ class TargetResponse(BaseModel):
     duration: float = 0.0
     error: Optional[str] = None
     identifiers: Optional[List[IdentifierItem]] = None
-    content: str = None
+    content: dict|str = None
     content_type: ResponseContentType = Field(None, alias='content-type')
 
 
@@ -98,8 +98,8 @@ class TargetDataModel(BaseModel):
     """
     deposit_time: Optional[str] = Field(datetime.now(timezone.utc).isoformat(), alias='deposit-time')
     deposit_status: Optional[DepositStatus] = Field(None, alias='deposit-status')
-    payload: Optional[str] = Field(None, alias='payload')
-    deposited_metadata: Optional[str] = Field(None, alias='deposited-metadata')  #
+    payload: Optional[dict|str] = Field(None, alias='payload')
+    deposited_metadata: Optional[dict|str] = Field(None, alias='deposited-metadata')  #
     response: TargetResponse = Field(default_factory=TargetResponse)
 
 

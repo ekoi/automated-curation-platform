@@ -40,7 +40,7 @@ async def progress_state(owner_id: str, req: Request):
               If no assets are found, an empty list is returned.
     """
     tc_header = req.headers.get('targets-credentials')
-    if not tc_header:
+    if tc_header is None:
         raise HTTPException(status_code=400, detail="Targets credentials are missing")
 
     try:
@@ -49,42 +49,47 @@ async def progress_state(owner_id: str, req: Request):
         raise HTTPException(status_code=400, detail="Invalid json format of targets-credentials")
 
     datasets = db_manager.find_datasets_by_owner(owner_id)
-    if not datasets:
-        return []
+    if datasets:
+        oam = OwnerAssetsModel()
+        oam.owner_id = owner_id
+        for dataset in datasets:
+            asset = Asset()
+            asset.dataset_id = str(dataset.id)
+            asset.release_version = dataset.release_version.name
+            asset.title = dataset.title
+            asset.created_date = dataset.created_date.strftime('%Y-%m-%d %H:%M:%S')
+            asset.saved_date = dataset.saved_date.strftime('%Y-%m-%d %H:%M:%S')
+            asset.submitted_date = dataset.submitted_date.strftime(
+                '%Y-%m-%d %H:%M:%S') if dataset.submitted_date else ''
+            asset.release_version = dataset.release_version.name
+            asset.version = dataset.version if dataset.version else ''
+            targets_repo = db_manager.find_target_repos_by_dataset_id(str(dataset.id))
+            for target_repo in targets_repo:
+                target = TargetApp()
+                target.repo_name = target_repo.name
+                target.display_name = target_repo.display_name
+                target.deposit_status = target_repo.deposit_status
+                target.deposit_time = target_repo.deposit_time.strftime(
+                    '%Y-%m-%d %H:%M:%S') if target_repo.deposit_time else ''
+                target.duration = str(target_repo.duration)
+                rsp = json.loads(target_repo.target_output) if target_repo.target_output else {}
+                if rsp:
+                    idents =  rsp['response']['identifiers']
+                    target.output_response = {"response": {"identifiers": idents}}
+                    if idents:
+                        url = rsp['response']['identifiers'][0]['url']
+                        # Dataverse only. TODO: Think more generic solution
+                        if url.find("dataset.xhtml") > 0:
+                            target.diff = await fetch_dv_json(rsp, target, target_creds, url)
+                    else:
+                        target.output_response = {}
+                else:
+                    target.output_response = {}
 
-    oam = OwnerAssetsModel(owner_id=owner_id)
-    for dataset in datasets:
-        asset = Asset(
-            dataset_id=str(dataset.id),
-            release_version=dataset.release_version.name,
-            title=dataset.title,
-            created_date=dataset.created_date.strftime('%Y-%m-%d %H:%M:%S'),
-            saved_date=dataset.saved_date.strftime('%Y-%m-%d %H:%M:%S'),
-            submitted_date=dataset.submitted_date.strftime('%Y-%m-%d %H:%M:%S') if dataset.submitted_date else '',
-            version=dataset.version or ''
-        )
-
-        targets_repo = db_manager.find_target_repos_by_dataset_id(str(dataset.id))
-        for target_repo in targets_repo:
-            target = TargetApp(
-                repo_name=target_repo.name,
-                display_name=target_repo.display_name,
-                deposit_status=target_repo.deposit_status,
-                deposit_time=target_repo.deposit_time.strftime('%Y-%m-%d %H:%M:%S') if target_repo.deposit_time else '',
-                duration=str(target_repo.duration)
-            )
-
-            rsp = json.loads(target_repo.target_output) if target_repo.target_output else {}
-            if rsp:
-                idents = rsp['response'].get('identifiers', [])
-                target.output_response = {"response": {"identifiers": idents}}
-                if idents:
-                    url = idents[0]['url']
-                    if "dataset.xhtml" in url:
-                        target.diff = await fetch_dv_json(rsp, target, target_creds, url)
-            asset.targets.append(target)
-        oam.assets.append(asset)
-    return oam
+                asset.targets.append(target)
+            oam.assets.append(asset)
+        return oam
+    return []
 
 
 async def fetch_dv_json(rsp, target, target_creds, url):
@@ -120,7 +125,9 @@ async def fetch_dv_json(rsp, target, target_creds, url):
                 return diff
             else:
                 # Log an error message if the response status code is not 200
-                logger(f'Error occurs: status code: {response.status_code}', 'error', settings.LOG_LEVEL, LOG_NAME_ACP)
+                print(url)
+                logger(f'Error occurs: status code: {response.status_code} from {url}', settings.LOG_LEVEL,
+                       LOG_NAME_ACP)
 
             # Break the loop after processing the relevant credentials
             break
