@@ -7,7 +7,7 @@ The [ACP](https://automated-curation-platform-acp.readthedocs.io/en/latest/sourc
 
 ![Data Flow diagram](./resources/images/ps-flow.png)
 
-The curation process is dynamically adapted to each repository target as specified by the user. ACP automatically retrieves configuration details from the [repository assistant service](https://github.com/ekoi/repository-assistant-service), based on the provided configuration name. This configuration is essential, containing details like the repository URL, bridge module, and transformers, all of which empower ACP to seamlessly accommodate varying repository standards.
+The curation process is dynamically adapted to each repository target as specified by the user. ACP automatically retrieves configuration details from the [repository assistant service](https://github.com/ekoi/repository-assistant-service), based on the provided configuration name. This configuration is essential, containing details like the repository URL, bridge module, transformers, file converter, enrichment and other services, all of which empower ACP to seamlessly accommodate varying repository standards.
 Repository URL: This URL acts as a direct link to the designated storage location within the repository, enabling seamless data exchange and interaction.
 
 **Bridge Module**: Serving as a pivotal component, the bridge module is responsible for structuring the deposit package in the desired target format (e.g., SWORD). This module is adaptable, ensuring that curated content adheres to the specific formatting requirements of each chosen repository. The following Bridge Modules are available in ACP:
