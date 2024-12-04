@@ -29,6 +29,9 @@ To enhance observability and monitoring within ACP, DANS integrates the OpenTele
 - **Scalability**: The protocol efficiently handles large volumes of telemetry data, ensuring ACP can scale effectively as demand grows.
 - **Enhanced Insights**: OTLP enables detailed performance analysis, empowering ACP to identify and optimize areas within the automated curation process, ultimately improving the efficiency and accuracy of curated deposit packages.
 
+Currently, ACP uses the [Jaeger](https://www.jaegertracing.io/) backend for tracing and monitoring, leveraging the OTLP protocol to collect and transmit telemetry data effectively. This integration enhances the platform’s observability, enabling users to gain valuable insights into the curation process and repository interactions.
+In our demo environment, the jaeger backend can be accessed at `https://meltservice.labs.dansdemo.nl`. Choose the service name `Automated Curation Platform` to view the traces.
+
 ## Implementing [TUS Protocol](https://tus.io/) in ACP
 ACP also utilizes the TUS Protocol, an open protocol designed for reliable, resumable file uploads. This protocol offers several significant benefits to ACP:
 
