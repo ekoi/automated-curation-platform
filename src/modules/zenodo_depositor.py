@@ -35,7 +35,7 @@ class ZenodoApiDepositor(Bridge):
         """
         zenodo_resp = self.__create_initial_dataset()
         if zenodo_resp is None:
-            return TargetDataModel(notes="Error occurs: status code: 500", deposit_status=DepositStatus.ERROR)
+            return TargetDataModel(deposited_metadata="Error occurs: status code: 500", deposit_status=DepositStatus.ERROR)
         zenodo_id = zenodo_resp.get("id")
         str_zenodo_dataset_metadata = transform(self.target.metadata.transformed_metadata[0].transformer_url,
                                                 self.metadata_rec.md)
@@ -48,16 +48,16 @@ class ZenodoApiDepositor(Bridge):
         bridge_output_model = TargetDataModel()
         if zen_resp.status_code != status.HTTP_200_OK:
             logger(f'Error occurs: status code: {zen_resp.status_code}', 'error', self.app_name)
-            bridge_output_model.notes = "Error occurs: status code: " + str(zen_resp.status_code)
+            bridge_output_model.deposited_metadata = "Error occurs: status code: " + str(zen_resp.status_code)
             bridge_output_model.response = zen_resp.text
-            bridge_output_model = TargetDataModel(notes=zen_resp.text, response=zen_resp)
+            bridge_output_model = TargetDataModel(deposited_metadata=zen_resp.text, response=zen_resp)
             bridge_output_model.deposit_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
             bridge_output_model.deposit_status = DepositStatus.ERROR
             return bridge_output_model
         zm = ZenodoModel(**zen_resp.json())
         self.__ingest_files(zm.links.bucket)
         bridge_output_model.deposit_status = DepositStatus.SUCCESS
-        bridge_output_model.notes = "Successfully deposited to Zenodo."
+        bridge_output_model.deposited_metadata = "Successfully deposited to Zenodo."
         bridge_output_model.deposit_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")
         target_resp = TargetResponse(url=f'{self.target.target_url}/{zenodo_id}', status=DepositStatus.SUCCESS,
                                      content=json.dumps(zen_resp.json()), message="Successfully deposited to Zenodo")

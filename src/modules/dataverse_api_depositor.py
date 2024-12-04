@@ -31,7 +31,22 @@ from src.models.bridge_output_model import IdentifierItem, IdentifierProtocol, T
 class DataverseIngester(Bridge):
     """
     Class for ingesting metadata and files into Dataverse.
+    The following is an example of the configuration for the Dataverse ingester in Repository Assistant:
+    "dataset-metadata.json" is the default name for the dataverse metadata. It corresponds to the repoassistant configuration.
+    "transformed-metadata": [
+                        {
+                           "name": "dataset-metadata.json",
+                            "transformer-url": "http://localhost:1745/transform/ohsmart-form-metadata-to-DV-metadata-v4.xsl",
+                            "target-dir": "metadata"
+                        }
 
+    "dataset-metadata.json" is the default name for the dataverse metadata. It corresponds to the repoassistant configuration.
+    "transformed-metadata": [
+                         {
+                             "name": "dataset-files.json",
+                          "transformer-url": "http://localhost:1745/transform/ohsmart-form-metadata-to-DV-metadata-v4.xsl",
+                             "target-dir": "metadata"
+                        }
     Methods:
         execute(): Executes the ingestion process and returns the result as a BridgeOutputDataModel.
     """
@@ -72,22 +87,15 @@ class DataverseIngester(Bridge):
         logger(f"str_updated_metadata_json: {str_updated_metadata_json}", settings.LOG_LEVEL, self.app_name)
 
         target_repo = TargetResponse(url=self.target.target_url)
-        target_data_model = TargetDataModel(notes="Data ingest successfully!", response=target_repo)
+        target_data_model = TargetDataModel(response=target_repo)
         try:
-            # "dataset-metadata.json" is the default name for the dataverse metadata. It corresponds to the repoassistant configuration.
-            # "transformed-metadata": [
-            #                     {
-            #                         "name": "dataset-metadata.json",
-            #                         "transformer-url": "http://localhost:1745/transform/ohsmart-form-metadata-to-DV-metadata-v4.xsl",
-            #                         "target-dir": "metadata"
-            #                     }
             str_dv_metadata = self.__transform_to_dv_json_data(str_updated_metadata_json, "dataset-metadata.json")
         except ValueError as e:
-            target_data_model.notes = str(e)
+            target_data_model.deposited_metadata = str(e)
             target_data_model.deposit_status = DepositStatus.ERROR
             return target_data_model
 
-        target_data_model.payload = str_dv_metadata
+        target_data_model.payload = json.loads(str_dv_metadata)
         logger(f'deposit to "{self.target.target_url}"', settings.LOG_LEVEL, self.app_name)
         # If the target URL has parameters, replace the placeholder with the dataset PID. It corresponds to the repoassistant configuration.
         # "target-url-params": "pid=$PID&release=no",
@@ -114,17 +122,17 @@ class DataverseIngester(Bridge):
                 try:
                     self.__ingest_files(pid, str_updated_metadata_json)
                     target_data_model.deposit_status = DepositStatus.FINISH
-                    target_data_model.notes = "The dataset and its file is successfully ingested"
+                    target_data_model.deposited_metadata = "The dataset and its file is successfully ingested"
                     logger(f'Ingest FILE(s) successfully!', settings.LOG_LEVEL, self.app_name)
                     target_repo.status_code = status.HTTP_200_OK
                     if self.target.initial_release_version == ReleaseVersion.PUBLISHED:
                         logger(f'Publish the dataset', settings.LOG_LEVEL, self.app_name)
                         target_repo.status_code = self.__publish_dataset(pid)
-                        target_data_model.notes = "The dataset and its files successfully published" if target_repo.status_code == status.HTTP_200_OK else "The dataset is unsuccessfully published"
+                        target_data_model.deposited_metadata = "The dataset and its files successfully published" if target_repo.status_code == status.HTTP_200_OK else "The dataset is unsuccessfully published"
                 except ValueError as e:
                     target_data_model.deposit_status = DepositStatus.ERROR
-                    target_data_model.notes = str(e)
-                    target_data_model.notes = "The dataset and its file is unsuccessfully ingested"
+                    target_data_model.deposited_metadata = str(e)
+                    target_data_model.deposited_metadata = "The dataset and its file is unsuccessfully ingested"
                     delete_response = requests.delete(f"{self.target.base_url}/api/datasets/{dv_id}/versions/:draft", headers=dmz_dataverse_headers('API_KEY', self.target.password))
                     logger(f"delete_response.status_code: {delete_response.status_code} delete_response.text: {delete_response.text}", settings.LOG_LEVEL, self.app_name)
                     return target_data_model
@@ -136,15 +144,24 @@ class DataverseIngester(Bridge):
             logger(f"Ingest metadata - str_dv_metadata {str_dv_metadata}", "error", self.app_name)
             logger(f"Ingest metadata - str_updated_metadata_json {str_updated_metadata_json}", "error", self.app_name)
             target_data_model.deposit_status = DepositStatus.ERROR
-            target_data_model.notes = dv_response.status_code
+            target_data_model.deposited_metadata = dv_response.status_code
             return target_data_model
 
 
         current_time = datetime.now(timezone.utc).isoformat()
         target_data_model.deposit_time = current_time
-        target_repo.content = dv_response.text
+        target_repo.content = dv_response.json()
         target_repo.content_type = ResponseContentType.JSON
         target_repo.status_code = dv_response.status_code
+
+        dv_resp_deposited = requests.get(f'{self.target.base_url}/api/datasets/:persistentId/?persistentId={pid}',
+                                   headers=dmz_dataverse_headers('API_KEY', self.target.password), data=str_dv_metadata)
+        if dv_resp_deposited.status_code == 200:
+            target_data_model.deposited_metadata = dv_resp_deposited.json()
+        else:
+            logger(f"Error: {dv_resp_deposited.text} status code: {dv_resp_deposited.status_code}", settings.LOG_LEVEL, self.app_name)
+            pass #TODO: Handle this case
+
         target_data_model.response = target_repo
         return target_data_model
 
@@ -213,13 +230,6 @@ class DataverseIngester(Bridge):
     def __ingest_files(self, pid: str, str_updated_metadata_json: str) -> int:
         logger(f'Ingesting files to {pid}', settings.LOG_LEVEL, self.app_name)
 
-            # "dataset-metadata.json" is the default name for the dataverse metadata. It corresponds to the repoassistant configuration.
-            # "transformed-metadata": [
-            #                     {
-            #                         "name": "dataset-files.json",
-            #                         "transformer-url": "http://localhost:1745/transform/ohsmart-form-metadata-to-DV-metadata-v4.xsl",
-            #                         "target-dir": "metadata"
-            #                     }
         str_dv_file = self.__transform_to_dv_json_data(str_updated_metadata_json, "dataset-files.json")
 
         for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):

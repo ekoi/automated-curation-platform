@@ -58,7 +58,7 @@ class SwhSwordDepositor(Bridge):
 
             deposit_response = dr.Deposit_Receipt(xml_deposit_receipt=rt)
             if deposit_response.metadata['atom_deposit_status'][0] == 'deposited':
-                return TargetDataModel(deposit_status=DepositStatus.DEPOSITED, notes=rt)
+                return TargetDataModel(deposit_status=DepositStatus.DEPOSITED, deposited_metadata=rt)
             status_url = deposit_response.alternate
             logger(f'Status request send to {status_url}', settings.LOG_LEVEL, self.app_name)
             counter = 0
@@ -74,7 +74,7 @@ class SwhSwordDepositor(Bridge):
                     swh_metadata = rsp_dep.metadata
                     swh_deposit_status = swh_metadata.get('atom_deposit_status')
                     if swh_deposit_status and swh_deposit_status[0] == 'rejected':
-                        return TargetDataModel(deposit_status=DepositStatus.FAILED, notes=rsp_text)
+                        return TargetDataModel(deposit_status=DepositStatus.FAILED, deposited_metadata=rsp_text)
                     if swh_deposit_status and swh_deposit_status[0] in [DepositStatus.DEPOSITED, "done"]:
                         target_repo = TargetResponse(url=self.target.target_url, status=DepositStatus.FINISH,
                                                      message=rsp_text, content=rsp_text)
@@ -91,5 +91,5 @@ class SwhSwordDepositor(Bridge):
                                      f'rsp.text: {rsp.text}')
         else:
             bridge_output_model.deposit_status = DepositStatus.ERROR
-            bridge_output_model.notes = response.text
+            bridge_output_model.deposited_metadata = response.text
         return bridge_output_model

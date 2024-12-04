@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "automated-curation-platform"
-version = "0.5.0"
+version = "0.5.1"
 description = "The ACP was designed to streamline and automate the entire process of deposit package creation, addressing the unique needs of diverse repositories by organizing, filtering, and selecting data accordingly. Leveraging advanced algorithms, machine learning techniques, and predefined rule sets, ACP performs complex curation tasks autonomously, greatly reducing or even eliminating the need for manual input. These automated tasks encompass data gathering, tagging, sorting, and content analysis, which collectively improve efficiency and accuracy."
 authors = ["Eko Indarto <eko.indarto@dans.knaw.nl>"]
 readme = "README.md"
@@ -55,6 +55,7 @@ cryptography = "^43.0.0"
 tomli = "^2.0.2"
 sickle = "^0.7.0"
 boto3 = "^1.35.63"
+jsoncomparison = "^1.1.0"
 
 [build-system]
 requires = ["poetry-core"]

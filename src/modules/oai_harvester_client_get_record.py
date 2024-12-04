@@ -49,7 +49,7 @@ class OaiHarvesterClientGetRecord(Bridge):
         target_repo.status_code = 200
         identi = IdentifierItem(value=oai_metadata['title'], url="")
         target_repo.identifiers = [identi]
-        bridge_output_model = TargetDataModel(notes="", response=target_repo)
+        bridge_output_model = TargetDataModel(deposited_metadata="", response=target_repo)
         bridge_output_model.deposit_status = DepositStatus.FINISH
         bridge_output_model.response = target_repo
         bridge_output_model.deposit_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S.%f")

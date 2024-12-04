@@ -1,6 +1,6 @@
 FROM python:3.11.3-slim-bullseye
 
-ARG VERSION=0.5.0
+ARG VERSION=0.5.1
 
 RUN  apt-get update -y && \
      apt-get upgrade -y && \
@@ -27,14 +27,14 @@ RUN mkdir -p ${BASE_DIR} && \
     mkdir -p ${BASE_DIR}/data/tmp/tus-files  && \
     pip install --no-cache-dir *.whl && rm -rf *.whl && \
     tar xf automated_curation_platform-${VERSION}.tar.gz -C ${BASE_DIR} --strip-components 1 && \
-    chmod +x ${BASE_DIR}//resources/utils/ingest.sh
+    chmod +x ${BASE_DIR}/resources/utils/ingest.sh
 
 #RUN mkdir -p ${BASE_DIR} && mkdir -p ${BASE_DIR}/data/tmp/bags ${BASE_DIR}/data/tmp/zips  && \
 #    pip install --no-cache-dir *.whl && rm -rf *.whl && \
 #    tar xf packaging_service-${VERSION}.tar.gz -C ${BASE_DIR} --strip-components 1 && \
 #    rm ${BASE_DIR}/conf/*
 
-WORKDIR ${BASE_DIR}/src
+WORKDIR ${BASE_DIR}
 
-CMD ["python", "main.py"]
+CMD ["python", "src/main.py"]
 #CMD ["tail", "-f", "/dev/null"]

@@ -93,13 +93,13 @@ class TargetDataModel(BaseModel):
         deposit_time (Optional[str]): The time of the deposit, formatted as a string, aliased as 'deposit-time'.
         deposit_status (Optional[DepositStatus]): The status of the deposit, aliased as 'deposit-status'.
         payload (Optional[str]): The payload data associated with the deposit.
-        notes (Optional[str]): Any message or text associated with the deposit.
+        deposited_metadata (Optional[str]): Any message or text associated with the deposit.
         response (TargetResponse): The response data associated with the deposit.
     """
     deposit_time: Optional[str] = Field(datetime.now(timezone.utc).isoformat(), alias='deposit-time')
     deposit_status: Optional[DepositStatus] = Field(None, alias='deposit-status')
     payload: Optional[str] = Field(None, alias='payload')
-    notes: Optional[str] = Field(None)  # This is for any message/text
+    deposited_metadata: Optional[str] = Field(None, alias='deposited-metadata')  #
     response: TargetResponse = Field(default_factory=TargetResponse)
 
 

@@ -9,6 +9,10 @@ from pydantic import BaseModel, Field
 class ResponseDataModel(BaseModel):
     """
     Data model for response data.
+    The ResponseDataModel class is a data model defined using the BaseModel class from the pydantic library.
+    This class is designed to represent the response data structure with specific attributes.
+    The class includes three attributes: status, dataset_id, and start_process.
+    The status attribute is a string that represents the status of the response and is initialized with an empty string
 
     Attributes:
         status (str): The status of the response.
@@ -24,6 +28,8 @@ class ResponseDataModel(BaseModel):
 class InboxDatasetDataModel:
     """
     Data model for inbox dataset.
+    The InboxDatasetDataModel class is a data model defined using Python's dataclasses module.
+    This class is designed to represent the metadata of an inbox dataset.
 
     Attributes:
         assistant_name (str): The name of the assistant.
@@ -44,6 +50,12 @@ class InboxDatasetDataModel:
 class TargetApp(BaseModel):
     """
     Data model for target application.
+    The TargetApp class is designed to hold various attributes related to a target application, such as repo_name,
+    display_name, deposit_status, deposit_time, duration, and output_response. These attributes are used
+    to store information about the repository, its display name, the status and time of deposits,
+    the duration of processes, and the output response from the target application.
+    By including the diff attribute, the TargetApp class can also keep track of any differences or changes
+    that may occur within the target application, providing a flexible way to store and manage this information.
 
     Attributes:
         repo_name (str): The name of the repository, aliased as 'repo-name'.
@@ -59,11 +71,16 @@ class TargetApp(BaseModel):
     deposit_time: str = Field(None, alias='deposit-time')
     duration: str = ''
     output_response: Dict[str, Any] = Field('', alias='output-response')
+    diff: Dict[Any, Any] = {}
 
 
 class Asset(BaseModel):
     """
     Data model for an asset.
+    The Asset class is a data model defined using the BaseModel class from the pydantic library.
+    This class is designed to represent an asset with various attributes related to its metadata and
+    associated target applications.
+    The class includes several attributes, each with specific types and optional aliases.
 
     Attributes:
         dataset_id (str): The ID of the dataset, aliased as 'dataset-id'.
@@ -90,6 +107,10 @@ class Asset(BaseModel):
 class OwnerAssetsModel(BaseModel):
     """
     Data model for owner assets.
+    The OwnerAssetsModel class is a data model defined using the BaseModel class from the pydantic library.
+    This class is designed to represent the assets owned by a specific owner, encapsulating the owner's ID and a list of assets.
+    The class includes two main attributes: owner_id and assets. The owner_id attribute is a string that is aliased
+    as owner-id, which helps in mapping the attribute to a different name when working with external data sources
 
     Attributes:
         owner_id (str): The ID of the owner, aliased as 'owner-id'.
@@ -97,28 +118,3 @@ class OwnerAssetsModel(BaseModel):
     """
     owner_id: str = Field(None, alias='owner-id')
     assets: List[Asset] = []
-
-json_data = {
-    "owner-id": "",
-    "assets": [
-        {
-            "dataset-id": "",
-            "title": "ds.title",
-            "created-date": "ds.created_date",
-            "saved-date": "ds.saved_date",
-            "submitted-date": "ds.submitted_date",
-            "release-version": "ds.release_version",
-            "version": "ds.version",
-            "targets": [
-                {
-                    "repo-name": "",
-                    "display-name": "",
-                    "deposit-status": "",
-                    "deposit-time": "",
-                    "duration": "",
-                    "output-response": {}
-                }
-            ]
-        }
-    ]
-}

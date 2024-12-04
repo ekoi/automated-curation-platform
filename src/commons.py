@@ -32,8 +32,9 @@ from src.models.bridge_output_model import TargetDataModel, TargetResponse
 
 LOG_NAME_ACP = 'acp'
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+print(f'base_dir: {base_dir}')
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
-settings = Dynaconf(root_path=f'{base_dir}/conf', settings_files=["*.toml"],
+settings = Dynaconf(root_path=f'{os.environ["BASE_DIR"]}/conf', settings_files=["*.toml"],
                     environments=True)
 data = {}
 
