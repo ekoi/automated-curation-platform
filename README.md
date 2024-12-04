@@ -101,6 +101,11 @@ The database schema for the Automated Curation Platform (ACP) is designed to sup
 
 **By default, after every successful ingestion to the target repository, the metadata and files will be deleted from the database and the file system**. However, it is possible to configure the system to retain the **metadata** for a specific period for auditing purposes.
 
+## Integration with [Kestra](https://kestra.io/)
+
+Soon, the ACP will be integrated with Kestra, a powerful open-source platform for data orchestration and scheduling. This integration enhances the ACP by enabling more efficient and flexible workflow automation for deposit package creation and delivery.
+
+
 ## How to Run in docker-compose
 To run the Automated Curation Platform (ACP) using `docker-compose`, follow these steps:
 
