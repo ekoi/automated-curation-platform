@@ -110,8 +110,7 @@ The database schema for the Automated Curation Platform (ACP) is designed to sup
 
 ## Integration with [Kestra](https://kestra.io/)
 
-Soon, the ACP will be integrated with Kestra, a powerful open-source platform for data orchestration and scheduling. This integration enhances the ACP by enabling more efficient and flexible workflow automation for deposit package creation and delivery.
-
+Kesra will soon be available within ACP, a powerful open-source platform for data orchestration and scheduling. This integration enhances ACP by enabling more efficient, flexible, and streamlined workflow automation for creating and delivering deposit packages.
 
 ## How to Run in docker-compose
 To run the Automated Curation Platform (ACP) using `docker-compose`, follow these steps:
