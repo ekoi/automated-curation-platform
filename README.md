@@ -30,7 +30,7 @@ To enhance observability and monitoring within ACP, DANS integrates the OpenTele
 - **Enhanced Insights**: OTLP enables detailed performance analysis, empowering ACP to identify and optimize areas within the automated curation process, ultimately improving the efficiency and accuracy of curated deposit packages.
 
 Currently, ACP uses the [Jaeger](https://www.jaegertracing.io/) backend for tracing and monitoring, leveraging the OTLP protocol to collect and transmit telemetry data effectively. This integration enhances the platform’s observability, enabling users to gain valuable insights into the curation process and repository interactions.
-In our demo environment, the jaeger backend can be accessed at `https://meltservice.labs.dansdemo.nl`. Choose the service name `Automated Curation Platform` to view the traces.
+In our demo environment, the jaeger backend can be accessed at `https://meltservice.labs.dansdemo.nl`. Choose the service name `Automated Curation Platform` and the desired lookback to view the traces.
 
 ## Implementing [TUS Protocol](https://tus.io/) in ACP
 ACP also utilizes the TUS Protocol, an open protocol designed for reliable, resumable file uploads. This protocol offers several significant benefits to ACP:
@@ -92,6 +92,7 @@ At DANS, we have developed several implementations of the Automated Curation Pla
 - **Multiple Target Implementation**: The ACP supports curation and deposition to multiple repository targets, providing greater flexibility and scalability.
   - [Software Heritage](https://swh.dansdemo.nl/). Targets: [Software Heritage - API & SWORD2](https://www.softwareheritage.org/) and [Dataverse](https://dataverse.eosc.dansdemo.nl/dataverse/eosc) 
     ![SWH Flow diagram](./resources/images/swh.png)
+  - ![SWH Form](./resources/images/multiple-targets.png)
 - **Rule-Engines Pre-Processing**: This implementation leverages rule engines for pre-processing data, ensuring that the content meets specific criteria before curation and deposition.
   - [4TU.ResearchData](https://4tu.dansdemo.nl/)
 
