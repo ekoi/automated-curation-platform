@@ -33,7 +33,7 @@ To enhance observability and monitoring within ACP, DANS integrates the OpenTele
 Currently, ACP uses the [Jaeger](https://www.jaegertracing.io/) backend for tracing and monitoring, leveraging the OTLP protocol to collect and transmit telemetry data effectively. This integration enhances the platform’s observability, enabling users to gain valuable insights into the curation process and repository interactions.
 In our demo environment, the jaeger backend can be accessed at `https://meltservice.labs.dansdemo.nl`. Choose the service name `Automated Curation Platform` and the desired lookback to view the traces.
 
-The following image shows the Jaeger UI for the Automated Curation Platform for the past 2 hours for all operations.:
+The following image shows the Jaeger UI for the Automated Curation Platform for the last 5 minutes for all operations.:
 ![acp-jaeger](./resources/images/jg-ui-5mnt.png)
 
 ## Implementing [TUS Protocol](https://tus.io/) in ACP
