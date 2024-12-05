@@ -20,6 +20,7 @@ from typing import Any, Callable
 
 import tomli
 from hypothesis import settings
+from jsoncomparison import Compare
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 
 import requests
@@ -671,3 +672,45 @@ def create_s3_client():
         aws_access_key_id=settings.S3_ACCESS_KEY_ID,
         aws_secret_access_key=settings.S3_ACCESS_KEY_SECRET
     )
+
+
+async def fetch_dv_json(rsp, target, target_creds, url):
+    """
+    Fetch JSON data from a Dataverse API and compare it with the original deposited metadata
+    so that we can see whether any changes have been made to the dataset after deposit from the ACP.
+
+    Args:
+        rsp (dict): The response dictionary containing deposited metadata.
+        target (TargetApp): The target application instance.
+        target_creds (list): A list of credentials for target repositories.
+        url (str): The URL to fetch the JSON data from.
+
+    Returns:
+        dict: The differences between the deposited metadata and the fetched JSON data.
+              If no differences are found, returns an empty dictionary.
+    """
+    # Modify the URL to point to the correct API endpoint
+    url = url.replace("dataset.xhtml", "api/datasets/:persistentId/")
+
+    # Iterate over the target credentials to find the matching repository
+    for tc in target_creds:
+        if tc["target-repo-name"] == target.repo_name:
+            # Extract the API token from the credentials
+            api_token = tc["credentials"]["password"]
+            headers = {
+                "X-Dataverse-key": api_token
+            }
+            # Make a GET request to the modified URL with the API token in headers
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                # Compare the deposited metadata with the fetched JSON data
+                diff = Compare().check(rsp["deposited_metadata"], response.json())
+                return diff
+            else:
+                # Log an error message if the response status code is not 200
+                print(url)
+                logger(f'Error occurs: status code: {response.status_code} from {url}', settings.LOG_LEVEL,
+                       LOG_NAME_ACP)
+
+            # Break the loop after processing the relevant credentials
+            break

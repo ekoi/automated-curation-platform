@@ -117,6 +117,21 @@ class TargetRepo(SQLModel, table=True):
 
 # Define the Files model
 class DataFile(SQLModel, table=True):
+    """
+    Represents a data file associated with a dataset.
+
+    Attributes:
+        id (int): The primary key of the data file.
+        ds_id (str): The foreign key referencing the dataset.
+        name (str): The name of the data file.
+        path (Optional[str]): The path to the data file.
+        size (Optional[int]): The size of the data file.
+        mime_type (Optional[str]): The MIME type of the data file.
+        checksum_value (Optional[str]): The checksum value of the data file.
+        date_added (Optional[datetime]): The date the data file was added.
+        permissions (FilePermissions): The permissions of the data file. Defaults to PRIVATE.
+        state (DataFileWorkState): The state of the data file. Defaults to REGISTERED.
+    """
     __tablename__ = "data_file"
     __table_args__ = (
         UniqueConstraint("ds_id", "name", name="unique_ds_id_name"),
@@ -134,15 +149,29 @@ class DataFile(SQLModel, table=True):
 
 
 class DatabaseManager:
+    """
+    Manages database operations including connection setup, encryption, and various CRUD operations.
+
+    Attributes:
+        cipher_suite (Fernet): The encryption suite used for encrypting and decrypting data.
+    """
     cipher_suite = None
+
     def __init__(self, db_dialect: str, db_url: str, encryption_key: str):
+        """
+        Initializes the DatabaseManager with the specified database dialect, URL, and encryption key.
+
+        Args:
+            db_dialect (str): The database dialect (e.g., 'sqlite').
+            db_url (str): The database URL.
+            encryption_key (str): The encryption key used for data encryption.
+        """
         self.conn_url = f'{db_dialect}:{db_url}'
         self.engine = create_engine(self.conn_url, pool_size=10)
         # TODO: Remove db_file = self.conn_url.split("///")[1]
         # TODO use self.engine
         self.db_file = self.conn_url.split("///")[1]  # sqlite:////
         self.cipher_suite = Fernet(base64.urlsafe_b64encode(encryption_key.encode()))
-
     # def get_db(self):
     #     database = self.session_local()
     #     try:
@@ -297,12 +326,28 @@ class DatabaseManager:
         # or the compact version: session.exec(select(TargetRepo)).all()
         return result
 
-    def find_datasets_by_owner(self, owner_id: str) -> [TargetRepo]:
+    def find_datasets_by_owner(self, owner_id: str, page: int = 1, page_size: int = 10) -> [TargetRepo]:
+        """
+        Find datasets by owner ID with pagination.
+
+        Args:
+            owner_id (str): The ID of the owner whose datasets are to be retrieved.
+            page (int, optional): The page number to retrieve. Defaults to 1.
+            page_size (int, optional): The number of records per page. Defaults to 10.
+
+        Returns:
+            List[TargetRepo]: A list of TargetRepo objects for the specified owner, ordered by dataset ID.
+        """
         with Session(self.engine) as session:
-            statement = select(Dataset).where(Dataset.owner_id == owner_id)
+            statement = (
+                select(Dataset)
+                .where(Dataset.owner_id == owner_id)
+                .order_by(Dataset.id)
+                .limit(page_size)
+                .offset((page - 1) * page_size)
+            )
             results = session.exec(statement)
             result = results.all()
-        # or the compact version: session.exec(select(TargetRepo)).all()
         return result
 
     def find_target_repos_by_dataset_id(self, dataset_id: str) -> [TargetRepo]:

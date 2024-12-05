@@ -1,12 +1,11 @@
 import json
-from jsoncomparison import Compare, NO_DIFF
 
-import requests
 from fastapi import APIRouter, Request, HTTPException
 from starlette.responses import Response
 
 # from src import db
-from src.commons import logger, data, db_manager, LOG_NAME_ACP, settings
+from src.commons import logger, data, db_manager, LOG_NAME_ACP, settings, fetch_dv_json
+from src.dbz import ReleaseVersion
 from src.models.app_model import OwnerAssetsModel, Asset, TargetApp
 
 # import logging
@@ -33,6 +32,7 @@ async def progress_state(owner_id: str, req: Request):
     Endpoint to retrieve the progress state of assets owned by a specific owner.
 
     Args:
+        req: Request: The incoming request object.
         owner_id (str): The ID of the owner whose assets' progress state is to be retrieved.
 
     Returns:
@@ -64,73 +64,34 @@ async def progress_state(owner_id: str, req: Request):
             asset.release_version = dataset.release_version.name
             asset.version = dataset.version if dataset.version else ''
             targets_repo = db_manager.find_target_repos_by_dataset_id(str(dataset.id))
-            for target_repo in targets_repo:
-                target = TargetApp()
-                target.repo_name = target_repo.name
-                target.display_name = target_repo.display_name
-                target.deposit_status = target_repo.deposit_status
-                target.deposit_time = target_repo.deposit_time.strftime(
-                    '%Y-%m-%d %H:%M:%S') if target_repo.deposit_time else ''
-                target.duration = str(target_repo.duration)
-                rsp = json.loads(target_repo.target_output) if target_repo.target_output else {}
-                if rsp:
-                    idents =  rsp['response']['identifiers']
-                    target.output_response = {"response": {"identifiers": idents}}
-                    if idents:
-                        url = rsp['response']['identifiers'][0]['url']
-                        # Dataverse only. TODO: Think more generic solution
-                        if url.find("dataset.xhtml") > 0:
-                            target.diff = await fetch_dv_json(rsp, target, target_creds, url)
+            if dataset.release_version is not ReleaseVersion.DRAFT:
+                for target_repo in targets_repo:
+                    target = TargetApp()
+                    target.repo_name = target_repo.name
+                    target.display_name = target_repo.display_name
+                    target.deposit_status = target_repo.deposit_status
+                    target.deposit_time = target_repo.deposit_time.strftime(
+                        '%Y-%m-%d %H:%M:%S') if target_repo.deposit_time else ''
+                    target.duration = str(target_repo.duration)
+                    rsp = json.loads(target_repo.target_output) if target_repo.target_output else {}
+                    if rsp:
+                        idents =  rsp['response']['identifiers']
+                        target.output_response = {"response": {"identifiers": idents}}
+                        if idents:
+                            url = rsp['response']['identifiers'][0]['url']
+                            # Dataverse only. TODO: Think more generic solution
+                            if url.find("dataset.xhtml") > 0:
+                                target.diff = await fetch_dv_json(rsp, target, target_creds, url)
+                        else:
+                            target.output_response = {}
                     else:
                         target.output_response = {}
-                else:
-                    target.output_response = {}
 
-                asset.targets.append(target)
+                    asset.targets.append(target)
             oam.assets.append(asset)
         return oam
     return []
 
-
-async def fetch_dv_json(rsp, target, target_creds, url):
-    """
-    Fetch JSON data from a Dataverse API and compare it with the deposited metadata.
-
-    Args:
-        rsp (dict): The response dictionary containing deposited metadata.
-        target (TargetApp): The target application instance.
-        target_creds (list): A list of credentials for target repositories.
-        url (str): The URL to fetch the JSON data from.
-
-    Returns:
-        dict: The differences between the deposited metadata and the fetched JSON data.
-              If no differences are found, returns an empty dictionary.
-    """
-    # Modify the URL to point to the correct API endpoint
-    url = url.replace("dataset.xhtml", "api/datasets/:persistentId/")
-
-    # Iterate over the target credentials to find the matching repository
-    for tc in target_creds:
-        if tc["target-repo-name"] == target.repo_name:
-            # Extract the API token from the credentials
-            api_token = tc["credentials"]["password"]
-            headers = {
-                "X-Dataverse-key": api_token
-            }
-            # Make a GET request to the modified URL with the API token in headers
-            response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                # Compare the deposited metadata with the fetched JSON data
-                diff = Compare().check(rsp["deposited_metadata"], response.json())
-                return diff
-            else:
-                # Log an error message if the response status code is not 200
-                print(url)
-                logger(f'Error occurs: status code: {response.status_code} from {url}', settings.LOG_LEVEL,
-                       LOG_NAME_ACP)
-
-            # Break the loop after processing the relevant credentials
-            break
 
 @router.get("/dataset/{datasetId}")
 async def find_dataset(datasetId: str):
