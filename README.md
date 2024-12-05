@@ -43,6 +43,9 @@ ACP also utilizes the TUS Protocol, an open protocol designed for reliable, resu
 - **Scalability**: The protocol efficiently manages high-volume and high-frequency file uploads, allowing ACP to handle diverse and large datasets across multiple repositories with ease.
 - **Improved User Experience**: By reducing upload failures and ensuring smoother file transfers, TUS enhances the user experience, making ACP more dependable for users needing to transfer substantial files reliably.
 
+The following image shows the TUS protocol in action, allowing users to upload large files (tested up to 400Gb) seamlessly and efficiently:
+![tus-upload](./resources/images/ohsmart-large-files.png)
+
 ## Authentication Support
 
 ACP currently supports the following authentication mechanisms:
