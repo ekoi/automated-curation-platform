@@ -1,0 +1,27 @@
+{
+    "assistant-config-name": "demo-cid-to-dv",
+    "description": "This an example of a configuration file for the CID to Dataverse bridge",
+    "app-name": "example",
+    "targets": [
+        {
+            "repo-pid": "01",
+            "repo-name": "dataverse.eosc.dansdemo.nl",
+            "repo-display-name": "Dataverse EOSC",
+            "bridge-module-class": "DataverseIngester",
+            "base-url": "https://dataverse.eosc.dansdemo.nl",
+            "target-url": "https://dataverse.eosc.dansdemo.nl/api/dataverses/eosc/datasets/:import",
+            "target-url-params": "pid=$PID&release=no",
+            "username": "API_KEY",
+            "password": "",
+            "metadata": {
+                "transformed-metadata": [
+                    {
+                        "name": "dataverse-dataset",
+                        "transformer-url": "http://localhost:1745/transform/oai-pmh-record-to-dataverse-metadata.xsl",
+                        "target-dir": "metadata"
+                    }
+                ]
+            }
+        }
+    ]
+}
