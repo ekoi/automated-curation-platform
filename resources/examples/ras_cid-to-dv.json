@@ -17,7 +17,7 @@
                 "transformed-metadata": [
                     {
                         "name": "dataverse-dataset",
-                        "transformer-url": "http://localhost:1745/transform/oai-pmh-record-to-dataverse-metadata.xsl",
+                        "transformer-url": "http://localhost:1745/transform/demo_cid-dv.xsl",
                         "target-dir": "metadata"
                     }
                 ]
