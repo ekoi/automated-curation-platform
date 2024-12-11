@@ -64,6 +64,8 @@ async def progress_state(owner_id: str, req: Request):
             asset.release_version = dataset.release_version.name
             asset.version = dataset.version if dataset.version else ''
             targets_repo = db_manager.find_target_repos_by_dataset_id(str(dataset.id))
+            logger(f'dataset release version: {dataset.release_version}', settings.LOG_LEVEL, LOG_NAME_ACP)
+            print(dataset.release_version)
             if dataset.release_version is not ReleaseVersion.DRAFT:
                 for target_repo in targets_repo:
                     target = TargetApp()
@@ -81,6 +83,7 @@ async def progress_state(owner_id: str, req: Request):
                             url = rsp['response']['identifiers'][0]['url']
                             # Dataverse only. TODO: Think more generic solution
                             if url.find("dataset.xhtml") > 0:
+                                logger(f'fetching diff for {target.repo_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
                                 target.diff = await fetch_dv_json(rsp, target, target_creds, url)
                         else:
                             target.output_response = {}

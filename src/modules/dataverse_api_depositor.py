@@ -89,7 +89,7 @@ class DataverseIngester(Bridge):
         target_repo = TargetResponse(url=self.target.target_url)
         target_data_model = TargetDataModel(response=target_repo)
         try:
-            str_dv_metadata = self.__transform_to_dv_json_data(str_updated_metadata_json, "dataset-metadata.json")
+            str_dv_metadata = self.__transform_to_dv_json_data(str_updated_metadata_json, settings.get("DV_METADATA", "dataset-metadata.json"))
         except ValueError as e:
             target_data_model.deposited_metadata = str(e)
             target_data_model.deposit_status = DepositStatus.ERROR
@@ -230,7 +230,7 @@ class DataverseIngester(Bridge):
     def __ingest_files(self, pid: str, str_updated_metadata_json: str) -> int:
         logger(f'Ingesting files to {pid}', settings.LOG_LEVEL, self.app_name)
 
-        str_dv_file = self.__transform_to_dv_json_data(str_updated_metadata_json, "dataset-files.json")
+        str_dv_file = self.__transform_to_dv_json_data(str_updated_metadata_json,  settings.get("DV_FILES", "dataset-files.json"))
 
         for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):
             logger(f'Ingesting file {file.name}. Size: {file.size} Path: {file.path}', settings.LOG_LEVEL, self.app_name)

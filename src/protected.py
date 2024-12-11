@@ -103,11 +103,11 @@ async def get_inbox_dataset_dc(request: Request, release_version: ReleaseVersion
 
 # Endpoint to process inbox dataset metadata
 @router.post("/inbox/dataset")
-async def process_inbox_dataset_publish(request: Request) -> {}:  # ReleaseVersion
+async def process_inbox_dataset_submit(request: Request) -> {}:  # ReleaseVersion
     """
-    Endpoint to process and publish inbox dataset metadata.
+    Endpoint to process and submit inbox dataset metadata.
 
-    This endpoint processes the metadata of an inbox dataset and publishes it.
+    This endpoint processes the metadata of an inbox dataset and submitted it.
 
     Args:
         request (Request): The request object containing the dataset metadata.
@@ -119,7 +119,7 @@ async def process_inbox_dataset_publish(request: Request) -> {}:  # ReleaseVersi
         HTTPException: If there is an error during the processing of the dataset metadata.
     """
     logger(f'Process inbox dataset metadata', settings.LOG_LEVEL, LOG_NAME_ACP)
-    rdm = await process_inbox(ReleaseVersion.PUBLISH, request)
+    rdm = await process_inbox(ReleaseVersion.SUBMIT, request)
     return rdm.model_dump(by_alias=True)
 
 @router.post("/inbox/dataset/{release_version}")
@@ -161,7 +161,7 @@ async def process_inbox(release_version, request):
         ResponseDataModel: A data model containing the status and dataset ID.
 
     Raises:
-        HTTPException: If the dataset is already published.
+        HTTPException: If the dataset is already submitted.
     """
     idh = await get_inbox_dataset_dc(request, release_version)
     file_metadata = jmespath.search('"file-metadata"[*]', idh.metadata)
@@ -170,8 +170,8 @@ async def process_inbox(release_version, request):
     dataset_id = jmespath.search("id", idh.metadata)
     logger(f'Start inbox for metadata id: {dataset_id} - release version: {release_version} - assistant name: '
            f'{idh.assistant_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
-    if db_manager.is_dataset_published(dataset_id):
-        raise HTTPException(status_code=400, detail='Dataset is already published.')
+    if db_manager.is_dataset_submitted(dataset_id):
+        raise HTTPException(status_code=400, detail='Dataset is already submitted.')
     repo_config = retrieve_targets_configuration(idh.assistant_name)
     repo_assistant = RepoAssistantDataModel.model_validate_json(repo_config)
     dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, repo_assistant.app_name, dataset_id)
@@ -220,20 +220,22 @@ def delete_dataset_metadata(request: Request, metadata_id: str):
         raise HTTPException(status_code=401, detail='No user id provided')
     if metadata_id not in db_manager.find_dataset_ids_by_owner(user_id):
         raise HTTPException(status_code=404, detail='No Dataset found')
-    target_repos = db_manager.find_target_repos_by_dataset_id(metadata_id)
-    if not target_repos:
-        logger(f'Delete dataset: {metadata_id}, NOT target_repos', settings.LOG_LEVEL, LOG_NAME_ACP)
-        return delete_dataset_and_its_folder(metadata_id)
-    if target_repos:
-        can_be_deleted = False
-        for target_repo in target_repos:
-            if target_repo.deposit_status not in (DepositStatus.ACCEPTED, DepositStatus.DEPOSITED, DepositStatus.FINISH):
-                can_be_deleted = True
-                logger(f'Delete of {metadata_id} is allowed. Deposit status: {target_repo.deposit_status}', settings.LOG_LEVEL,
-                       LOG_NAME_ACP)
-                break
-        if can_be_deleted:
-            return delete_dataset_and_its_folder(metadata_id)
+
+    return delete_dataset_and_its_folder(metadata_id)
+    # target_repos = db_manager.find_target_repos_by_dataset_id(metadata_id)
+    # if not target_repos:
+    #     logger(f'Delete dataset: {metadata_id}, NOT target_repos', settings.LOG_LEVEL, LOG_NAME_ACP)
+    #     return delete_dataset_and_its_folder(metadata_id)
+    # if target_repos:
+    #     can_be_deleted = False
+    #     for target_repo in target_repos:
+    #         if target_repo.deposit_status not in (DepositStatus.ACCEPTED, DepositStatus.DEPOSITED, DepositStatus.FINISH):
+    #             can_be_deleted = True
+    #             logger(f'Delete of {metadata_id} is allowed. Deposit status: {target_repo.deposit_status}', settings.LOG_LEVEL,
+    #                    LOG_NAME_ACP)
+    #             break
+    #     if can_be_deleted:
+    #         return delete_dataset_and_its_folder(metadata_id)
 
     raise HTTPException(status_code=404, detail=f'Delete of {metadata_id} is not allowed.')
 

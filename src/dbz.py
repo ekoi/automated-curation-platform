@@ -28,6 +28,8 @@ class ReleaseVersion(StrEnum):
     PUBLISH = 'PUBLISH'
     PUBLISHED = 'PUBLISHED'
     PUBLISHING = 'PUBLISHING'
+    SUBMIT = 'SUBMIT'
+    SUBMITTED = 'SUBMITTED'
 
 
 class DepositStatus(StrEnum):
@@ -254,9 +256,9 @@ class DatabaseManager:
     def is_dataset_exist(self, dataset_id: str) -> bool:
         return Session(self.engine).exec(select(Dataset).where(Dataset.id == dataset_id)).first() is not None
 
-    def is_dataset_published(self, dataset_id: str) -> bool:
+    def is_dataset_submitted(self, dataset_id: str) -> bool:
         return (Session(self.engine).exec(select(Dataset).where(Dataset.id == dataset_id,
-                                                               Dataset.release_version == ReleaseVersion.PUBLISHED))
+                                                               Dataset.release_version == ReleaseVersion.SUBMIT))
                                                             .first() is not None)
 
     def find_dataset(self, ds_id: str) -> Dataset:
@@ -486,17 +488,6 @@ class DatabaseManager:
                 session.commit()
                 session.refresh(md_record)
 
-    def set_dataset_published(self, id: str) -> type(None):
-        with Session(self.engine) as session:
-            statement = select(Dataset).where(Dataset.id == id)
-            results = session.exec(statement)
-            md_record = results.one_or_none()
-            if md_record:
-                # md_record.release_version = ReleaseVersion.PUBLISH
-                md_record.release_version = ReleaseVersion.PUBLISHED
-                session.add(md_record)
-                session.commit()
-                session.refresh(md_record)
 
     def update_target_repo_deposit_status(self, target_repo: TargetRepo) -> type(None):
         with Session(self.engine) as session:
@@ -583,7 +574,7 @@ class DatabaseManager:
         with Session(self.engine) as session:
             dataset_id_rec = session.exec(
                 select(Dataset.id).where((Dataset.id == dataset_id) & (Dataset.state == DatasetWorkState.READY) &
-                                         (Dataset.release_version == ReleaseVersion.PUBLISH))).one_or_none()
+                                         (Dataset.release_version == ReleaseVersion.SUBMIT))).one_or_none()
             return dataset_id_rec is not None
 
     def are_files_uploaded(self, dataset_id: str) -> bool:

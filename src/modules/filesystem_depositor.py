@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import os
 import urllib.parse
 import json
 
 from src.bridge import Bridge
 from src.commons import logger, settings
+from src.dbz import DepositStatus
 from src.models.bridge_output_model import TargetDataModel
 
 
@@ -34,12 +36,16 @@ class FileSystem(Bridge):
         if parsed_url.scheme != 'file' or not parsed_url.path:
             raise ValueError("Invalid file URL")
 
-        file_path = parsed_url.path
-        print(file_path)
+        dest_file_name = (f'{parsed_url.path}/{self.target.metadata.transformed_metadata[0].target_dir}/'
+                          f'{self.target.metadata.transformed_metadata[0].name}')
+
+        os.makedirs(os.path.dirname(dest_file_name), exist_ok=True)
+        print(self.target.metadata.transformed_metadata[0].name)
         # save to file
-        with open(f'{self.dataset_dir}/{metadata["title"]}.json', 'w') as f:
-            f.write(metadata)
+        with open(dest_file_name, 'w') as f:
+            f.write(json.dumps(metadata))
 
-        bridge_output_model = TargetDataModel()
+        tdm = TargetDataModel()
+        tdm.deposit_status = DepositStatus.SUCCESS
 
-        return bridge_output_model
+        return tdm

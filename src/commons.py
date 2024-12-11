@@ -695,22 +695,18 @@ async def fetch_dv_json(rsp, target, target_creds, url):
     # Iterate over the target credentials to find the matching repository
     for tc in target_creds:
         if tc["target-repo-name"] == target.repo_name:
-            # Extract the API token from the credentials
             api_token = tc["credentials"]["password"]
-            headers = {
-                "X-Dataverse-key": api_token
-            }
-            # Make a GET request to the modified URL with the API token in headers
+            headers = dmz_dataverse_headers("API_KEY", api_token)
             response = requests.get(url, headers=headers)
-            if response.status_code == 200:
-                # Compare the deposited metadata with the fetched JSON data
-                diff = Compare().check(rsp["deposited_metadata"], response.json())
-                return diff
-            else:
-                # Log an error message if the response status code is not 200
-                print(url)
-                logger(f'Error occurs: status code: {response.status_code} from {url}', settings.LOG_LEVEL,
-                       LOG_NAME_ACP)
 
-            # Break the loop after processing the relevant credentials
+            if response.status_code == 200:
+                deposited_metadata = rsp.get("deposited_metadata")
+                if deposited_metadata:
+                    return Compare().check(deposited_metadata, response.json())
+                else:
+                    logger("No deposited metadata found to compare.", settings.LOG_LEVEL, LOG_NAME_ACP)
+                    return {}
+            else:
+                logger(f'Error occurs: status code: {response.status_code} from {url}', settings.LOG_LEVEL, LOG_NAME_ACP)
+
             break
