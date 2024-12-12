@@ -40,7 +40,7 @@ class FileSystem(Bridge):
                           f'{self.target.metadata.transformed_metadata[0].name}')
 
         os.makedirs(os.path.dirname(dest_file_name), exist_ok=True)
-        print(self.target.metadata.transformed_metadata[0].name)
+
         # save to file
         with open(dest_file_name, 'w') as f:
             f.write(json.dumps(metadata))

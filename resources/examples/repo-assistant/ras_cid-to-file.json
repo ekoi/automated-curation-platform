@@ -1,0 +1,22 @@
+{
+    "assistant-config-name": "demo-cid-to-file",
+    "description": "This an example of a configuration file for the CID to Filesystem bridge",
+    "app-name": "example",
+    "targets": [
+        {
+            "repo-pid": "01",
+            "repo-name": "local-filesystem",
+            "repo-display-name": "Local SystemC",
+            "bridge-module-class": "FileSystem",
+            "target-url": "file:///tmp",
+            "metadata": {
+                "transformed-metadata": [
+                    {
+                        "name": "example.json",
+                        "target-dir": "output-metadata"
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -194,8 +194,8 @@ async def process_inbox(release_version, request):
     return rdm
 
 
-@router.delete("/inbox/dataset/{metadata_id}")
-def delete_dataset_metadata(request: Request, metadata_id: str):
+@router.delete("/inbox/dataset/{dataset_id}")
+def delete_dataset_metadata(request: Request, dataset_id: str):
     """
     Endpoint to delete dataset metadata.
 
@@ -204,7 +204,7 @@ def delete_dataset_metadata(request: Request, metadata_id: str):
 
     Args:
         request (Request): The request object containing headers with user information.
-        metadata_id (str): The ID of the dataset metadata to be deleted.
+        dataset_id (str): The ID of the dataset metadata to be deleted.
 
     Returns:
         dict: A dictionary containing the status of the deletion.
@@ -214,14 +214,14 @@ def delete_dataset_metadata(request: Request, metadata_id: str):
         HTTPException: If the dataset is not found for the given user ID.
         HTTPException: If the dataset cannot be deleted based on its deposit status.
     """
-    logger(f'Delete dataset: {metadata_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logger(f'Delete dataset: {dataset_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
     user_id = request.headers.get('user-id')
     if not user_id:
         raise HTTPException(status_code=401, detail='No user id provided')
-    if metadata_id not in db_manager.find_dataset_ids_by_owner(user_id):
+    if dataset_id not in db_manager.find_dataset_ids_by_owner(user_id):
         raise HTTPException(status_code=404, detail='No Dataset found')
 
-    return delete_dataset_and_its_folder(metadata_id)
+    return delete_dataset_and_its_folder(dataset_id)
     # target_repos = db_manager.find_target_repos_by_dataset_id(metadata_id)
     # if not target_repos:
     #     logger(f'Delete dataset: {metadata_id}, NOT target_repos', settings.LOG_LEVEL, LOG_NAME_ACP)
@@ -237,10 +237,10 @@ def delete_dataset_metadata(request: Request, metadata_id: str):
     #     if can_be_deleted:
     #         return delete_dataset_and_its_folder(metadata_id)
 
-    raise HTTPException(status_code=404, detail=f'Delete of {metadata_id} is not allowed.')
+    raise HTTPException(status_code=404, detail=f'Delete of {dataset_id} is not allowed.')
 
 
-def delete_dataset_and_its_folder(metadata_id):
+def delete_dataset_and_its_folder(dataset_id):
     """
     Delete a dataset and its associated folder.
 
@@ -249,25 +249,25 @@ def delete_dataset_and_its_folder(metadata_id):
     record from the database and checks again if the folder exists to ensure it is removed.
 
     Args:
-        metadata_id (str): The ID of the dataset metadata to be deleted.
+        dataset_id (str): The ID of the dataset metadata to be deleted.
 
     Returns:
         dict: A dictionary containing the status of the deletion and the metadata ID.
     """
-    dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, db_manager.find_dataset(metadata_id).app_name,
-                                  metadata_id)
+    dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, db_manager.find_app_name(dataset_id),
+                                  dataset_id)
     logger(f'Delete dataset folder: {dataset_folder}', settings.LOG_LEVEL, LOG_NAME_ACP)
     if os.path.exists(dataset_folder):
         delete_symlink_and_target(dataset_folder)
     else:
         logger(f'Dataset folder: {dataset_folder} not found', settings.LOG_LEVEL, LOG_NAME_ACP)
-    db_manager.delete_by_dataset_id(metadata_id)
+    db_manager.delete_by_dataset_id(dataset_id)
     if os.path.exists(dataset_folder):
         logger(f'Delete dataset folder: {dataset_folder}', settings.LOG_LEVEL, LOG_NAME_ACP)
         shutil.rmtree(dataset_folder)
     else:
         logger(f'Dataset folder: {dataset_folder} not found', settings.LOG_LEVEL, LOG_NAME_ACP)
-    return {"status": "ok", "metadata-id": metadata_id}
+    return {"status": "ok", "metadata-id": dataset_id}
 
 
 @handle_ps_exceptions
@@ -412,9 +412,11 @@ def process_target_repos(repo_assistant, target_creds) -> [TargetRepo]:
         target_repo_name = repo_target.repo_name
         logger(f'target_repo_name: {target_repo_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
         for depositor_cred in input_target_cred_model.targets_credentials:
-            if depositor_cred.target_repo_name == repo_target.repo_name and depositor_cred.credentials.username:
+            if (depositor_cred.target_repo_name == repo_target.repo_name and depositor_cred.credentials and
+                    depositor_cred.credentials.username):
                 repo_target.username = depositor_cred.credentials.username
-            if depositor_cred.target_repo_name == repo_target.repo_name and depositor_cred.credentials.password:
+            if (depositor_cred.target_repo_name == repo_target.repo_name and depositor_cred.credentials and
+                    depositor_cred.credentials.password):
                 repo_target.password = depositor_cred.credentials.password
 
         db_recs_target_repo.append(TargetRepo(name=repo_target.repo_name, url=repo_target.target_url,
@@ -831,6 +833,27 @@ async def get_settings():
     settings.reload()
     logger(f"Getting settings After Load: {settings.as_dict()}", "debug", LOG_NAME_ACP)
     return settings.as_dict()
+
+@router.get("/dataset/{datasetId}/md", include_in_schema=False)
+def get_md(datasetId: str):
+    """
+    Endpoint to retrieve the metadata of a dataset.
+
+    This endpoint retrieves the metadata of the dataset identified by the given dataset ID.
+
+    Args:
+        datasetId (str): The ID of the dataset to retrieve the metadata for.
+
+    Returns:
+        dict: A dictionary containing the metadata of the dataset.
+
+    Raises:
+        HTTPException: If the dataset is not found.
+    """
+    dataset = db_manager.get_decrypted_md(datasetId)
+    if not dataset:
+        raise HTTPException(status_code=404, detail=f"Dataset {datasetId} not found")
+    return json.loads(dataset.md)
 
 
 @router.get('/logs/{app_name}', include_in_schema=False)

@@ -18,12 +18,14 @@ modules_dir = "@format {env[BASE_DIR]}/src/modules"
 tus_files_dir = "@format {env[BASE_DIR]}/data/tmp/tus"
 
 jinja_template_dir =  "@format {env[BASE_DIR]}/resources/datastation/metadata"
-sendmail_enable = false
+sendmail_enable = true
+smtp_server = "localhost" #"smtp.gmail.com"
+smtp_port = "1025" # 587
+use_tls = false # Note: set to true if using gmail
 melt_enable = false
 melt_agent_host_name = "localhost" #On dans:demo: meltservice (container name)
 multiple_workers_enable = false
 assistant_config_url = "http://localhost:2810" #"https://repository-assistant.labs.dansdemo.nl" #http://localhost:2810"
 transformer_url = "http://localhost:1745/transform" #"https://transformer.labs.dans.knaw.nl/transform" #http://localhost:1745l/transform"
-#send_mail = false
 max_ingest_size_using_python = 1073741824
 shell_script_path = "@format {env[BASE_DIR]}/resources/utils/ingest.sh"

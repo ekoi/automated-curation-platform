@@ -88,7 +88,7 @@ class Target(BaseModel):
     def validate_urls(cls, v, field):
         if v:
             parsed_url = urllib.parse.urlparse(v)
-            if field.field_name in ['target_url', 'base_url'] and parsed_url.scheme not in ['https', 'http', 'file']:
+            if field.field_name in ['target_url', 'base_url'] and parsed_url.scheme not in ['https', 'http', 'file', 'mailto', 's3']:
                 raise ValueError(f"Invalid {field.name} URL: {v}")
         return v
 

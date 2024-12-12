@@ -396,7 +396,7 @@ def inspect_bridge_module(py_file_path: str):
 #         self.message = message
 #         super().__init__(self.message)
 
-def send_mail(subject: str, text: str):
+def send_mail(subject: str, text: str, recipients: list[str] = None):
     """
     Send an email with the specified subject and text.
 
@@ -413,23 +413,29 @@ def send_mail(subject: str, text: str):
     """
     sender_email = settings.MAIL_USR
     app_password = settings.MAIL_PASS
-    recipient_email = settings.MAIL_TO
+    if not recipients:
+        recipients = settings.MAIL_TO
+
     message = MIMEMultipart()
     message['From'] = sender_email
-    message['To'] = recipient_email
     message['Subject'] = f'{settings.get("MAIL_SUBJECT_PREFIX", "mail_subject_prefix not set")}: {subject}'
     message.attach(MIMEText(text, 'plain'))
 
     if settings.get('send_mail', True):
         try:
-            with smtplib.SMTP("smtp.gmail.com", 587) as server:
-                server.starttls()
-                server.login(sender_email, app_password)
-                server.sendmail(sender_email, recipient_email, message.as_string())
+            with smtplib.SMTP(settings.SMTP_SERVER, settings.SMTP_PORT) as server:
+                if settings.get('use_tls', True):
+                    server.starttls()
+                    server.login(sender_email, app_password)
+                for recipient_email in recipients:
+                    message['To'] = recipient_email
+                    server.sendmail(sender_email, recipient_email, message.as_string())
+                    logger(f"Email sent successfully to {recipient_email}", "debug", LOG_NAME_ACP)
             logger(f"Email sent successfully to {recipient_email}", "debug", LOG_NAME_ACP)
         except Exception as e:
             print(f"Error: {e}")
             logger(f"Unsuccessful sent email to {recipient_email}", "error", LOG_NAME_ACP)
+            raise ValueError(f"Error: {e}")
     else:
         logger("Sending email is disabled.", settings.LOG_LEVEL, LOG_NAME_ACP)
 

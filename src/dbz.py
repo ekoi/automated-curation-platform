@@ -268,6 +268,12 @@ class DatabaseManager:
                 dataset.decrypt_md(self.cipher_suite)
             return dataset
 
+    def find_app_name(self, ds_id: str) -> Dataset:
+        with Session(self.engine) as session:
+            dataset = session.exec(select(Dataset).where(Dataset.id == ds_id)).one_or_none()
+            if dataset:
+                return dataset.app_name
+
     def find_target_repo(self, dataset_id: str, target_name: str) -> TargetRepo:
         with Session(self.engine) as session:
             target_repo = session.exec(

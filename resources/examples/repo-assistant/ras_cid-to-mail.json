@@ -1,0 +1,22 @@
+{
+    "assistant-config-name": "demo-cid-to-maildev",
+    "description": "This an example of a configuration file for the CID to Mail bridge",
+    "app-name": "example",
+    "targets": [
+        {
+            "repo-pid": "01",
+            "repo-name": "maildev",
+            "repo-display-name": "Maildev",
+            "bridge-module-class": "Mail",
+            "target-url": "mailto:e.amal.khairunnisa@gmail.com",
+            "metadata": {
+                "transformed-metadata": [
+                    {
+                        "name": "example.json",
+                        "target-dir": "output-metadata"
+                    }
+                ]
+            }
+        }
+    ]
+}
