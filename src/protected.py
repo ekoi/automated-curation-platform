@@ -5,6 +5,7 @@ import json
 import mimetypes
 import os
 import shutil
+import uuid
 from pathlib import Path
 import threading
 import time
@@ -14,6 +15,7 @@ import httpx
 
 import jmespath
 import requests
+from aiohttp.web_fileresponse import content_type
 from fastapi import APIRouter, Request, UploadFile, Form, File, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.responses import FileResponse
@@ -22,7 +24,7 @@ from werkzeug.http import HTTP_STATUS_CODES
 from src.commons import settings, logger, data, db_manager, get_class, assistant_repo_headers, handle_ps_exceptions, \
     send_mail,  LOG_NAME_ACP, delete_symlink_and_target
 from src.dbz import TargetRepo, DataFile, Dataset, ReleaseVersion, DepositStatus, FilePermissions, \
-    DatasetWorkState, DataFileWorkState
+    DatasetWorkState, DataFileWorkState, MetadataType
 from src.models.app_model import ResponseDataModel, InboxDatasetDataModel
 # Import custom modules and classes
 from src.models.assistant_datamodel import RepoAssistantDataModel, Target
@@ -94,10 +96,19 @@ async def get_inbox_dataset_dc(request: Request, release_version: ReleaseVersion
         Callable[[Request, ReleaseVersion], Awaitable[InboxDatasetDataModel]]:
         An awaitable function that returns an InboxDatasetDataModel instance.
     """
-    req_body = await request.json()
+    ct = request.headers.get('content-type', MetadataType.JSON)
+    if ct == MetadataType.XML:
+        # for payload type xml, the title is in the headers
+        title = request.headers.get('title', 'no-title')
+        req_body = await request.body()
+        req_body = req_body.decode('utf-8')
+    else:
+        req_body = await request.json()
+        title = jmespath.search('title', req_body)
+
     return InboxDatasetDataModel(assistant_name=request.headers.get('assistant-config-name'),
                                  release_version=release_version, owner_id=request.headers.get('user-id'),
-                                 title=jmespath.search('title', req_body),
+                                 metadata_type = MetadataType(ct), title=title,
                                  target_creds=request.headers.get('targets-credentials'), metadata=req_body)
 
 
@@ -163,22 +174,32 @@ async def process_inbox(release_version, request):
     Raises:
         HTTPException: If the dataset is already submitted.
     """
+
     idh = await get_inbox_dataset_dc(request, release_version)
-    file_metadata = jmespath.search('"file-metadata"[*]', idh.metadata)
-    if file_metadata:
-        logger(f'Number of file_metadata: {len(file_metadata)}', settings.LOG_LEVEL, LOG_NAME_ACP)
-    dataset_id = jmespath.search("id", idh.metadata)
+
+    if request.headers.get('dataset_id'):
+        dataset_id = request.headers.get('dataset_id')
+    elif idh.metadata_type == MetadataType.JSON:
+        dataset_id = jmespath.search("id", idh.metadata)
+    else:
+        pass #TODO: Handle this case
+
+    if not dataset_id:
+        dataset_id = uuid.uuid4().hex
+
     logger(f'Start inbox for metadata id: {dataset_id} - release version: {release_version} - assistant name: '
            f'{idh.assistant_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
     if db_manager.is_dataset_submitted(dataset_id):
         raise HTTPException(status_code=400, detail='Dataset is already submitted.')
+
     repo_config = retrieve_targets_configuration(idh.assistant_name)
     repo_assistant = RepoAssistantDataModel.model_validate_json(repo_config)
-    dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, repo_assistant.app_name, dataset_id)
-    if not os.path.exists(dataset_folder):
-        os.makedirs(dataset_folder)
+    dataset_dir = os.path.join(settings.DATA_TMP_BASE_DIR, repo_assistant.app_name, dataset_id)
+    if not os.path.exists(dataset_dir):
+        os.makedirs(dataset_dir)
+
     db_recs_target_repo = process_target_repos(repo_assistant, idh.target_creds)
-    db_record_metadata, registered_files = process_metadata_record(dataset_id, idh, repo_assistant, dataset_folder)
+    db_record_metadata, registered_files = process_metadata_record(dataset_id, idh, repo_assistant, dataset_dir)
     process_db_records(dataset_id, db_record_metadata, db_recs_target_repo, registered_files)
     if db_manager.is_dataset_ready(dataset_id) and db_manager.are_files_uploaded(dataset_id):
         logger(f'SUBMIT DATASET with version {release_version.name} is_dataset_ready {dataset_id}', settings.LOG_LEVEL,
@@ -220,22 +241,20 @@ def delete_dataset_metadata(request: Request, dataset_id: str):
         raise HTTPException(status_code=401, detail='No user id provided')
     if dataset_id not in db_manager.find_dataset_ids_by_owner(user_id):
         raise HTTPException(status_code=404, detail='No Dataset found')
-
-    return delete_dataset_and_its_folder(dataset_id)
-    # target_repos = db_manager.find_target_repos_by_dataset_id(metadata_id)
-    # if not target_repos:
-    #     logger(f'Delete dataset: {metadata_id}, NOT target_repos', settings.LOG_LEVEL, LOG_NAME_ACP)
-    #     return delete_dataset_and_its_folder(metadata_id)
-    # if target_repos:
-    #     can_be_deleted = False
-    #     for target_repo in target_repos:
-    #         if target_repo.deposit_status not in (DepositStatus.ACCEPTED, DepositStatus.DEPOSITED, DepositStatus.FINISH):
-    #             can_be_deleted = True
-    #             logger(f'Delete of {metadata_id} is allowed. Deposit status: {target_repo.deposit_status}', settings.LOG_LEVEL,
-    #                    LOG_NAME_ACP)
-    #             break
-    #     if can_be_deleted:
-    #         return delete_dataset_and_its_folder(metadata_id)
+    target_repos = db_manager.find_target_repos_by_dataset_id(dataset_id)
+    if not target_repos:
+        logger(f'Delete dataset: {dataset_id}, NOT target_repos', settings.LOG_LEVEL, LOG_NAME_ACP)
+        return delete_dataset_and_its_folder(dataset_id)
+    if target_repos:
+        can_be_deleted = False
+        for target_repo in target_repos:
+            if target_repo.deposit_status not in (DepositStatus.ACCEPTED, DepositStatus.DEPOSITED, DepositStatus.FINISH):
+                can_be_deleted = True
+                logger(f'Delete of {dataset_id} is allowed. Deposit status: {target_repo.deposit_status}', settings.LOG_LEVEL,
+                       LOG_NAME_ACP)
+                break
+        if can_be_deleted:
+            return delete_dataset_and_its_folder(dataset_id)
 
     raise HTTPException(status_code=404, detail=f'Delete of {dataset_id} is not allowed.')
 
@@ -305,7 +324,7 @@ def process_db_records(datasetId, db_record_metadata, db_recs_target_repo, regis
             logger(f'Error inserting datafiles: {e}', 'error', LOG_NAME_ACP)
 
 @handle_ps_exceptions
-def process_metadata_record(datasetId, idh, repo_assistant, tmp_dir):
+def process_metadata_record(dataset_id, idh, repo_assistant, tmp_dir):
     """
     Process the metadata record for a dataset.
 
@@ -322,65 +341,75 @@ def process_metadata_record(datasetId, idh, repo_assistant, tmp_dir):
     Returns:
         tuple: A tuple containing the dataset metadata record and a list of registered files.
     """
-    logger(f'Processing metadata record for {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
-    registered_files = []
-    file_names = []
-    file_names_from_input = jmespath.search('"file-metadata"[*].name', idh.metadata)
-    if file_names_from_input:
-        for file_name in file_names_from_input:
-            data_file = db_manager.find_file_by_name(datasetId, file_name)
-            if data_file:
-                logger(f'File {file_name} already exist', settings.LOG_LEVEL, LOG_NAME_ACP)
-                escaped_file_name = file_name.replace('"', '\\"')
-                f_permission = jmespath.search(f'"file-metadata"[?name == `{escaped_file_name}`].private', idh.metadata)
-                permission = FilePermissions.PRIVATE if f_permission[0] else FilePermissions.PUBLIC
-                db_manager.update_file_permission(datasetId, file_name, permission)
-                continue
-            else:
-                file_names.append(file_name)
-    else:
-        file_names_from_input = []
+    logger(f'Processing metadata record for {dataset_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
 
-    logger(f'Number of file_names: {len(file_names)}', settings.LOG_LEVEL, LOG_NAME_ACP)
-    already_uploaded_files_name = db_manager.execute_l(datasetId)
-    logger(f'Number of already_uploaded_files: {len(already_uploaded_files_name)}', settings.LOG_LEVEL, LOG_NAME_ACP)
-
-    files_name_to_be_deleted = set(already_uploaded_files_name) - set(file_names_from_input)
-    logger(
-        f'Number of files_name_to_be_deleted: {len(files_name_to_be_deleted)} --LIST:  {files_name_to_be_deleted}',
-        settings.LOG_LEVEL, LOG_NAME_ACP)
-    files_name_to_be_added = set(file_names) - set(already_uploaded_files_name)
-    logger(f'Number of files_name_to_be_added: {len(files_name_to_be_added)}', settings.LOG_LEVEL,
-           LOG_NAME_ACP)
-
-    for f_name in files_name_to_be_deleted:
-        file_path = os.path.join(tmp_dir, f_name)
-        if os.path.exists(file_path):
-            delete_symlink_and_target(file_path)
-            logger(f'{file_path} is deleted', settings.LOG_LEVEL, LOG_NAME_ACP)
+    if idh.metadata_type == MetadataType.JSON:
+        logger(f'Processing json metadata', settings.LOG_LEVEL, LOG_NAME_ACP)
+        registered_files = []
+        file_names = []
+        file_names_from_input = jmespath.search('"file-metadata"[*].name', idh.metadata)
+        if file_names_from_input:
+            for file_name in file_names_from_input:
+                data_file = db_manager.find_file_by_name(dataset_id, file_name)
+                if data_file:
+                    logger(f'File {file_name} already exist', settings.LOG_LEVEL, LOG_NAME_ACP)
+                    escaped_file_name = file_name.replace('"', '\\"')
+                    f_permission = jmespath.search(f'"file-metadata"[?name == `{escaped_file_name}`].private', idh.metadata)
+                    permission = FilePermissions.PRIVATE if f_permission[0] else FilePermissions.PUBLIC
+                    db_manager.update_file_permission(dataset_id, file_name, permission)
+                    continue
+                else:
+                    file_names.append(file_name)
         else:
-            logger(f'{file_path} not found', settings.LOG_LEVEL, LOG_NAME_ACP)
-        db_manager.delete_datafile(datasetId, f_name)
+            file_names_from_input = []
 
-    for f_name in files_name_to_be_added:
-        file_path = os.path.join(tmp_dir, f_name)
-        # Escape special characters in the filename
-        escaped_filename = f_name.replace('"', '\\"')
+        logger(f'Number of file_names: {len(file_names)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        already_uploaded_files_name = db_manager.execute_l(dataset_id)
+        logger(f'Number of already_uploaded_files: {len(already_uploaded_files_name)}', settings.LOG_LEVEL, LOG_NAME_ACP)
 
-        f_permission = jmespath.search(f'"file-metadata"[?name == `{escaped_filename}`].private', idh.metadata)
-        permission = FilePermissions.PRIVATE if f_permission[0] else FilePermissions.PUBLIC
-        registered_files.append(DataFile(name=f_name, path=file_path, ds_id=datasetId, permissions=permission))
+        files_name_to_be_deleted = set(already_uploaded_files_name) - set(file_names_from_input)
+        logger(
+            f'Number of files_name_to_be_deleted: {len(files_name_to_be_deleted)} --LIST:  {files_name_to_be_deleted}',
+            settings.LOG_LEVEL, LOG_NAME_ACP)
+        files_name_to_be_added = set(file_names) - set(already_uploaded_files_name)
+        logger(f'Number of files_name_to_be_added: {len(files_name_to_be_added)}', settings.LOG_LEVEL,
+               LOG_NAME_ACP)
 
-    logger(f'registered_files: {registered_files}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        for f_name in files_name_to_be_deleted:
+            file_path = os.path.join(tmp_dir, f_name)
+            if os.path.exists(file_path):
+                delete_symlink_and_target(file_path)
+                logger(f'{file_path} is deleted', settings.LOG_LEVEL, LOG_NAME_ACP)
+            else:
+                logger(f'{file_path} not found', settings.LOG_LEVEL, LOG_NAME_ACP)
+            db_manager.delete_datafile(dataset_id, f_name)
 
-    # Update file permission
-    already_uploaded_files = db_manager.find_uploaded_files(datasetId)
-    logger(f'Number of already_uploaded_files: {len(already_uploaded_files)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        for f_name in files_name_to_be_added:
+            file_path = os.path.join(tmp_dir, f_name)
+            # Escape special characters in the filename
+            escaped_filename = f_name.replace('"', '\\"')
 
-    dataset_state = DatasetWorkState.READY if not files_name_to_be_added else DatasetWorkState.NOT_READY
-    db_record_metadata = Dataset(id=datasetId, title=idh.title, owner_id=idh.owner_id,
+            f_permission = jmespath.search(f'"file-metadata"[?name == `{escaped_filename}`].private', idh.metadata)
+            permission = FilePermissions.PRIVATE if f_permission[0] else FilePermissions.PUBLIC
+            registered_files.append(DataFile(name=f_name, path=file_path, ds_id=dataset_id, permissions=permission))
+
+        logger(f'registered_files: {registered_files}', settings.LOG_LEVEL, LOG_NAME_ACP)
+
+        # Update file permission
+        already_uploaded_files = db_manager.find_uploaded_files(dataset_id)
+        logger(f'Number of already_uploaded_files: {len(already_uploaded_files)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+
+        dataset_state = DatasetWorkState.READY if not files_name_to_be_added else DatasetWorkState.NOT_READY
+        metadata = json.dumps(idh.metadata)
+    else:
+        logger(f'Processing xml metadata', settings.LOG_LEVEL, LOG_NAME_ACP)
+        dataset_state = DatasetWorkState.READY
+        metadata = idh.metadata
+        registered_files = None
+
+    db_record_metadata = Dataset(id=dataset_id, title=idh.title, owner_id=idh.owner_id,
                                  app_name=repo_assistant.app_name, release_version=idh.release_version,
-                                 state=dataset_state, md=json.dumps(idh.metadata))
+                                 state=dataset_state, md=metadata, md_type=MetadataType(idh.metadata_type))
     return db_record_metadata, registered_files
 
 
@@ -624,7 +653,7 @@ def bridge_job(datasetId: str, msg: str) -> None:
         logger(f"Error starting thread for {datasetId}: {e}", 'error', LOG_NAME_ACP)
 
 
-def follow_bridge(datasetId) -> type(None):
+def follow_bridge(dataset_id) -> type(None):
     """
     Follow the bridge process for a dataset.
 
@@ -632,20 +661,20 @@ def follow_bridge(datasetId) -> type(None):
     retrieves the target repositories associated with the dataset, and executes the bridge process.
 
     Args:
-        datasetId (str): The ID of the dataset to follow the bridge process for.
+        dataset_id (str): The ID of the dataset to follow the bridge process for.
 
     Returns:
         None
     """
     # Log the start time of the thread
     start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    logger(f"Thread for datasetId: {datasetId} started at {start_time}", settings.LOG_LEVEL, LOG_NAME_ACP)
+    logger(f"Thread for datasetId: {dataset_id} started at {start_time}", settings.LOG_LEVEL, LOG_NAME_ACP)
 
     logger("Follow bridge", settings.LOG_LEVEL, LOG_NAME_ACP)
-    logger(f">>> EXECUTE follow_bridge for datasetId: {datasetId}", settings.LOG_LEVEL, LOG_NAME_ACP)
-    db_manager.submitted_now(datasetId)
-    target_repo_recs = db_manager.find_target_repos_by_dataset_id(datasetId)
-    execute_bridges(datasetId, target_repo_recs)
+    logger(f">>> EXECUTE follow_bridge for datasetId: {dataset_id}", settings.LOG_LEVEL, LOG_NAME_ACP)
+    db_manager.submitted_now(dataset_id)
+    target_repo_recs = db_manager.find_target_repos_by_dataset_id(dataset_id)
+    execute_bridges(dataset_id, target_repo_recs)
 
 
 def execute_bridges(datasetId, targets) -> None:

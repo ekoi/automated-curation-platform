@@ -1,0 +1,305 @@
+{
+    "datasetVersion": {
+        "datasetPersistentId": "10.60641/nwyj-3e34",
+        "publicationDate": "2024-10-20",
+        "termsOfUse": "https://www.trails.nl/en/hoofdmenu/data/data-use\nA description of how to access TRAILS data can be found on the TRAILS website. Data are released after each assessment wave under specified conditions.",
+        "dataAccessPlace": "<a href=\"https://dab.surf.nl/dataset?pid=doi:10.60641/nwyj-3e34\">https://dab.surf.nl/dataset?pid=doi:10.60641/nwyj-3e34</a>",
+        "metadataBlocks": {
+            "citation": {
+                "fields": [
+                    {
+                        "value": "Berkeley Puppet Interview (BPI)",
+                        "typeClass": "primitive",
+                        "multiple": false,
+                        "typeName": "title"
+                    },
+                    {
+                        "value": [
+                            {
+                                "authorName": {
+                                    "value": "TRacking Adolescents' Individual Lives Survey",
+                                    "typeClass": "primitive",
+                                    "multiple": false,
+                                    "typeName": "authorName"
+                                },
+                                "authorAffiliation": {
+                                    "value": "University Medical Center Groningen",
+                                    "typeClass": "primitive",
+                                    "multiple": false,
+                                    "typeName": "authorAffiliation"
+                                }
+                            }
+                        ],
+                        "typeClass": "compound",
+                        "multiple": true,
+                        "typeName": "author"
+                    },
+                    {
+                        "value": [
+                            {
+                                "datasetContactEmail": {
+                                    "typeClass": "primitive",
+                                    "multiple": false,
+                                    "typeName": "datasetContactEmail",
+                                    "value": "portal@odissei.nl"
+                                },
+                                "datasetContactName": {
+                                    "typeClass": "primitive",
+                                    "multiple": false,
+                                    "typeName": "datasetContactName",
+                                    "value": ""
+                                }
+                            }
+                        ],
+                        "typeClass": "compound",
+                        "multiple": true,
+                        "typeName": "datasetContact"
+                    },
+                    {
+                        "value": [
+                            {
+                                "dsDescriptionValue": {
+                                    "value": "The Berkeley Puppet Interview (BPI) is a semi-structured method to interview small children between about 4 and 7 years old. Children are asked a question using two puppets who represent two opposing statements and are allowed to respond in their own way, either verbally or non-verbally. The aim of the method is to simulate a natural dialogue between the child and the puppets. The BPI assesses children's perceptions of themselves (academix, social and emotional self-concept), their families and their school environment.",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "typeName": "dsDescriptionValue"
+                                }
+                            }
+                        ],
+                        "typeClass": "compound",
+                        "multiple": true,
+                        "typeName": "dsDescription"
+                    },
+                    {
+                        "value": ["Social Sciences"],
+                        "typeClass": "controlledVocabulary",
+                        "multiple": true,
+                        "typeName": "subject"
+                    },
+                    {
+                        "typeName": "keyword",
+                        "multiple": true,
+                        "typeClass": "compound",
+                        "value": [
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "social behavior"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "social competence"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "social skills"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "social interaction"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "prosocial behavior"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "personality"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "temperament"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "psychiatric problems"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "psychopathology"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "mental health"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "problem behaviour"
+                                }
+                            },
+                            {
+                                "keywordValue": {
+                                    "typeName": "keywordValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "relationships"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "typeName": "topicClassification",
+                        "multiple": true,
+                        "typeClass": "compound",
+                        "value": [
+                            {
+                                "topicClassValue": {
+                                    "typeName": "topicClassValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "relationships"
+                                }
+                            },
+                            {
+                                "topicClassValue": {
+                                    "typeName": "topicClassValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "personality"
+                                }
+                            },
+                            {
+                                "topicClassValue": {
+                                    "typeName": "topicClassValue",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "mental health"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "typeName": "publication",
+                        "multiple": true,
+                        "typeClass": "compound",
+                        "value": [
+                            {
+                                "publicationIDType": {
+                                    "typeName": "publicationIDType",
+                                    "multiple": false,
+                                    "typeClass": "controlledVocabulary",
+                                    "value": "doi"
+                                },
+                                "publicationIDNumber": {
+                                    "typeName": "publicationIDNumber",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "10.1037/a0033976"
+                                },
+                                "publicationURL": {
+                                    "typeName": "publicationURL",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "https://doi.org/10.1037/a0033976"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "typeName": "publication",
+                        "multiple": true,
+                        "typeClass": "compound",
+                        "value": [
+                            {
+                                "publicationIDType": {
+                                    "typeName": "publicationIDType",
+                                    "multiple": false,
+                                    "typeClass": "controlledVocabulary",
+                                    "value": "doi"
+                                },
+                                "publicationIDNumber": {
+                                    "typeName": "publicationIDNumber",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "10.1111/j.1467-8624.1998.tb06177.x"
+                                },
+                                "publicationURL": {
+                                    "typeName": "publicationURL",
+                                    "multiple": false,
+                                    "typeClass": "primitive",
+                                    "value": "https://doi.org/10.1111/j.1467-8624.1998.tb06177.x"
+                                }
+                            }
+                        ]
+                    },
+                    {
+                        "typeName": "language",
+                        "multiple": true,
+                        "typeClass": "controlledVocabulary",
+                        "value": ["English"]
+                    },
+                    {
+                        "typeName": "dateOfCollection",
+                        "multiple": true,
+                        "typeClass": "compound",
+                        "value": []
+                    }
+                ],
+                "displayName": "Citation Metadata"
+            },
+            "geospatial": {
+                "displayName": "Geospatial Metadata",
+                "name": "geospatial",
+                "fields": [
+                    {
+                        "typeName": "geographicCoverage",
+                        "multiple": true,
+                        "typeClass": "compound",
+                        "value": [
+                            {
+                                "country": {
+                                    "typeName": "country",
+                                    "multiple": false,
+                                    "typeClass": "controlledVocabulary",
+                                    "value": "Netherlands"
+                                }
+                            }
+                        ]
+                    }
+                ]
+            }
+        }
+    }
+}

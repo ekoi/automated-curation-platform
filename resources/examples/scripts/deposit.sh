@@ -2,9 +2,12 @@
 
 # Function to display usage
 usage() {
-  echo "Usage: $0 --token=<authorization_token> --user=<user_id> --data=<json_file> --ras_name=<ras_name> --target_creds=<target_creds>"
+  echo "Usage: $0 --token=<authorization_token> --user=<user_id> --data=<json_file> --ras_name=<ras_name> --target_creds=<target_creds> [--content-type=<content_type>]"
   exit 1
 }
+
+# Default content type
+CONTENT_TYPE="application/json"
 
 # Parse named arguments
 while [[ "$#" -gt 0 ]]; do
@@ -14,6 +17,7 @@ while [[ "$#" -gt 0 ]]; do
     --data=*) DATA_FILE="${1#*=}"; shift ;;
     --ras_name=*) RAS_NAME="${1#*=}"; shift ;;
     --target_creds=*) TARGET_CREDS="${1#*=}"; shift ;;
+    --content-type=*) CONTENT_TYPE="${1#*=}"; shift ;;
     *) echo "Unknown parameter passed: $1"; usage ;;
   esac
 done
@@ -31,9 +35,9 @@ fi
 DATA=$(cat "$DATA_FILE")
 
 curl --location 'http://localhost:10124/inbox/dataset' \
+--header "Content-Type: $CONTENT_TYPE" \
 --header "assistant-config-name: $RAS_NAME" \
 --header "targets-credentials: $TARGET_CREDS" \
 --header "user-id: $USER_ID" \
---header 'Content-Type: application/json' \
 --header "Authorization: Bearer $AUTH_TOKEN" \
 --data "$DATA"

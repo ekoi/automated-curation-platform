@@ -246,27 +246,8 @@
         ]
         }
         ]
-        },
-        </xsl:if>
-        "socialscience": {
-        "displayName": "Social Science and Humanities Metadata",
-        "name": "socialscience",
-        "fields": [
-        {
-        "typeName": "collectionMode",
-        "multiple": true,
-        "typeClass": "primitive",
-	"value": [
-	<xsl:for-each select="//ns1:subject[@subjectScheme='CID collection mode']">
-                "<xsl:value-of select="."/>"
-		<xsl:if test="position() != last()">
-			<xsl:text>,</xsl:text>
-		</xsl:if>
-	</xsl:for-each>
-        ]
-	}
-        ]
         }
+        </xsl:if>
         }
         }
 

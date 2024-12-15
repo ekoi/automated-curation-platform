@@ -45,6 +45,7 @@ class InboxDatasetDataModel:
     owner_id: str
     title: str = ''
     metadata: dict
+    metadata_type: str = ''
     release_version: str
 
 

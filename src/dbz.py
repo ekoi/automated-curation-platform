@@ -31,6 +31,10 @@ class ReleaseVersion(StrEnum):
     SUBMIT = 'SUBMIT'
     SUBMITTED = 'SUBMITTED'
 
+class MetadataType(StrEnum):
+    JSON = 'application/json'
+    XML = 'application/xml'
+    TEXT = 'text/plain'
 
 class DepositStatus(StrEnum):
     INITIAL = auto()
@@ -75,6 +79,7 @@ class Dataset(SQLModel, table=True):
     submitted_date: Optional[datetime]
     app_name: str = Field(index=True)
     md: str  # https://www.sqlite.org/fasterthanfs.html
+    md_type: MetadataType = MetadataType.JSON
     release_version: ReleaseVersion = ReleaseVersion.DRAFT
     version: Optional[str]
     state: DatasetWorkState = DatasetWorkState.NOT_READY

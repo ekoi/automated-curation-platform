@@ -304,9 +304,8 @@ def handle_deposit_exceptions(
             bom.deposit_status = DepositStatus.ERROR
             tr = TargetResponse()
             tr.url = target.target_url
-            tr.status = DepositStatus.ERROR
+            # tr.status = DepositStatus.ERROR
             tr.error = f'error: {ex.with_traceback(ex.__traceback__)}'
-            tr.message = f"Error {func.__name__}. Causes: {ex.__class__.__name__} {ex}"
             bom.response = tr
             return bom
 

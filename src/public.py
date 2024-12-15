@@ -112,8 +112,12 @@ async def find_dataset(datasetId: str):
     logger(f'find_metadata_by_metadata_id - metadata_id: {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
     dataset = db_manager.find_dataset_and_targets(datasetId)
     if dataset.dataset_id:
-        dataset.md = json.loads(dataset.md)
-        return Response(content=dataset.model_dump_json(by_alias=True), media_type="application/json")
+        try:
+            dataset.md = json.loads(dataset.md)
+            return Response(content=dataset.model_dump_json(by_alias=True), media_type="application/json")
+        except json.JSONDecodeError:
+            return Response(content=dataset.md, media_type="application/xml")
+
     return {}
 
 
