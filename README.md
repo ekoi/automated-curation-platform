@@ -129,3 +129,33 @@ To run the Automated Curation Platform (ACP) using `docker-compose`, follow thes
     Open your browser and navigate to `http://localhost:10124/docs` or `http://localhost:10124/redoc`.
 
 This setup will start the ACP, RA Service, and Transformer Service, allowing you to begin using the Automated Curation Platform for your curation needs.
+
+## Demo 1: Ingest XML Metadata to Dataverse and Zenodo
+In this demo, we will showcase how the Automated Curation Platform (ACP) can ingest XML metadata to Dataverse and Zenodo repositories. The ACP automates the curation process, ensuring that the metadata is correctly formatted and deposited to the respective repositories.
+
+### Steps:
+1. **Get your Dataverse and Zenodo API_KEY**
+2. **Edit the following json, save it (e.g.: targets-creds.json)**: 
+    ```json
+    [
+      {
+        "target-repo-name":"dataverse.eosc.dansdemo.nl",
+        "credentials":{"username":"API_KEY","password":"YOUR_DATAVERSE_API_KEY"}
+      },
+      {
+        "target-repo-name":"zenodo",
+        "credentials":{"username":"API_KEY","password":"YOUR_ZENODO_API_KEY"}}]
+    ```
+3. **Run the following command, to check whether all services running**:
+    ```sh
+        check_services.sh
+    ```
+4. **Run the following command, to start the curation process**:
+    ```sh
+        start_curation.sh --acp_token=<acp_authorization_token> --user=<user_id> --data=./resources/examples/data/source_oai-cid.xml --ras_name=demo-cid-to-dv-zenodo --target_creds=targets-creds.json --content-type="application/xml"
+
+    ```
+5. **Check the status of the curation process**:
+    ```sh
+        check_curation.sh --acp_token=<acp_authorization_token> --user=<user_id> --ras_name=demo-cid-to-dv-zenodo
+    ```

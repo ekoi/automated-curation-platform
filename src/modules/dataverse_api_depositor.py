@@ -278,6 +278,7 @@ class DataverseIngester(Bridge):
                     logger(f'File {file.name} is successfully ingested', settings.LOG_LEVEL, self.app_name)
             else:
                 logger(f'Ingest LARGE FILE using script: {file.name}', settings.LOG_LEVEL, self.app_name)
+                logger("")
                 jsonData_str = json.dumps(jsonData)
                 try:
                     output = f'{settings.DATA_TMP_BASE_DIR}/{self.app_name}/{self.dataset_id}/{str(uuid.uuid4().int)}.txt'
