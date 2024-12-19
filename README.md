@@ -29,6 +29,12 @@ The curation process is dynamically adapted to each repository target as specifi
 
 Hooks allow for advanced customization and extend the functionality of ACP by enabling users to create tailored transformation logic for complex repository requirements.
 
+Hooks are ideal in scenarios where:
+- Standard Transformers cannot meet the repository's specific requirements.
+- Custom logic is needed to handle unique data formats, structures, or validations.
+- JSON-based metadata manipulation is required.
+- Alternative XSLT stylesheets are necessary for metadata transformation.
+
 By centralizing and automating these crucial components, ACP provides an efficient, scalable, and adaptable solution for deposit package generation. This design makes it significantly easier for users to manage, curate, and deliver content that meets precise repository standards, promoting streamlined workflows and enhancing the quality of digital content management.
 
 ## Integrating [OpenTelemetry](https://opentelemetry.io/docs/what-is-opentelemetry/) Protocol (OTLP) in ACP
