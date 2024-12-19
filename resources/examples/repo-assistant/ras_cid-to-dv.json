@@ -7,7 +7,7 @@
             "repo-pid": "01",
             "repo-name": "dataverse.eosc.dansdemo.nl",
             "repo-display-name": "Dataverse EOSC",
-            "bridge-module-class": "DataverseIngester",
+            "bridge-plugin-class": "DataverseIngester",
             "base-url": "https://dataverse.eosc.dansdemo.nl",
             "target-url": "https://dataverse.eosc.dansdemo.nl/api/dataverses/eosc/datasets/:import",
             "target-url-params": "pid=$PID&release=no",

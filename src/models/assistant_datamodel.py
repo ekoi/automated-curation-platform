@@ -64,7 +64,7 @@ class Target(BaseModel):
     Attributes:
     - repo_name (str): The name of the repository.
     - repo_display_name (str): The display name of the repository.
-    - bridge_module_class (str): The class name of the bridge module.
+    - bridge_plugin_class (str): The class name of the bridge plugin.
     - base_url (str): The base URL of the repository.
     - target_url (str): The target URL of the repository.
     - username (str): The username for authentication.
@@ -73,7 +73,7 @@ class Target(BaseModel):
     """
     repo_name: str = Field(..., alias='repo-name')
     repo_display_name: str = Field(..., alias='repo-display-name')
-    bridge_module_class: str = Field(..., alias='bridge-module-class')
+    bridge_plugin_name: str = Field(..., alias='bridge-plugin-name')
     base_url: Optional[str] = Field(default=None, alias='base-url')
     target_url: str = Field(..., alias='target-url')
     target_url_params: Optional[str] = Field(default=None, alias='target-url-params')

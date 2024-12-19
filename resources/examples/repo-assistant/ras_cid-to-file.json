@@ -7,7 +7,7 @@
             "repo-pid": "01",
             "repo-name": "local-filesystem",
             "repo-display-name": "Local SystemC",
-            "bridge-module-class": "FileSystem",
+            "bridge-plugin-class": "FileSystem",
             "target-url": "file:///tmp",
             "metadata": {
                 "transformed-metadata": [

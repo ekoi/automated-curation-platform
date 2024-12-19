@@ -1,5 +1,5 @@
-# Import necessary modules and packages
-# Import necessary libraries and modules
+# Import necessary plugins and packages
+# Import necessary libraries and plugins
 import hashlib
 import json
 import mimetypes
@@ -26,7 +26,7 @@ from src.commons import settings, logger, data, db_manager, get_class, assistant
 from src.dbz import TargetRepo, DataFile, Dataset, ReleaseVersion, DepositStatus, FilePermissions, \
     DatasetWorkState, DataFileWorkState, MetadataType
 from src.models.app_model import ResponseDataModel, InboxDatasetDataModel
-# Import custom modules and classes
+# Import custom plugins and classes
 from src.models.assistant_datamodel import RepoAssistantDataModel, Target
 from src.models.bridge_output_model import TargetsCredentialsModel
 
@@ -34,39 +34,39 @@ from src.models.bridge_output_model import TargetsCredentialsModel
 router = APIRouter()
 
 
-# Endpoint to register a bridge module
-@router.post("/register-bridge-module/{name}/{overwrite}")
-async def register_module(name: str, bridge_file: Request, overwrite: bool | None = False) -> {}:
+# Endpoint to register a bridge plugin
+@router.post("/register-bridge-plugin/{name}/{overwrite}")
+async def register_plugin(name: str, bridge_file: Request, overwrite: bool | None = False) -> {}:
     """
-    Endpoint to register a bridge module.
+    Endpoint to register a bridge plugin.
 
-    This endpoint registers a new bridge module by saving the provided Python file
-    to the specified modules directory. If the module already exists and overwrite
+    This endpoint registers a new bridge plugin by saving the provided Python file
+    to the specified plugins directory. If the plugin already exists and overwrite
     is not specified, an error is raised.
 
     Args:
-        name (str): The name of the bridge module to be registered.
-        bridge_file (Request): The request containing the bridge module file.
-        overwrite (bool, optional): Flag to indicate if the existing module should be overwritten. Defaults to False.
+        name (str): The name of the bridge plugin to be registered.
+        bridge_file (Request): The request containing the bridge plugin file.
+        overwrite (bool, optional): Flag to indicate if the existing plugin should be overwritten. Defaults to False.
 
     Returns:
-        dict: A dictionary containing the status and the name of the registered bridge module.
+        dict: A dictionary containing the status and the name of the registered bridge plugin.
 
     Raises:
-        HTTPException: If the module already exists and overwrite is not specified.
+        HTTPException: If the plugin already exists and overwrite is not specified.
         HTTPException: If the content type of the provided file is not 'text/x-python'.
         HTTPException: If the file type of the provided file is not 'text/x-python'.
     """
     logger(f'Registering {name}', settings.LOG_LEVEL, LOG_NAME_ACP)
-    if not overwrite and name in data["bridge-modules"]:
+    if not overwrite and name in data["bridge-plugins"]:
         raise HTTPException(status_code=400,
-                            detail=f'The {name} is already exist. Consider /register-bridge-module/{name}/true')
+                            detail=f'The {name} is already exist. Consider /register-bridge-plugin/{name}/true')
 
     if bridge_file.headers['Content-Type'] != 'text/x-python':
         raise HTTPException(status_code=400, detail="Unsupported content type")
 
     m_file = await bridge_file.body()
-    bridge_path = os.path.join(settings.MODULES_DIR, name)
+    bridge_path = os.path.join(settings.PLUGINS_DIR, name)
     with open(bridge_path, "w+") as file:
         file.write(m_file.decode())
 
@@ -74,7 +74,7 @@ async def register_module(name: str, bridge_file: Request, overwrite: bool | Non
         os.remove(bridge_path)
         raise HTTPException(status_code=400, detail='Unsupported file type')
 
-    return {"status": "OK", "bridge-module-name": name}
+    return {"status": "OK", "bridge-plugin-name": name}
 
 
 # Helper function to process inbox dataset metadata
@@ -429,14 +429,14 @@ def process_target_repos(repo_assistant, target_creds) -> [TargetRepo]:
         list[TargetRepo]: A list of TargetRepo objects representing the processed target repositories.
 
     Raises:
-        HTTPException: If a specified bridge module class is not found in the data keys.
+        HTTPException: If a specified bridge plugin class is not found in the data keys.
     """
     db_recs_target_repo = []
     tgc = {"targets-credentials": json.loads(target_creds)}
     input_target_cred_model = TargetsCredentialsModel.model_validate(tgc)
     for repo_target in repo_assistant.targets:
-        if repo_target.bridge_module_class not in data.keys():
-            raise HTTPException(status_code=404, detail=f'Module "{repo_target.bridge_module_class}" not found.',
+        if repo_target.bridge_plugin_name not in data.keys():
+            raise HTTPException(status_code=404, detail=f'Module "{repo_target.bridge_plugin_name}" not found.',
                                 headers={})
         target_repo_name = repo_target.repo_name
         logger(f'target_repo_name: {target_repo_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
@@ -694,7 +694,7 @@ def execute_bridges(datasetId, targets) -> None:
     logger("execute_bridges", settings.LOG_LEVEL, LOG_NAME_ACP)
     results = []
     for target_repo_rec in targets:
-        bridge_class = data[Target(**json.loads(target_repo_rec.config)).bridge_module_class]
+        bridge_class = data[Target(**json.loads(target_repo_rec.config)).bridge_plugin_name]
         logger(f'EXECUTING {bridge_class} for target_repo_id: {target_repo_rec.id}', settings.LOG_LEVEL, LOG_NAME_ACP)
 
         start = time.perf_counter()

@@ -7,7 +7,7 @@
             "repo-pid": "01",
             "repo-name": "maildev",
             "repo-display-name": "Maildev",
-            "bridge-module-class": "Mail",
+            "bridge-plugin-class": "Mail",
             "target-url": "mailto:e.amal.khairunnisa@gmail.com",
             "metadata": {
                 "transformed-metadata": [

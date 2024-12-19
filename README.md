@@ -3,15 +3,15 @@ At DANS, we have developed the Automated Curation Platform (ACP) — a comprehen
 
 The [ACP](https://automated-curation-platform-acp.readthedocs.io/en/latest/source/src.html) was designed to streamline and automate the entire process of deposit package creation, addressing the unique needs of diverse repositories by organizing, filtering, and selecting data accordingly. Leveraging advanced algorithms, machine learning techniques, and predefined rule sets, ACP performs complex curation tasks autonomously, greatly reducing or even eliminating the need for manual input. These automated tasks encompass data gathering, tagging, sorting, and content analysis, which collectively improve efficiency and accuracy.
 
-The [ACP](https://automated-curation-platform-acp.readthedocs.io/en/latest/source/src.html) core function is to “curate” content by identifying high-quality, relevant items, filtering out unnecessary or low-value data, and arranging information in ways that align with the platform's overall objectives. By integrating critical elements like user input, repository configurations, bridge modules, and transformers, ACP seamlessly streamlines the process of curation content to satisfy the specific requirements of each repository target, ensuring a consistent and user-friendly experience.
+The [ACP](https://automated-curation-platform-acp.readthedocs.io/en/latest/source/src.html) core function is to “curate” content by identifying high-quality, relevant items, filtering out unnecessary or low-value data, and arranging information in ways that align with the platform's overall objectives. By integrating critical elements like user input, repository configurations, bridge plugins, and transformers, ACP seamlessly streamlines the process of curation content to satisfy the specific requirements of each repository target, ensuring a consistent and user-friendly experience.
 
 ![Data Flow diagram](./resources/images/ps-flow.png)
 
-The curation process is dynamically adapted to each repository target as specified by the user. ACP automatically retrieves configuration details from the [repository assistant service](https://github.com/ekoi/repository-assistant-service), based on the provided configuration name. This configuration is essential, containing details like the repository URL, bridge module, transformers, file converter, enrichment and other services, all of which empower ACP to seamlessly accommodate varying repository standards.
+The curation process is dynamically adapted to each repository target as specified by the user. ACP automatically retrieves configuration details from the [repository assistant service](https://github.com/ekoi/repository-assistant-service), based on the provided configuration name. This configuration is essential, containing details like the repository URL, bridge plugin, transformers, file converter, enrichment and other services, all of which empower ACP to seamlessly accommodate varying repository standards.
 
 **Repository URL**: This URL serves as a direct link to the designated storage location (the repository's API endpoint), facilitating seamless data exchange and interaction.
 
-**Bridge Module**: Serving as a pivotal component, the bridge module is responsible for structuring the deposit package in the desired target format (e.g., SWORD). This module is adaptable, ensuring that curated content adheres to the specific formatting requirements of each chosen repository. The following Bridge Modules are available in ACP:
+**Bridge Plugins**: Serving as a pivotal component, the bridge plugin is responsible for structuring the deposit package in the desired target format (e.g., SWORD). This plugin is adaptable, ensuring that curated content adheres to the specific formatting requirements of each chosen repository. The following Bridge Plugins are available in ACP:
 - Zenodo
 - Dataverse
 - SWH API
@@ -20,6 +20,12 @@ The curation process is dynamically adapted to each repository target as specifi
 - Deposit to File System
 
 **Transformers**: These components play a vital role in translating metadata to fit the standards of the destination repository, guaranteeing that deposited content is both accurately packaged and fully compliant with the repository’s metadata standards. More details can be found in the [transformer service](https://github.com/ekoi/dans-transformer-service).
+
+**Hooks (Alternative to Transformers)**: Hooks offer a more flexible and programmatic way to define transformations. Using hooks, you can:
+- Implement alternative XSLT transformations using Python code.
+- Use jmespath to define JSON-based transformations dynamically.
+
+Hooks allow for advanced customization and extend the functionality of ACP by enabling users to create tailored transformation logic for complex repository requirements.
 
 By centralizing and automating these crucial components, ACP provides an efficient, scalable, and adaptable solution for deposit package generation. This design makes it significantly easier for users to manage, curate, and deliver content that meets precise repository standards, promoting streamlined workflows and enhancing the quality of digital content management.
 
@@ -70,15 +76,15 @@ The ACP comes equipped with an intuitive **UI Admin** interface, providing admin
 
 3. **Managing Repository Assistant Service**
    - Easily create, modify, and delete repository targets to accommodate evolving requirements.
-   - Fine-tune configurations for repository URLs and associated modules directly from the UI.
+   - Fine-tune configurations for repository URLs and associated plugins directly from the UI.
 
 4. **Managing Transformer Service**
    - Configure and maintain transformers that translate metadata formats to meet the standards of target repositories.
    - Add, update, or deactivate transformers based on specific repository needs.
 
-5. **Managing Bridge Module**
-   - Customize and maintain bridge modules that structure deposit packages in the required formats (e.g., SWORD).
-   - Test and validate modules to ensure proper alignment with repository requirements.
+5. **Managing Bridge Plugins**
+   - Customize and maintain bridge plugins that structure deposit packages in the required formats (e.g., SWORD).
+   - Test and validate plugins to ensure proper alignment with repository requirements.
 
 6. **Managing the Curation Process**
    - Oversee and control the entire curation workflow, from initial data ingestion to final deposit package generation.
@@ -118,7 +124,7 @@ To run the Automated Curation Platform (ACP) using `docker-compose`, follow thes
 
 1. **Clone `docker-compose` from [acp-ras-transformer](https://github.com/koharudin/acp-ras-transformer)**:
     
-2. **Run `git submodule update --remote`**
+2. **Run `git subplugin update --remote`**
 
 3. **Run `docker-compose`**:
     ```sh

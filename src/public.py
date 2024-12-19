@@ -13,16 +13,16 @@ from src.models.app_model import OwnerAssetsModel, Asset, TargetApp
 router = APIRouter()
 
 
-@router.get("/available-modules")
-async def get_modules_list():
+@router.get("/available-plugins")
+async def get_plugins_list():
     """
-    Endpoint to retrieve a list of available modules.
+    Endpoint to retrieve a list of available plugins.
 
     This endpoint returns a sorted list of keys from the `data` dictionary,
-    which represents the available modules in the system.
+    which represents the available plugins in the system.
 
     Returns:
-        list: A sorted list of available module names.
+        list: A sorted list of available plugin names.
     """
     return sorted(list(data.keys()))
 

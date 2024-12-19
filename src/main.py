@@ -9,7 +9,7 @@ Modules:
 - `protected`: Contains protected access routes.
 - `tus_files`: Contains routes for handling file uploads using the Tus protocol.
 - `commons`: Contains common settings, logger setup, and utility functions.
-- `InspectBridgeModule`: Provides a utility for inspecting bridge module classes.
+- `InspectBridgeModule`: Provides a utility for inspecting bridge plugin classes.
 - `db_manager`: Manages the creation of the database and tables.
 
 Dependencies:
@@ -46,7 +46,7 @@ from starlette import status
 from starlette.middleware.cors import CORSMiddleware
 
 from src import public, protected, tus_files
-from src.commons import settings, setup_logger, data, db_manager, logger, send_mail, inspect_bridge_module, \
+from src.commons import settings, setup_logger, data, db_manager, logger, send_mail, inspect_bridge_plugin, \
    LOG_NAME_ACP, get_version, get_name
 
 from src.tus_files import upload_files
@@ -68,7 +68,7 @@ async def lifespan(application: FastAPI):
     Lifespan event handler for the FastAPI application.
 
     This function is executed during the startup of the FastAPI application.
-    It initializes the database, iterates through saved bridge module directories,
+    It initializes the database, iterates through saved bridge plugin directories,
     and prints available bridge classes.
 
     Args:
@@ -84,7 +84,7 @@ async def lifespan(application: FastAPI):
         db_manager.create_db_and_tables()
     else:
         logger('Database already exists', settings.LOG_LEVEL, LOG_NAME_ACP)
-    iterate_saved_bridge_module_dir()
+    iterate_saved_bridge_plugin_dir()
     print(f'Available bridge classes: {sorted(list(data.keys()))}')
     print(emoji.emojize(':thumbs_up:'))
 
@@ -196,18 +196,18 @@ def info():
     return {"name": get_name(), "version": get_version()}
 
 
-def iterate_saved_bridge_module_dir():
+def iterate_saved_bridge_plugin_dir():
     """
-    Iterates through saved bridge module directories.
+    Iterates through saved bridge plugin directories.
 
-    For each Python file in the modules directory, it inspects the file for bridge classes
+    For each Python file in the plugins directory, it inspects the file for bridge classes
     and updates the data dictionary with the class name.
 
     """
-    for filename in os.listdir(settings.MODULES_DIR):
+    for filename in os.listdir(settings.PLUGINS_DIR):
         if filename.endswith(".py") and not filename.startswith('__'):
-            module_path = os.path.join(settings.MODULES_DIR, filename)
-            for cls_name in inspect_bridge_module(module_path):
+            plugins_path = os.path.join(settings.PLUGINS_DIR, filename)
+            for cls_name in inspect_bridge_plugin(plugins_path):
                 data.update(cls_name)
 
 

@@ -51,7 +51,7 @@ class Bridge(ABC):
         and `dataset_dir`.
 
         Note:
-            This method is automatically called by the dataclasses module after the object is created.
+            This method is automatically called by the dataclasses plugin after the object is created.
         """
         object.__setattr__(self, 'db_manager', db_manager)
         object.__setattr__(self, 'metadata_rec', self.db_manager.find_dataset(self.dataset_id))

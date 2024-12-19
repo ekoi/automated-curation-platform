@@ -100,7 +100,7 @@ def setup_logger():
 
     The logger settings (name, format, log file, and log level) are read from the `LOGGERS` setting in the application's configuration.
 
-    The startup message is logged using the `logger` function defined elsewhere in this module.
+    The startup message is logged using the `logger` function defined elsewhere in this plugin.
     """
     now = datetime.utcnow()
     for log in settings.LOGGERS:
@@ -129,13 +129,13 @@ def logger(msg, level, logfile):
 
 def get_class(kls) -> Any:
     """
-    This function dynamically imports a class from a module.
+    This function dynamically imports a class from a plugin.
 
-    It takes a string `kls` as input, which should be the fully qualified name of a class (i.e., including its module path).
-    The string is split into parts, and the module path is reconstructed by joining all parts except the last one.
-    The module is then imported using the `__import__` function, and the class is retrieved using `getattr`.
+    It takes a string `kls` as input, which should be the fully qualified name of a class (i.e., including its plugin path).
+    The string is split into parts, and the plugin path is reconstructed by joining all parts except the last one.
+    The plugin is then imported using the `__import__` function, and the class is retrieved using `getattr`.
 
-    If the module cannot be found, a `ModuleNotFoundError` is caught and logged, and the function returns `None`.
+    If the plugin cannot be found, a `ModuleNotFoundError` is caught and logged, and the function returns `None`.
 
     Parameters:
     kls (str): The fully qualified name of a class to import.
@@ -144,9 +144,9 @@ def get_class(kls) -> Any:
     Any: The class if it can be imported, or `None` otherwise.
     """
     parts = kls.split('.')
-    module = ".".join(parts[:-1])
+    plugin = ".".join(parts[:-1])
     try:
-        m = __import__(module)
+        m = __import__(plugin)
         for comp in parts[1:]:
             m = getattr(m, comp)
         return m
@@ -358,9 +358,9 @@ def handle_ps_exceptions(func) -> Any:
     return wrapper
 
 
-def inspect_bridge_module(py_file_path: str):
+def inspect_bridge_plugin(py_file_path: str):
     """
-    This function inspects a Python module and returns a list of classes that inherit from the 'Bridge' class.
+    This function inspects a Python plugin and returns a list of classes that inherit from the 'Bridge' class.
 
     It opens the Python file at the given path and parses it into an AST (Abstract Syntax Tree) using the `ast.parse` function.
     It then iterates over the nodes in the AST, and for each class definition, it checks if it inherits from the 'Bridge' class.
@@ -383,8 +383,8 @@ def inspect_bridge_module(py_file_path: str):
     for node in bridge_mdl.body:
         if isinstance(node, ast.ClassDef) and any(
                 isinstance(base, ast.Name) and base.id == 'Bridge' for base in node.bases):
-            module_name = py_file_path.replace(f'{os.getenv("BASE_DIR", os.getcwd())}/', '').replace('/', '.')
-            name_of_bridge_subclass = f"{module_name[:-3]}.{node.name}"
+            plugin_name = py_file_path.replace(f'{os.getenv("BASE_DIR", os.getcwd())}/', '').replace('/', '.')
+            name_of_bridge_subclass = f"{plugin_name[:-3]}.{node.name}"
             results.append({node.name: name_of_bridge_subclass})
     return results
 

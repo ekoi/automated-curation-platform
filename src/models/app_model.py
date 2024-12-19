@@ -29,7 +29,7 @@ class ResponseDataModel(BaseModel):
 class InboxDatasetDataModel:
     """
     Data model for inbox dataset.
-    The InboxDatasetDataModel class is a data model defined using Python's dataclasses module.
+    The InboxDatasetDataModel class is a data model defined using Python's dataclasses plugin.
     This class is designed to represent the metadata of an inbox dataset.
 
     Attributes:
