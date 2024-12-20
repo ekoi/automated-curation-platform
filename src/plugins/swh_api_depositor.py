@@ -36,7 +36,7 @@ class SwhApiDepositor(Bridge):
         target_response = TargetResponse()
         target_swh = jmespath.search("metadata[*].fields[?name=='repository_url'].value",
                                      json.loads(self.metadata_rec.md))
-        bridge_output_model = TargetDataModel(response=target_response)
+        tdm = TargetDataModel(response=target_response)
         headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {settings.SWH_ACCESS_TOKEN}'}
         logger(f'self.target.target_url: {self.target.target_url}', settings.LOG_LEVEL, self.app_name)
         swh_url = f'{self.target.target_url}/{target_swh[0][0]}/'
@@ -56,11 +56,13 @@ class SwhApiDepositor(Bridge):
                     swh_resp_json = check_resp.json()
                     logger(f'{swh_check_url} response: {json.dumps(swh_resp_json)}', settings.LOG_LEVEL, self.app_name)
                     if swh_resp_json.get('save_task_status') == DepositStatus.FAILED:
-                        bridge_output_model.deposit_status = DepositStatus.FAILED
+                        tdm.deposit_status = DepositStatus.FAILED
                         logger(f"save_task_status is failed.", 'error', self.app_name)
+                        target_response.content = swh_resp_json
+                        target_response.content_type = ResponseContentType.JSON
                         break
                     elif swh_resp_json.get('snapshot_swhid'):
-                        bridge_output_model.deposit_status = DepositStatus.FINISH
+                        tdm.deposit_status = DepositStatus.FINISH
                         target_response.status_code = check_resp.status_code
                         target_response.content_type = ResponseContentType.JSON
                         target_response.content = json.dumps(swh_resp_json)
@@ -78,13 +80,13 @@ class SwhApiDepositor(Bridge):
         else:
             logger(f'ERROR api_resp.status_code: {api_resp.status_code}', settings.LOG_LEVEL, self.app_name)
             target_response.status_code = api_resp.status_code
-            bridge_output_model.deposit_status = DepositStatus.ERROR
+            tdm.deposit_status = DepositStatus.ERROR
             target_response.error = json.dumps(api_resp.json())
             target_response.content_type = ResponseContentType.JSON
             target_response.status = DepositStatus.ERROR
             target_response.url = swh_url
             target_response.content = json.dumps(api_resp.json())
-            logger(f'bridge_output_model: {bridge_output_model.model_dump(by_alias=True)}', settings.LOG_LEVEL,
+            logger(f'tdm: {tdm.model_dump(by_alias=True)}', settings.LOG_LEVEL,
                    self.app_name)
 
-        return bridge_output_model
+        return tdm

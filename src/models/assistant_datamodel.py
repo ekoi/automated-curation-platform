@@ -12,15 +12,21 @@ class TransformedMetadata(BaseModel):
     Represents metadata for a transformed resource.
 
     Attributes:
-    - name (str): The name of the transformed resource.
     - transformer_url (Optional[str]): The URL of the transformer, if applicable.
-    - target_dir (str): The target directory for the transformed resource.
+    - name (str): The name of the transformed result.
+    - dir (str): The directory for the transformed result.
     - restricted (Optional[bool]): Indicates if the resource is restricted.
     """
-    name: str
     transformer_url: Optional[str] = Field(None, alias='transformer-url')
-    target_dir: Optional[str] = Field(None, alias='target-dir')
+    name: str
+    dir: Optional[str] = None
     restricted: Optional[bool] = None
+
+
+class ProcessedMetadata(BaseModel):
+    processed_function: Optional[str] = Field(None, alias='processed-function')
+    name: str
+    dir: Optional[str] = None
 
 
 class Metadata(BaseModel):
@@ -32,7 +38,8 @@ class Metadata(BaseModel):
     - transformed_metadata (List[TransformedMetadata]): A list of transformed metadata instances.
     """
     specification: Optional[List[str]] = None
-    transformed_metadata: List[TransformedMetadata] = Field(..., alias='transformed-metadata')
+    transformed_metadata: Optional[List[TransformedMetadata]] = Field(None, alias='transformed-metadata')
+    processed_metadata: Optional[List[ProcessedMetadata]] = Field(None, alias='processed-metadata')
 
 
 class Input(BaseModel):
@@ -62,15 +69,19 @@ class Target(BaseModel):
     Represents a target in the repository assistant application.
 
     Attributes:
-    - repo_name (str): The name of the repository.
-    - repo_display_name (str): The display name of the repository.
-    - bridge_plugin_class (str): The class name of the bridge plugin.
-    - base_url (str): The base URL of the repository.
-    - target_url (str): The target URL of the repository.
-    - username (str): The username for authentication.
-    - password (str): The password for authentication.
-    - metadata (Metadata): Metadata associated with the target repository.
+        repo_pid (str): A unique identifier for the repository. This field is required.
+        repo_name (str): The name of the repository. This field is required.
+        repo_display_name (str): The display name of the repository. This field is required.
+        bridge_plugin_name (str): The class name of the bridge plugin. This field is required.
+        base_url (str): The base URL of the repository. This field is required.
+        target_url (str): The target URL of the repository. This field is required.
+        username (str): The username for authentication. This field is required.
+        password (str): The password for authentication. This field is required.
+        metadata (Metadata): Metadata associated with the target repository. This field is required.
+        initial_release_version (Optional[str]): The initial release version of the repository. This field is optional.
+        input (Optional[Input]): Input data for the target. This field is optional.
     """
+    repo_pid: str = Field(..., alias='repo-pid')
     repo_name: str = Field(..., alias='repo-name')
     repo_display_name: str = Field(..., alias='repo-display-name')
     bridge_plugin_name: str = Field(..., alias='bridge-plugin-name')
@@ -89,35 +100,78 @@ class Target(BaseModel):
         if v:
             parsed_url = urllib.parse.urlparse(v)
             if field.field_name in ['target_url', 'base_url'] and parsed_url.scheme not in ['https', 'http', 'file', 'mailto', 's3']:
-                raise ValueError(f"Invalid {field.name} URL: {v}")
+                raise ValueError(f"Invalid {field.output_name} URL: {v}")
         return v
+    #
+    # @field_validator('metadata', mode='before')
+    # def validate_metadata(cls, v):
+    #     print(v)
+    #     if v and not isinstance(v, Metadata):
+    #         raise ValueError("Invalid metadata")
+    #     return v
+
+class NotificationItem(BaseModel):
+    """
+    Represents a notification item.
+
+    Attributes:
+    - type (str): The type of notification.
+    - conf (str): The configuration for the notification.
+    """
+    type: str
+    conf: str
 
 
 class FileConversion(BaseModel):
     """
-    Represents a file conversion configuration.
+    Represents a file conversion process.
 
     Attributes:
-    - origin_type (str): The type of the original file.
-    - target_type (str): The type of the target file after conversion.
-    - conversion_url (str): The URL for the file conversion.
+    - id (str): The unique identifier for the file conversion.
+    - origin_type (str): The original file type. This field is aliased to 'origin-type'.
+    - target_type (str): The target file type. This field is aliased to 'target-type'.
+    - conversion_url (str): The URL for the conversion service. This field is aliased to 'conversion-url'.
+    - notification (Optional[List[NotificationItem]]): A list of notification items associated with the conversion.
     """
+    id: str
     origin_type: str = Field(..., alias='origin-type')
     target_type: str = Field(..., alias='target-type')
     conversion_url: str = Field(..., alias='conversion-url')
+    notification: Optional[List[NotificationItem]] = None
+
+
+class Enrichment(BaseModel):
+    """
+    Represents an enrichment process.
+
+    Attributes:
+    - id (str): The unique identifier for the enrichment.
+    - name (str): The name of the enrichment.
+    - service_url (str): The URL for the enrichment service. This field is aliased to 'service-url'.
+    - result_url (str): The URL where the result of the enrichment can be found. This field is aliased to 'result-url'.
+    - notification (Optional[List[NotificationItem]]): A list of notification items associated with the enrichment.
+    - permission (Optional[str]): The permission level for the enrichment.
+    """
+    id: str
+    name: str
+    service_url: str = Field(..., alias='service-url')
+    result_url: str = Field(..., alias='result-url')
+    notification: Optional[List[NotificationItem]] = None
+    permission: Optional[str] = None
 
 
 class RepoAssistantDataModel(BaseModel):
     """
-    Represents the configuration model for the repository assistant application.
+    Represents the data model for the repository assistant.
 
     Attributes:
-    - assistant_config_name (str): The name of the assistant configuration.
-    - description (str): A description of the assistant configuration.
-    - app_name (str): The name of the application.
-    - app_config_url (str): The URL for the application configuration.
-    - targets (List[Target]): A list of target configurations.
-    - file_conversions (Optional[List[FileConversion]]): A list of file conversion configurations, if applicable.
+    - assistant_config_name (str): The name of the assistant configuration. This field is aliased to 'assistant-config-name'.
+    - description (str): A description of the repository assistant.
+    - app_name (str): The name of the application. This field is aliased to 'app-name'.
+    - app_config_url (str): The URL for the application configuration. This field is aliased to 'app-config-url'.
+    - targets (List[Target]): A list of target repositories.
+    - file_conversions (Optional[List[FileConversion]]): A list of file conversion processes. This field is aliased to 'file-conversions'.
+    - enrichments (Optional[List[Enrichment]]): A list of enrichment processes.
     """
     assistant_config_name: str = Field(..., alias='assistant-config-name')
     description: Optional[str] = None
@@ -125,5 +179,4 @@ class RepoAssistantDataModel(BaseModel):
     app_config_url: Optional[str] = Field(None, alias='app-config-url')
     targets: List[Target]
     file_conversions: Optional[List[FileConversion]] = Field(None, alias='file-conversions')
-
-
+    enrichments: Optional[List[Enrichment]] = None

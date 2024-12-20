@@ -226,7 +226,7 @@ class DataverseIngester(Bridge):
     def __create_generated_files(self) -> [DataFile]:
         generated_files = []
         for gnr_file in self.target.metadata.transformed_metadata:
-            if gnr_file.target_dir:
+            if gnr_file.dir:
                 continue
             gf_path = os.path.join(self.dataset_dir, gnr_file.name)
             content = transform(gnr_file.transformer_url,
