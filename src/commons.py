@@ -1,4 +1,6 @@
 import ast
+import importlib
+import json
 import logging
 import os
 import platform
@@ -715,3 +717,17 @@ async def fetch_dv_json(rsp, target, target_creds, url):
                 logger(f'Error occurs: status code: {response.status_code} from {url}', settings.LOG_LEVEL, LOG_NAME_ACP)
 
             break
+
+# DEZE FUNCTIES STAAN ERGENS IN JE FRAMEWORK BIJ HET INTERPRETEREN VAN BIJVOORBEELD aircore4eosc-swh_dev-dataverse_demo.json
+
+def process_metadata(step: dict,rec: str):
+    mod = importlib.import_module(f"acp.user.hooks")
+    func = getattr(mod,step["process-function"])
+    res = func(rec)
+    with open(f'{step["dir"]}/{step["name"]}', 'w') as file:
+            file.write(rec)
+
+def processed_metadata_handler(steps,rec):
+    for step in steps:
+        process_metadata(step,rec)
+

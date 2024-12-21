@@ -20,6 +20,7 @@ class TransformedMetadata(BaseModel):
     transformer_url: Optional[str] = Field(None, alias='transformer-url')
     name: str
     dir: Optional[str] = None
+    generate_file: Optional[bool] = Field(None, alias='generate-file')
     restricted: Optional[bool] = None
 
 

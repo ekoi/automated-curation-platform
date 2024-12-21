@@ -117,13 +117,9 @@ class DataverseIngester(Bridge):
 
         if dv_response.status_code == 201:
             dv_response_json = dv_response.json()
-            dv_id = dv_response_json["data"]["id"]
             logger(f"Data ingest successfully! {json.dumps(dv_response_json)}", settings.LOG_LEVEL, self.app_name)
             pid = dv_response_json["data"]["persistentId"]
-            identifier_items.append(IdentifierItem(value=pid, url=f'{self.target.base_url}/dataset.xhtml?persistentId={pid}', protocol=IdentifierProtocol('doi')))
-            logger(f"pid: {pid}", settings.LOG_LEVEL, self.app_name)
-            tdm.deposit_status = DepositStatus.FINISH
-            target_repo.identifiers = identifier_items
+            self.__set_repo_identifiers(identifier_items, pid, target_repo)
 
             if self.target.metadata and self.target.metadata.transformed_metadata:
                 try:
@@ -141,9 +137,13 @@ class DataverseIngester(Bridge):
                     tdm.deposit_status = DepositStatus.ERROR
                     tdm.deposited_metadata = str(e)
                     tdm.deposited_metadata = "The dataset and its file is unsuccessfully ingested"
+                    #Rollback: Delete the dataset
+                    dv_id = dv_response_json["data"]["id"]
                     delete_response = requests.delete(f"{self.target.base_url}/api/datasets/{dv_id}/versions/:draft", headers=dmz_dataverse_headers('API_KEY', self.target.password))
                     logger(f"delete_response.status_code: {delete_response.status_code} delete_response.text: {delete_response.text}", settings.LOG_LEVEL, self.app_name)
                     return tdm
+
+            tdm.deposit_status = DepositStatus.FINISH
 
 
         else:
@@ -151,7 +151,7 @@ class DataverseIngester(Bridge):
             logger(f'Response:  {dv_response.text}', "error", self.app_name)
             logger(f"Ingest metadata - str_dv_metadata {str_dv_metadata}", "error", self.app_name)
             tdm.deposit_status = DepositStatus.ERROR
-            tdm.deposited_metadata = dv_response.status_code
+            tdm.deposited_metadata = str_dv_metadata
             return tdm
 
 
@@ -171,6 +171,13 @@ class DataverseIngester(Bridge):
 
         tdm.response = target_repo
         return tdm
+
+    def __set_repo_identifiers(self, identifier_items, pid, target_repo):
+        identifier_items.append(
+            IdentifierItem(value=pid, url=f'{self.target.base_url}/dataset.xhtml?persistentId={pid}',
+                           protocol=IdentifierProtocol('doi')))
+        logger(f"pid: {pid}", settings.LOG_LEVEL, self.app_name)
+        target_repo.identifiers = identifier_items
 
     # When the transformation is done successfully, the transformed metadata is returned otherwise an error message is returned.
     def __transform_to_dv_json_data(self, str_updated_metadata_json, json_data_name: str, md_type: MetadataType = MetadataType.JSON) -> str:
@@ -225,22 +232,21 @@ class DataverseIngester(Bridge):
 
     def __create_generated_files(self) -> [DataFile]:
         generated_files = []
-        for gnr_file in self.target.metadata.transformed_metadata:
-            if gnr_file.dir:
-                continue
-            gf_path = os.path.join(self.dataset_dir, gnr_file.name)
-            content = transform(gnr_file.transformer_url,
-                                self.metadata_rec.md) if gnr_file.transformer_url else self.metadata_rec.md
-            with open(gf_path, "wt") as f:
-                f.write(content)
-            gf_mimetype = mimetypes.guess_type(gf_path)[0]
-            permissions = FilePermissions.PRIVATE if gnr_file.restricted else FilePermissions.PUBLIC
-            generated_files.append(DataFile(
-                ds_id=self.dataset_id, name=gnr_file.name, path=gf_path,
-                size=os.path.getsize(gf_path), mime_type=gf_mimetype,
-                checksum_value=get_checksum(gf_path, algorithm="MD5"),
-                date_added=datetime.utcnow(), permissions=permissions,
-                state=DataFileWorkState.GENERATED))
+        for tm in self.target.metadata.transformed_metadata:
+            if tm.generate_file:
+                gf_path = os.path.join(self.dataset_dir, tm.name)
+                content = transform(tm.transformer_url,
+                                    self.metadata_rec.md) if tm.transformer_url else self.metadata_rec.md
+                with open(gf_path, "wt") as f:
+                    f.write(content)
+                gf_mimetype = mimetypes.guess_type(gf_path)[0]
+                permissions = FilePermissions.PRIVATE if tm.restricted else FilePermissions.PUBLIC
+                generated_files.append(DataFile(
+                    ds_id=self.dataset_id, name=tm.name, path=gf_path,
+                    size=os.path.getsize(gf_path), mime_type=gf_mimetype,
+                    checksum_value=get_checksum(gf_path, algorithm="MD5"),
+                    date_added=datetime.utcnow(), permissions=permissions,
+                    state=DataFileWorkState.GENERATED))
         return generated_files
 
     def __ingest_files(self, pid: str, str_updated_metadata_json: str) -> int:
