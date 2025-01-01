@@ -1,5 +1,6 @@
 import ast
 import importlib
+import inspect
 import json
 import logging
 import os
@@ -31,6 +32,7 @@ from fastapi import HTTPException
 from starlette import status
 
 from src.dbz import DatabaseManager, DepositStatus
+from src.models.assistant_datamodel import ProcessedMetadata
 from src.models.bridge_output_model import TargetDataModel, TargetResponse
 
 LOG_NAME_ACP = 'acp'
@@ -720,14 +722,28 @@ async def fetch_dv_json(rsp, target, target_creds, url):
 
 # DEZE FUNCTIES STAAN ERGENS IN JE FRAMEWORK BIJ HET INTERPRETEREN VAN BIJVOORBEELD aircore4eosc-swh_dev-dataverse_demo.json
 
-def process_metadata(step: dict,rec: str):
-    mod = importlib.import_module(f"acp.user.hooks")
-    func = getattr(mod,step["process-function"])
-    res = func(rec)
-    with open(f'{step["dir"]}/{step["name"]}', 'w') as file:
-            file.write(rec)
+def process_metadata(pm: ProcessedMetadata, rec: str, pms: [ProcessedMetadata]):
+    print(rec)
+    mod = importlib.import_module(f"src.hooks.{pm.hook_name}")
+    func = getattr(mod, pm.process_function)
+    # Get the signature of the function
+    signature = inspect.signature(func)
+    num_params = len(signature.parameters)
+    if num_params == 3:
+        rec = func(rec, pm, pms)
+    elif num_params == 2:
+        rec = func(rec, pm)
+    print(rec)
+    return rec
+    # file_path = f'{pm.dir}/{pm.name}'
+    # if not os.path.exists(file_path):
+    #     os.makedirs(pm.dir)
+    # with open(file_path, 'w') as f:
+    #     json.dump(rec, f, indent=4)
 
-def processed_metadata_handler(steps,rec):
+def processed_metadata_handler(steps, rec):
     for step in steps:
-        process_metadata(step,rec)
+        rec = process_metadata(step, rec, steps)
+
+    return rec
 

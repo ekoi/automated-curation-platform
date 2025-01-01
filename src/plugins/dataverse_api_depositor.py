@@ -22,7 +22,8 @@ from src.commons import (
     transform,
     logger,
     handle_deposit_exceptions, dmz_dataverse_headers, upload_large_file, zip_with_progress,
-    compress_zip_file, zip_a_zipfile_with_progress, escape_invalid_json_characters, transform_xml,
+    compress_zip_file, zip_a_zipfile_with_progress, escape_invalid_json_characters, transform_xml, process_metadata,
+    processed_metadata_handler,
 )
 from src.dbz import ReleaseVersion, DataFile, DepositStatus, FilePermissions, DataFileWorkState, MetadataType
 from src.models.bridge_output_model import IdentifierItem, IdentifierProtocol, TargetResponse, ResponseContentType
@@ -59,6 +60,9 @@ class DataverseIngester(Bridge):
         Returns:
             TargetDataModel: The result of the ingestion process.
         """
+        target_repo = TargetResponse(url=self.target.target_url)
+        tdm = TargetDataModel(response=target_repo)
+
         if self.metadata_rec.md_type == MetadataType.JSON:
             md_json = json.loads(self.metadata_rec.md)
 
@@ -67,22 +71,31 @@ class DataverseIngester(Bridge):
                 md_json[self.target.input.from_target_name] = json.loads(input_from_prev_target.target_output)['response']['identifiers'][0]['value']
                 db_manager.update_dataset_md(self.dataset_id, json.dumps(md_json))
 
-            files_metadata = jmespath.search('"file-metadata"[*]', md_json)
+            if self.target.metadata:
+                files_metadata = jmespath.search('"file-metadata"[*]', md_json)
+                if self.target.metadata.transformed_metadata:
+                    # When transformed metadata is available, transform the metadata
+                    # Add generated files to the metadata
+                    generated_files = self.__create_generated_files()
+                    for gf in generated_files:
+                        files_metadata.append({"name": gf.name, "mimetype": gf.mime_type, "private": gf.permissions == FilePermissions.PRIVATE})
+                    if generated_files:
+                        db_manager.insert_datafiles(generated_files)
 
-            if self.target.metadata and self.target.metadata.transformed_metadata:
-                generated_files = self.__create_generated_files()
-                for gf in generated_files:
-                    files_metadata.append({"name": gf.name, "mimetype": gf.mime_type, "private": gf.permissions == FilePermissions.PRIVATE})
-                if generated_files:
-                    db_manager.insert_datafiles(generated_files)
+                    if files_metadata:
+                        md_json["file-metadata"] = files_metadata
 
-            if files_metadata:
-                md_json["file-metadata"] = files_metadata
+                if self.target.metadata.processed_metadata:
+                    # When processed metadata is available, process the metadata
+                    md_json = processed_metadata_handler(self.target.metadata.processed_metadata, md_json)
+                    # for pm in self.target.metadata.processed_metadata:
+                    #     pm.dir = f'{self.dataset_dir}/{pm.dir}' if pm.dir else self.dataset_dir
+                    #     processed_metadata_handler(pm, md_json)
 
-            for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):
-                escaped_file_name = file.name.replace('"', '\\"')
-                f_json = jmespath.search(f'[?name == `{escaped_file_name}`]', files_metadata)
-                f_json[0]["mimetype"] = file.mime_type
+                for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):
+                    escaped_file_name = file.name.replace('"', '\\"')
+                    f_json = jmespath.search(f'[?name == `{escaped_file_name}`]', files_metadata)
+                    f_json[0]["mimetype"] = file.mime_type
 
             str_updated_metadata = json.dumps(md_json)
         else:
@@ -90,11 +103,10 @@ class DataverseIngester(Bridge):
 
         logger(f"str_updated_metadata_json: {str_updated_metadata}", settings.LOG_LEVEL, self.app_name)
 
-        target_repo = TargetResponse(url=self.target.target_url)
-        tdm = TargetDataModel(response=target_repo)
+        # The metadata will be transformed if name is "dataset-metadata.json" and the transformed metadata is available.
         try:
-            str_dv_metadata = self.__transform_to_dv_json_data(str_updated_metadata,
-                                    settings.get("DV_METADATA", "dataset-metadata.json"), self.metadata_rec.md_type)
+            str_dv_metadata = self.__transform_metadata_to_dataverse_json(str_updated_metadata,
+                                                                          settings.get("DV_METADATA", "dataset-metadata.json"), self.metadata_rec.md_type)
         except ValueError as e:
             tdm.deposited_metadata = str(e)
             tdm.deposit_status = DepositStatus.ERROR
@@ -180,13 +192,15 @@ class DataverseIngester(Bridge):
         target_repo.identifiers = identifier_items
 
     # When the transformation is done successfully, the transformed metadata is returned otherwise an error message is returned.
-    def __transform_to_dv_json_data(self, str_updated_metadata_json, json_data_name: str, md_type: MetadataType = MetadataType.JSON) -> str:
+    def __transform_metadata_to_dataverse_json(self, str_updated_metadata_json, json_data_name: str, md_type: MetadataType = MetadataType.JSON) -> str:
         if self.target.metadata and self.target.metadata.transformed_metadata:
             transformer = [metadata for metadata in self.target.metadata.transformed_metadata if
                            metadata.name == json_data_name]
             if not transformer or len(transformer) != 1:
                 logger(f"Error: Transformer not found or more than one transformer", settings.LOG_LEVEL, self.app_name)
-                raise ValueError(f"Error: Transformer '{json_data_name}' not found or more than one transformer")
+                #Skip transformation
+                return str_updated_metadata_json
+                # raise ValueError(f"Error: Transformer '{json_data_name}' not found or more than one transformer")
             if md_type == MetadataType.XML:
                 str_dv_metadata = transform_xml(
                     transformer_url=transformer[0].transformer_url,
@@ -252,7 +266,7 @@ class DataverseIngester(Bridge):
     def __ingest_files(self, pid: str, str_updated_metadata_json: str) -> int:
         logger(f'Ingesting files to {pid}', settings.LOG_LEVEL, self.app_name)
 
-        str_dv_file = self.__transform_to_dv_json_data(str_updated_metadata_json,  settings.get("DV_FILES", "dataset-files.json"))
+        str_dv_file = self.__transform_metadata_to_dataverse_json(str_updated_metadata_json, settings.get("DV_FILES", "dataset-files.json"))
 
         for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):
             logger(f'Ingesting file {file.name}. Size: {file.size} Path: {file.path}', settings.LOG_LEVEL, self.app_name)

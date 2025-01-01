@@ -25,7 +25,9 @@ class TransformedMetadata(BaseModel):
 
 
 class ProcessedMetadata(BaseModel):
-    processed_function: Optional[str] = Field(None, alias='processed-function')
+    hook_name: str = Field(..., alias='hook-name')
+    process_function: str = Field(..., alias='process-function')
+    service_url: Optional[str] = Field(None, alias='service-url')
     name: str
     dir: Optional[str] = None
 
@@ -89,6 +91,7 @@ class Target(BaseModel):
     base_url: Optional[str] = Field(default=None, alias='base-url')
     target_url: str = Field(..., alias='target-url')
     target_url_params: Optional[str] = Field(default=None, alias='target-url-params')
+    payload: Optional[dict] = None
     username: Optional[str] = None
     password: Optional[str] = None
     metadata: Optional[Metadata] = None

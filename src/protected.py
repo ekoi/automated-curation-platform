@@ -11,6 +11,8 @@ import threading
 import time
 from datetime import datetime
 from typing import Callable, Awaitable, Optional
+from urllib.parse import unquote
+
 import httpx
 
 import jmespath
@@ -182,9 +184,6 @@ async def process_inbox(release_version, request):
     elif idh.metadata_type == MetadataType.JSON:
         dataset_id = jmespath.search("id", idh.metadata)
     else:
-        pass #TODO: Handle this case
-
-    if not dataset_id:
         dataset_id = uuid.uuid4().hex
 
     logger(f'Start inbox for metadata id: {dataset_id} - release version: {release_version} - assistant name: '
@@ -194,7 +193,8 @@ async def process_inbox(release_version, request):
 
     repo_config = retrieve_targets_configuration(idh.assistant_name)
     repo_assistant = RepoAssistantDataModel.model_validate_json(repo_config)
-    dataset_dir = os.path.join(settings.DATA_TMP_BASE_DIR, repo_assistant.app_name, dataset_id)
+    dataset_dir = os.path.join(settings.DATA_TMP_BASE_DIR, repo_assistant.app_name,
+                               dataset_id.replace(":", "_").replace("/", "-"))
     if not os.path.exists(dataset_dir):
         os.makedirs(dataset_dir)
 
@@ -215,7 +215,7 @@ async def process_inbox(release_version, request):
     return rdm
 
 
-@router.delete("/inbox/dataset/{dataset_id}")
+@router.delete("/inbox/dataset/{dataset_id:path}")
 def delete_dataset_metadata(request: Request, dataset_id: str):
     """
     Endpoint to delete dataset metadata.
