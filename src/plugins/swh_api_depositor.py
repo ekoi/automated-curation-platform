@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from time import sleep
 
 import jmespath
 import requests
 
 from src.bridge import Bridge
-from src.commons import logger, settings
+from src.commons import settings
 from src.dbz import DepositStatus
 from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem, \
     IdentifierProtocol
@@ -32,20 +33,20 @@ class SwhApiDepositor(Bridge):
         Returns:
         BridgeOutputDataModel: The output model containing the response from the SWH API and the status of the deposit.
         """
-        logger(f'DEPOSIT to {self.target.repo_name}', settings.LOG_LEVEL, self.app_name)
+        logging.info(f'DEPOSIT to {self.target.repo_name}')
         target_response = TargetResponse()
         target_swh = jmespath.search("metadata[*].fields[?name=='repository_url'].value",
                                      json.loads(self.metadata_rec.md))
         tdm = TargetDataModel(response=target_response)
         headers = {'Content-Type': 'application/json', 'Authorization': f'Bearer {settings.SWH_ACCESS_TOKEN}'}
-        logger(f'self.target.target_url: {self.target.target_url}', settings.LOG_LEVEL, self.app_name)
+        logging.info(f'self.target.target_url: {self.target.target_url}')
         swh_url = f'{self.target.target_url}/{target_swh[0][0]}/'
-        logger(f'swh_url: {swh_url}', settings.LOG_LEVEL, self.app_name)
+        logging.info(f'swh_url: {swh_url}')
         api_resp = requests.post(swh_url, data="{}", headers=headers)
-        logger(f'{api_resp.status_code} {api_resp.text}', settings.LOG_LEVEL, self.app_name)
+        logging.info(f'{api_resp.status_code} {api_resp.text}')
         if api_resp.status_code == 200:
             api_resp_json = api_resp.json()
-            logger(f'swh_api response json: {json.dumps(api_resp_json)}', settings.LOG_LEVEL, self.app_name)
+            logging.info(f'swh_api response json: {json.dumps(api_resp_json)}')
             goto_sleep = False
             counter = 0  # TODO: Refactor using Tenancy!
             while True and (counter < settings.SWH_API_MAX_RETRIES):
@@ -54,22 +55,22 @@ class SwhApiDepositor(Bridge):
                 step1_check_resp = requests.get(swh_check_url, headers=headers)
                 if step1_check_resp.status_code == 200:
                     swh_resp_json = step1_check_resp.json()
-                    logger(f'{swh_check_url} response: {json.dumps(swh_resp_json)}', settings.LOG_LEVEL, self.app_name)
+                    logging.info(f'{swh_check_url} response: {json.dumps(swh_resp_json)}')
                     if swh_resp_json.get('save_task_status') == DepositStatus.FAILED:
                         tdm.deposit_status = DepositStatus.FAILED
-                        logger(f"save_task_status is failed.", 'error', self.app_name)
+                        logging.error(f"save_task_status is failed.")
                         target_response.content = swh_resp_json
                         target_response.content_type = ResponseContentType.JSON
                         break
                     elif swh_resp_json.get('snapshot_swhid'):
-                        logger(f"snapshot_swhid: {swh_resp_json.get('snapshot_swhid')}.", settings.LOG_LEVEL,  self.app_name)
+                        logging.info(f"snapshot_swhid: {swh_resp_json.get('snapshot_swhid')}.")
 
                         snapshot_url = swh_resp_json.get('snapshot_url')
                         # Request the snapshot url
-                        logger(f"Get request to : {snapshot_url}.", settings.LOG_LEVEL, self.app_name)
+                        logging.info(f"Get request to : {snapshot_url}.")
                         step2_snapshot_resp = requests.get(snapshot_url, headers=headers)
                         if step2_snapshot_resp.status_code != 200:
-                            logger(f"snapshot_resp.status_code: {step2_snapshot_resp.status_code}", "error",
+                            logging.error(f"snapshot_resp.status_code: {step2_snapshot_resp.status_code}", "error",
                                    self.app_name)
                             tdm.deposit_status = DepositStatus.ERROR
                             target_response.status_code = step2_snapshot_resp.status_code
@@ -77,17 +78,16 @@ class SwhApiDepositor(Bridge):
                             target_response.content = json.dumps(step2_snapshot_resp.json())
                             break
                         snapshot_resp_json = step2_snapshot_resp.json()
-                        logger(f"snapshot_resp_json: {json.dumps(snapshot_resp_json)}", settings.LOG_LEVEL,
-                               self.app_name)
+                        logging.info(f"snapshot_resp_json: {json.dumps(snapshot_resp_json)}")
                         target_value = snapshot_resp_json['branches']['HEAD']['target']
-                        logger(f"branches-HEAD-target_value: {target_value}", settings.LOG_LEVEL, self.app_name)
+                        logging.info(f"branches-HEAD-target_value: {target_value}")
                         # Get branches - refs/heads/master
                         target_url = snapshot_resp_json['branches'][target_value]['target_url']
-                        logger(f"Request to branches-{target_value}-target_url: {target_url}", settings.LOG_LEVEL, self.app_name)
+                        logging.info(f"Request to branches-{target_value}-target_url: {target_url}")
                         step3_master_branch_resp = requests.get(target_url, headers=headers)
-                        logger(f"master_branch_resp.status_code: {step3_master_branch_resp.status_code}", settings.LOG_LEVEL, self.app_name)
+                        logging.info(f"master_branch_resp.status_code: {step3_master_branch_resp.status_code}")
                         if step3_master_branch_resp.status_code != 200:
-                            logger(f"master_branch_resp.status_code: {step3_master_branch_resp.status_code}", "error",
+                            logging.error(f"master_branch_resp.status_code: {step3_master_branch_resp.status_code}", "error",
                                    self.app_name)
                             tdm.deposit_status = DepositStatus.ERROR
                             target_response.status_code = step3_master_branch_resp.status_code
@@ -96,11 +96,11 @@ class SwhApiDepositor(Bridge):
                             break
 
                         master_branch_resp_json = step3_master_branch_resp.json()
-                        logger(f"master_branch_resp_json: {json.dumps(master_branch_resp_json)}", settings.LOG_LEVEL,
+                        logging.info(f"master_branch_resp_json: {json.dumps(master_branch_resp_json)}", settings.LOG_LEVEL,
                                self.app_name)
                         swhid_dir = f'swh:1:dir:{master_branch_resp_json['directory']}'
                         swhid_dir_url = master_branch_resp_json['directory_url']
-                        logger(f"SWHID_DIR: {swhid_dir} with URL: {swhid_dir_url}", settings.LOG_LEVEL, self.app_name)
+                        logging.info(f"SWHID_DIR: {swhid_dir} with URL: {swhid_dir_url}")
 
                         tdm.deposit_status = DepositStatus.FINISH
                         target_response.status_code = step1_check_resp.status_code
@@ -115,11 +115,11 @@ class SwhApiDepositor(Bridge):
                     else:
                         goto_sleep = True
                 if goto_sleep:
-                    logger(f'goto_sleep: {goto_sleep}', settings.LOG_LEVEL, self.app_name)
+                    logging.info(f'goto_sleep: {goto_sleep}')
                     sleep(settings.SWH_DELAY_POLLING)
 
         else:
-            logger(f'ERROR api_resp.status_code: {api_resp.status_code}', settings.LOG_LEVEL, self.app_name)
+            logging.info(f'ERROR api_resp.status_code: {api_resp.status_code}')
             target_response.status_code = api_resp.status_code
             tdm.deposit_status = DepositStatus.ERROR
             target_response.error = json.dumps(api_resp.json())
@@ -127,7 +127,7 @@ class SwhApiDepositor(Bridge):
             target_response.status = DepositStatus.ERROR
             target_response.url = swh_url
             target_response.content = json.dumps(api_resp.json())
-            logger(f'tdm: {tdm.model_dump(by_alias=True)}', settings.LOG_LEVEL,
+            logging.info(f'tdm: {tdm.model_dump(by_alias=True)}', settings.LOG_LEVEL,
                    self.app_name)
 
         return tdm

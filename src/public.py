@@ -4,11 +4,11 @@ from fastapi import APIRouter, Request, HTTPException
 from starlette.responses import Response
 
 # from src import db
-from src.commons import logger, data, db_manager, LOG_NAME_ACP, settings, fetch_dv_json
+from src.commons import data, db_manager, LOG_NAME_ACP, settings, fetch_dv_json
 from src.dbz import ReleaseVersion
 from src.models.app_model import OwnerAssetsModel, Asset, TargetApp
 
-# import logging
+import logging
 
 router = APIRouter()
 
@@ -64,7 +64,7 @@ async def progress_state(owner_id: str, req: Request):
             asset.release_version = dataset.release_version.name
             asset.version = dataset.version if dataset.version else ''
             targets_repo = db_manager.find_target_repos_by_dataset_id(str(dataset.id))
-            logger(f'dataset release version: {dataset.release_version}', settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.info(f'dataset release version: {dataset.release_version}')
             print(dataset.release_version)
             if dataset.release_version is not ReleaseVersion.DRAFT:
                 for target_repo in targets_repo:
@@ -83,7 +83,7 @@ async def progress_state(owner_id: str, req: Request):
                             url = rsp['response']['identifiers'][0]['url']
                             # Dataverse only. TODO: Think more generic solution
                             if url.find("dataset.xhtml") > 0:
-                                logger(f'fetching diff for {target.repo_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
+                                logging.info(f'fetching diff for {target.repo_name}')
                                 target.diff = await fetch_dv_json(rsp, target, target_creds, url)
                         else:
                             target.output_response = {}
@@ -109,7 +109,7 @@ async def find_dataset(datasetId: str):
                   otherwise an empty dictionary.
     """
     # logging.debug(f'find_metadata_by_metadata_id - metadata_id: {metadata_id}')
-    logger(f'find_metadata_by_metadata_id - metadata_id: {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'find_metadata_by_metadata_id - metadata_id: {datasetId}')
     dataset = db_manager.find_dataset_and_targets(datasetId)
     if dataset.dataset_id:
         try:

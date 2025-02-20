@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import urllib.parse
 import json
+import logging
 
 from src.bridge import Bridge
-from src.commons import logger, settings, create_s3_client
+from src.commons import settings, create_s3_client
 from src.models.bridge_output_model import TargetDataModel
 
 
@@ -26,7 +26,7 @@ class S3Depositor(Bridge):
         Returns:
         BridgeOutputDataModel: The output model for the S3 deposit process.
         """
-        logger(f'Depositing to S3: {self.target.repo_name}', settings.LOG_LEVEL, self.app_name)
+        logging.info(f'Depositing to S3: {self.target.repo_name}')
         metadata = json.loads(self.metadata_rec.md)
 
         s3_client = create_s3_client()

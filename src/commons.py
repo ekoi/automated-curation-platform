@@ -1,39 +1,36 @@
 import ast
 import importlib
 import inspect
-import json
 import logging
 import os
 import platform
+import re
 import shutil
 import smtplib
 import zipfile
-import re
-from tempfile import NamedTemporaryFile
-
-import boto3
-import psutil
-import time
 from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
 from logging.handlers import TimedRotatingFileHandler
+from tempfile import NamedTemporaryFile
 from typing import Any, Callable
 
+import boto3
+import psutil
+import requests
 import tomli
+from dynaconf import Dynaconf
+from fastapi import HTTPException
 from hypothesis import settings
 from jsoncomparison import Compare
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
-
-import requests
-from dynaconf import Dynaconf
-from fastapi import HTTPException
 from starlette import status
 
 from src.dbz import DatabaseManager, DepositStatus
 from src.models.assistant_datamodel import ProcessedMetadata
 from src.models.bridge_output_model import TargetDataModel, TargetResponse
+from akmi_utils import commons as a_commons
 
 LOG_NAME_ACP = 'acp'
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -42,6 +39,11 @@ os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
 settings = Dynaconf(root_path=f'{os.environ["BASE_DIR"]}/conf', settings_files=["*.toml"],
                     environments=True)
 data = {}
+
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
+
+project_details = a_commons.get_project_details(os.getenv("BASE_DIR"), ['name', 'version', 'description', 'title'])
 
 db_manager = DatabaseManager(db_dialect=settings.DB_DIALECT, db_url=settings.DB_URL, encryption_key=settings.DB_ENCRYPTION_KEY)
 
@@ -72,63 +74,53 @@ def get_version():
     """
     with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
         package_details = tomli.load(file)
-    return package_details['tool']['poetry']['version']
+    return project_details['version']
+
 
 def get_name():
-    """
-    Retrieves the name of the package from the `pyproject.toml` file.
+    return project_details['name']
 
-    This function opens the `pyproject.toml` file located in the base directory of the project,
-    reads its contents, and returns the name of the package as specified under the `[tool.poetry]` section.
-
-    Returns:
-    str: The name of the package.
-    """
-    with open(os.path.join(os.getenv("BASE_DIR"), 'pyproject.toml'), 'rb') as file:
-        package_details = tomli.load(file)
-    return package_details['tool']['poetry']['name']
-
-def setup_logger():
-    """
-    This function sets up the logger for the application.
-
-    It iterates over the list of loggers specified in the settings, and for each logger, it:
-    - Gets or creates a logger with the specified name.
-    - Creates a formatter with the specified format.
-    - Creates a file handler that writes to the specified log file in append mode, and sets its formatter.
-    - Creates a stream handler (which writes to stdout by default) and sets its formatter.
-    - Creates a timed rotating file handler that rotates the log file every 8 hours and keeps the last 10 log files, and adds it to the logger.
-    - Sets the log level of the logger.
-    - Adds the file handler and the stream handler to the logger.
-    - Logs a startup message at the debug level, which includes the current time and the Python version.
-
-    The logger settings (name, format, log file, and log level) are read from the `LOGGERS` setting in the application's configuration.
-
-    The startup message is logged using the `logger` function defined elsewhere in this plugin.
-    """
-    now = datetime.utcnow()
-    for log in settings.LOGGERS:
-        log_setup = logging.getLogger(log.get('name'))
-        formatter = logging.Formatter(log.get('log_format'))
-        file_handler = logging.FileHandler(log.get('log_file'), mode='a')
-        file_handler.setFormatter(formatter)
-        stream_handler = logging.StreamHandler()
-        stream_handler.setFormatter(formatter)
-        rotating_handler = TimedRotatingFileHandler(log.get('log_file'), when="H", interval=8, backupCount=10)
-        log_setup.addHandler(rotating_handler)
-        log_setup.setLevel(log.get('log_level'))
-        log_setup.addHandler(file_handler)
-        log_setup.addHandler(stream_handler)
-        logger(f"Start {log.get('name')} at {now} Pyton version: {platform.python_version()}",
-               'debug', log.get('name'))
+# def setup_logger():
+#     """
+#     This function sets up the logger for the application.
+#
+#     It iterates over the list of loggers specified in the settings, and for each logger, it:
+#     - Gets or creates a logger with the specified name.
+#     - Creates a formatter with the specified format.
+#     - Creates a file handler that writes to the specified log file in append mode, and sets its formatter.
+#     - Creates a stream handler (which writes to stdout by default) and sets its formatter.
+#     - Creates a timed rotating file handler that rotates the log file every 8 hours and keeps the last 10 log files, and adds it to the logger.
+#     - Sets the log level of the logger.
+#     - Adds the file handler and the stream handler to the logger.
+#     - Logs a startup message at the debug level, which includes the current time and the Python version.
+#
+#     The logger settings (name, format, log file, and log level) are read from the `LOGGERS` setting in the application's configuration.
+#
+#     The startup message is logged using the `logger` function defined elsewhere in this plugin.
+#     """
+#     now = datetime.utcnow()
+#     for log in settings.LOGGERS:
+#         log_setup = logging.getLogger(log.get('name'))
+#         formatter = logging.Formatter(log.get('log_format'))
+#         file_handler = logging.FileHandler(log.get('log_file'), mode='a')
+#         file_handler.setFormatter(formatter)
+#         stream_handler = logging.StreamHandler()
+#         stream_handler.setFormatter(formatter)
+#         rotating_handler = TimedRotatingFileHandler(log.get('log_file'), when="H", interval=8, backupCount=10)
+#         log_setup.addHandler(rotating_handler)
+#         log_setup.setLevel(log.get('log_level'))
+#         log_setup.addHandler(file_handler)
+#         log_setup.addHandler(stream_handler)
+#         logger(f"Start {log.get('name')} at {now} Pyton version: {platform.python_version()}",
+#                'debug', log.get('name'))
 
 
-def logger(msg, level, logfile):
-    log = logging.getLogger(logfile)
-    if level == 'info': log.info(msg)
-    if level == 'warning': log.warning(msg)
-    if level == 'error': log.error(msg)
-    if level == 'debug': log.debug(msg)
+# def logger(msg, level, logfile):
+#     log = logging.getLogger(logfile)
+#     if level == 'info': log.info(msg)
+#     if level == 'warning': log.warning(msg)
+#     if level == 'error': log.error(msg)
+#     if level == 'debug': log.debug(msg)
 
 
 def get_class(kls) -> Any:
@@ -156,7 +148,7 @@ def get_class(kls) -> Any:
         return m
     except ModuleNotFoundError as e:
         print(f'error: {kls}')
-        logger(f'ModuleNotFoundError: {e}', 'error', LOG_NAME_ACP)
+        logging.error(f'ModuleNotFoundError: {e}')
     return None
 
 def transform(transformer_url: str, str_tobe_transformed: str, headers: {} = None) -> str:
@@ -178,7 +170,7 @@ def transform(transformer_url: str, str_tobe_transformed: str, headers: {} = Non
     Raises:
     ValueError: If `str_tobe_transformed` is not a string or if the response status code is not 200.
     """
-    logger(f'transformer_url: {transformer_url}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'transformer_url: {transformer_url}')
     if not isinstance(str_tobe_transformed, str):
         raise ValueError(f"Error - str_tobe_transformed is not a string. It is : {type(str_tobe_transformed)}")
     if headers is None:
@@ -188,7 +180,7 @@ def transform(transformer_url: str, str_tobe_transformed: str, headers: {} = Non
     if response.status_code == 200:
         return response.json().get('result')
 
-    logger(f'transformer_response.status_code: {response.status_code}', 'error', LOG_NAME_ACP)
+    logging.error(f'transformer_response.status_code: {response.status_code}')
     raise ValueError(f"Error - Transformer response status code: {response.status_code}")
 
 def transform_json(transformer_url: str, str_tobe_transformed: str) -> str:
@@ -301,8 +293,7 @@ def handle_deposit_exceptions(
             rv = func(*args, **kwargs)
             return rv
         except Exception as ex:
-            logger(f'Errors in {func.__name__}: {ex} - {ex.with_traceback(ex.__traceback__)}',
-                   settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.error(f'Errors in {func.__name__}: {ex} - {ex.with_traceback(ex.__traceback__)}')
             target = args[0].target
             bom = TargetDataModel()
             bom.deposit_status = DepositStatus.ERROR
@@ -336,27 +327,25 @@ def handle_ps_exceptions(func) -> Any:
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
-            logger(f'Enter to handle_ps_exceptions:: {func.__name__}', settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.debug(f'Enter to handle_ps_exceptions:: {func.__name__}')
             rv = func(*args, **kwargs)
             return rv
         except HTTPException as ex:
             # send_mail(f'handle_ps_exceptions: Errors in {func.__name__}', f'status code: {ex.status_code}.'
             #                                                               f'\nDetails: {ex.detail}.')
-            logger(
+            logging.error(
                 f'handle_ps_exceptions: Errors in {func.__name__}. status code: {ex.status_code}. Details: {ex.detail}. '
-                f'args: {args}', settings.LOG_LEVEL, LOG_NAME_ACP)
+                f'args: {args}')
             raise ex
         except Exception as ex:
             send_mail(f'handle_ps_exceptions: Errors in {func.__name__}', f'{ex} - '
                                                                           f'{ex.with_traceback(ex.__traceback__)}.')
-            logger(f'handle_ps_exceptions: Errors in {func.__name__}: {ex} - {ex.with_traceback(ex.__traceback__)}',
-                   settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.error(f'handle_ps_exceptions: Errors in {func.__name__}: {ex} - {ex.with_traceback(ex.__traceback__)}')
             raise ex
         except BaseException as ex:
             send_mail(f'handle_ps_exceptions: Errors in {func.__name__}', f'{ex} - '
                                                                           f'{ex.with_traceback(ex.__traceback__)}.')
-            logger(f'handle_ps_exceptions: Errors in {func.__name__}:  {ex} - {ex.with_traceback(ex.__traceback__)}',
-                   settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.error(f'handle_ps_exceptions: Errors in {func.__name__}:  {ex} - {ex.with_traceback(ex.__traceback__)}')
             raise ex
 
     return wrapper
@@ -433,14 +422,14 @@ def send_mail(subject: str, text: str, recipients: list[str] = None):
                 for recipient_email in recipients:
                     message['To'] = recipient_email
                     server.sendmail(sender_email, recipient_email, message.as_string())
-                    logger(f"Email sent successfully to {recipient_email}", "debug", LOG_NAME_ACP)
-            logger(f"Email sent successfully to {recipient_email}", "debug", LOG_NAME_ACP)
+                    logging.debug(f"Email sent successfully to {recipient_email}")
+            logging.debug(f"Email sent successfully to {recipient_email}")
         except Exception as e:
             print(f"Error: {e}")
-            logger(f"Unsuccessful sent email to {recipient_email}", "error", LOG_NAME_ACP)
+            logging.error(f"Unsuccessful sent email to {recipient_email}")
             raise ValueError(f"Error: {e}")
     else:
-        logger("Sending email is disabled.", settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info("Sending email is disabled.")
 
 
 def dmz_dataverse_headers(username, password) -> dict:
@@ -487,7 +476,7 @@ def upload_large_file(url, file_path, json_data, api_key, file_name=None):
             if progress >= last_reported_progress + 5 or progress > 95:
                 memory_usage_msg = f", Memory usage: {psutil.Process().memory_info().rss / (1024 * 1024):.2f} MB" \
                     if progress >= last_reported_progress + 5 else ""
-                logger(f"Upload Progress: {progress:.2f}%{memory_usage_msg}", settings.LOG_LEVEL, LOG_NAME_ACP)
+                logging.info(f"Upload Progress: {progress:.2f}%{memory_usage_msg}")
                 last_reported_progress = progress if progress >= last_reported_progress + 5 else last_reported_progress
 
         return callback
@@ -499,14 +488,14 @@ def upload_large_file(url, file_path, json_data, api_key, file_name=None):
         )
         callback = create_callback(encoder)
         monitor = MultipartEncoderMonitor(encoder, callback)
-        logger(f'upload_large_file  api_key: {api_key}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'upload_large_file  api_key: {api_key}')
         response = requests.post(url, data=monitor, headers={"X-Dataverse-key": api_key,
                                                              'X-Authorization': settings.dmz_x_authorization_value,
                                                              'Content-Type': monitor.content_type})
 
-        logger(f'upload_large_file response: {response.status_code}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'upload_large_file response: {response.status_code}')
         if response.status_code == status.HTTP_502_BAD_GATEWAY:
-            logger(f'ERROR 502 upload_large_file response: {response.text}', 'error', LOG_NAME_ACP)
+            logging.error(f'ERROR 502 upload_large_file response: {response.text}')
 
     return response
 
@@ -554,13 +543,13 @@ def zip_with_progress(file_path, zip_path):
                 processed_size += len(chunk)
                 progress = processed_size / file_size * 100
                 if progress - last_printed_progress >= 10:
-                    logger(f"Zipping Progress of {arcname}: {progress:.0f}%", settings.LOG_LEVEL, LOG_NAME_ACP)
+                    logging.info(f"Zipping Progress of {arcname}: {progress:.0f}%")
                     last_printed_progress += 10
 
                 # Remove the temporary file
                 os.remove(temp_chunk_path)
 
-    logger(f"Zipping completed.", settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f"Zipping completed.")
 
 
 def delete_symlink_and_target(link_name):
@@ -584,7 +573,7 @@ def delete_symlink_and_target(link_name):
         else:
             os.remove(target)
         os.remove(link_name)
-        logger(f'{link_name} and its target {target} DELETED successfully.', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'{link_name} and its target {target} DELETED successfully.')
 
 def compress_zip_file(original_zip_path):
     """
@@ -656,7 +645,7 @@ def zip_a_zipfile_with_progress(original_zip_path, new_zip_path):
         progress = 100  # In a real-world scenario, you'd calculate this based on bytes written vs total size
 
         # Print the progress
-        logger(f"Zipping Progress of {arcname} : {progress}%", settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f"Zipping Progress of {arcname} : {progress}%")
 
 def escape_invalid_json_characters(json_string: str) -> str:
     # Replace invalid control characters with their escaped equivalents
@@ -713,10 +702,10 @@ async def fetch_dv_json(rsp, target, target_creds, url):
                 if deposited_metadata:
                     return Compare().check(deposited_metadata, response.json())
                 else:
-                    logger("No deposited metadata found to compare.", settings.LOG_LEVEL, LOG_NAME_ACP)
+                    logging.info("No deposited metadata found to compare.")
                     return {}
             else:
-                logger(f'Error occurs: status code: {response.status_code} from {url}', settings.LOG_LEVEL, LOG_NAME_ACP)
+                logging.error(f'Error occurs: status code: {response.status_code} from {url}')
 
             break
 

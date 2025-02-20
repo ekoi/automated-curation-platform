@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 from typing import List
 
@@ -9,7 +10,7 @@ from pydantic import BaseModel
 from starlette import status
 
 from src.bridge import Bridge
-from src.commons import transform, logger, handle_deposit_exceptions, db_manager, settings
+from src.commons import transform, handle_deposit_exceptions, db_manager, settings
 from src.dbz import DepositStatus
 from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem
 
@@ -41,13 +42,12 @@ class ZenodoApiDepositor(Bridge):
                                                 self.metadata_rec.md)
 
         url = f'{self.target.target_url}/{zenodo_id}?{self.target.username}={self.target.password}'
-        logger(f"Send to {url}", settings.LOG_LEVEL, self.app_name)
+        logging.info(f"Send to {url}")
         zen_resp = requests.put(url, data=str_zenodo_dataset_metadata, headers={"Content-Type": "application/json"})
-        logger(f'Zenodo response status code: {zen_resp.status_code}. Zenodo response: {zen_resp.text}',
-               settings.LOG_LEVEL, self.app_name)
+        logging.info(f'Zenodo response status code: {zen_resp.status_code}. Zenodo response: {zen_resp.text}')
         bridge_output_model = TargetDataModel()
         if zen_resp.status_code != status.HTTP_200_OK:
-            logger(f'Error occurs: status code: {zen_resp.status_code}', 'error', self.app_name)
+            logging.error(f'Error occurs: status code: {zen_resp.status_code}')
             bridge_output_model.deposited_metadata = "Error occurs: status code: " + str(zen_resp.status_code)
             bridge_output_model.response = zen_resp.text
             bridge_output_model = TargetDataModel(deposited_metadata=zen_resp.text, response=zen_resp)
@@ -65,7 +65,7 @@ class ZenodoApiDepositor(Bridge):
         target_resp.identifiers = [IdentifierItem(value=zm.metadata.prereserve_doi.doi, url=zm.links.html)]
         target_resp.content_type = ResponseContentType.JSON
         bridge_output_model.response = target_resp
-        logger(f"Successfully deposited to Zenodo. Zenodo response: {zen_resp.text}", settings.LOG_LEVEL, self.app_name)
+        logging.info(f"Successfully deposited to Zenodo. Zenodo response: {zen_resp.text}")
         return bridge_output_model
 
     @handle_deposit_exceptions
@@ -78,10 +78,10 @@ class ZenodoApiDepositor(Bridge):
         Returns:
         dict | None: The response from the Zenodo API if the dataset is created successfully, otherwise None.
         """
-        logger('Create an initial zenodo dataset', settings.LOG_LEVEL, self.app_name)
+        logging.info('Create an initial zenodo dataset')
         response = requests.post(f"{self.target.target_url}?{self.target.username}={self.target.password}",
                                  data="{}", headers={"Content-Type": "application/json"})
-        logger(f"Response status code: {response.status_code}", settings.LOG_LEVEL, self.app_name)
+        logging.info(f"Response status code: {response.status_code}")
         return response.json() if response.status_code == 201 else None
 
     def __ingest_files(self, bucket_url: str) -> dict:
@@ -96,14 +96,14 @@ class ZenodoApiDepositor(Bridge):
         Returns:
         dict: A dictionary containing the status of the file ingestion process.
         """
-        logger(f'Ingesting files to {bucket_url}', "debug", self.app_name)
+        logging.info(f'Ingesting files to {bucket_url}')
         params = {'access_token': self.target.password, 'access_right': 'restricted'}
         for file in db_manager.find_non_generated_files(dataset_id=self.dataset_id):
             file_path = f"{file.path}"
-            logger(f'Ingesting file {file_path}', "debug", self.app_name)
+            logging.info(f'Ingesting file {file_path}')
             with open(file_path, "rb") as fp:
                 response = requests.put(f"{bucket_url}/{file.name}", data=fp, params=params)
-            logger(f"Response status code: {response.status_code} and message: {response.text}", settings.LOG_LEVEL, self.app_name)
+            logging.info(f"Response status code: {response.status_code} and message: {response.text}")
         return {"status": status.HTTP_200_OK}
 
 

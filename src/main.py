@@ -20,46 +20,25 @@ Dependencies:
 - `emoji`: Library for adding emoji support to Python applications.
 
 """
-import importlib
+import logging
 # import importlib.metadata
-import multiprocessing
 import os
 from contextlib import asynccontextmanager
-from datetime import datetime, timezone
 from typing import Annotated
 
 import emoji
 import uvicorn
+from akmi_utils import commons as a_commons
 from fastapi import FastAPI, Request, HTTPException, Depends
-from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorizationCredentials
-from fastapi_events.middleware import EventHandlerASGIMiddleware
-from gunicorn.app.wsgiapp import WSGIApplication
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from keycloak import KeycloakOpenID, KeycloakAuthenticationError
-
-import multiprocessing
-import platform
-from datetime import datetime, timezone
-
-
-
 from starlette import status
 from starlette.middleware.cors import CORSMiddleware
 
-from src import public, protected, tus_files
-from src.commons import settings, setup_logger, data, db_manager, logger, send_mail, inspect_bridge_plugin, \
-   LOG_NAME_ACP, get_version, get_name
-
+from src import public, protected
+from src.commons import settings, data, db_manager, inspect_bridge_plugin, \
+    get_version, get_name, project_details
 from src.tus_files import upload_files
-
-from fastapi_events.handlers.local import local_handler
-from fastapi_events.typing import Event
-
-from opentelemetry import trace
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
-from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 
 
 @asynccontextmanager
@@ -80,10 +59,10 @@ async def lifespan(application: FastAPI):
     """
     print('start up')
     if not os.path.exists(settings.DB_URL):
-        logger('Creating database', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info('Creating database')
         db_manager.create_db_and_tables()
     else:
-        logger('Database already exists', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info('Database already exists')
     iterate_saved_bridge_plugin_dir()
     print(f'Available bridge classes: {sorted(list(data.keys()))}')
     print(emoji.emojize(':thumbs_up:'))
@@ -95,7 +74,9 @@ api_keys = [settings.DANS_PACKAGING_SERVICE_API_KEY]
 
 security = HTTPBearer()
 
-PORT=10124
+APP_NAME = os.environ.get("APP_NAME", project_details['title'])
+EXPOSE_PORT = os.environ.get("EXPOSE_PORT", 10124)
+OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://localhost:4317")
 
 def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredentials, Depends(security)]):
     """
@@ -125,11 +106,6 @@ def auth_header(request: Request, auth_cred: Annotated[HTTPAuthorizationCredenti
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Forbidden")
 
 def pre_startup_routine(app: FastAPI) -> None:
-    setup_logger()
-    logger(f'MELT_ENABLE = {settings.get("MELT_ENABLE")}', settings.LOG_LEVEL, LOG_NAME_ACP)
-    # add middlewares
-    if settings.get("MELT_ENABLE", False):
-        enable_otel(app)
 
     # Enable CORS
     app.add_middleware(
@@ -144,44 +120,32 @@ def pre_startup_routine(app: FastAPI) -> None:
 
     )
 
-    app.add_middleware(EventHandlerASGIMiddleware,
-                       handlers=[local_handler])  # registering handler(s)
-
-    # register routers
-    app.include_router(public.router, tags=["Public"], prefix="")
-    app.include_router(protected.router, tags=["Protected"], prefix="", dependencies=[Depends(auth_header)])
-
-    app.include_router(upload_files, prefix="/files", include_in_schema=True, dependencies=[Depends(auth_header)])
-    # app.include_router(tus_files.router, prefix="", include_in_schema=False)
-
-
-def enable_otel(app):
-    melt_agent_host_name = settings.get("MELT_AGENT_HOST_NAME", "localhost")
-    # Set up the tracer provider
-    trace.set_tracer_provider(
-        TracerProvider(resource=Resource.create({SERVICE_NAME: "Automated Curation Platform"}))
-    )
-    tracer_provider = trace.get_tracer_provider()
-    # Configure Jaeger exporter
-    jaeger_exporter = JaegerExporter(
-        agent_host_name=melt_agent_host_name,
-        agent_port=6831,
-        udp_split_oversized_batches=True,
-    )
-    # Add the Jaeger exporter to the tracer provider
-    tracer_provider.add_span_processor(BatchSpanProcessor(jaeger_exporter))
-    FastAPIInstrumentor.instrument_app(app)
-
 
 # create FastAPI app instance
 app = FastAPI(
     title=settings.FASTAPI_TITLE,
     description=settings.FASTAPI_DESCRIPTION,
-    version= get_version(),
+    version= project_details['version'],
     lifespan=lifespan
 )
 
 pre_startup_routine(app)
+LOG_FILE = settings.LOG_FILE
+log_config = uvicorn.config.LOGGING_CONFIG
+
+if settings.otlp_enable is False:
+    logging.basicConfig(filename=settings.LOG_FILE, level=settings.LOG_LEVEL,
+                        format=settings.LOG_FORMAT)
+else:
+    a_commons.set_otlp(app, APP_NAME, OTLP_GRPC_ENDPOINT, LOG_FILE, log_config)
+
+
+# register routers
+    app.include_router(public.router, tags=["Public"], prefix="")
+    app.include_router(protected.router, tags=["Protected"], prefix="", dependencies=[Depends(auth_header)])
+
+    app.include_router(upload_files, prefix="/files", include_in_schema=True, dependencies=[Depends(auth_header)])
+    # app.include_router(tus_files.router, prefix="", include_in_schema=False)
 
 
 @app.get('/')
@@ -211,21 +175,8 @@ def iterate_saved_bridge_plugin_dir():
                 data.update(cls_name)
 
 
-def run_server():
-    """Configures and runs the server based on the environment settings."""
-    if settings.get("MULTIPLE_WORKERS_ENABLE", False):
-        uvicorn.run("src.main:app", host="0.0.0.0", port=PORT, reload=False,
-                    workers=(multiprocessing.cpu_count() * 2) + 1,
-                    # worker_class="uvicorn.workers.UvicornWorker",
-                    timeout_keep_alive= 300,
-                    # preload=True
-                    )
-    else:
-        uvicorn.run("src.main:app", host="0.0.0.0", port=PORT, reload=False, workers=1)
 
 if __name__ == "__main__":
-    logger('START Automated Curation Platform', settings.LOG_LEVEL, LOG_NAME_ACP)
-    if settings.get("SENDMAIL_ENABLE"):
-        send_mail('Starting the automated curation platform',
-                  f'Started at {datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S.%f")}')
-    run_server()
+    logging.info('START Automated Curation Platform')
+
+    uvicorn.run(app, host="0.0.0.0", port=EXPOSE_PORT, log_config=log_config)

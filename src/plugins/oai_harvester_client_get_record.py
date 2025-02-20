@@ -1,12 +1,14 @@
 from __future__ import annotations
 
 import json
+import logging
 from datetime import datetime
 
+import requests
 from sickle import Sickle
 
 from src.bridge import Bridge
-from src.commons import logger, db_manager, transform, transform_xml, settings
+from src.commons import db_manager, transform_xml, settings
 from src.dbz import DepositStatus
 from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem
 
@@ -29,7 +31,7 @@ class OaiHarvesterClientGetRecord(Bridge):
         Returns:
         BridgeOutputDataModel: The output model containing the response from the OAI-PMH repository and the status of the harvesting process.
         """
-        logger(f'Harvesting of {self.target.repo_name}', settings.LOG_LEVEL, self.app_name)
+        logging.info(f'Harvesting of {self.target.repo_name}')
         oai_metadata = json.loads(self.metadata_rec.md)
 
         sickle = Sickle(self.target.target_url)
@@ -63,7 +65,7 @@ class OaiHarvesterClientGetRecord(Bridge):
 
         str: The version of the OAI-PMH harvester client.
         """
-        return {"workflow_orchestrator": null, "created_on": "26-11-2024 12:05:19", "DANS-transformer-service": {"name": "DANS-transformer-service", "version": "0.5.9", "docker-image": "ekoindarto/dans-transformer-service:0.5.9", "endpoint": "https://transformer.labs.dansdemo.nl/transform-xml-to-json/true"}, "dataverse-importer": {"name": "dataverse-importer", "version": null, "docker-image": "fjodorvr/dataverse-importer:0.1.1", "endpoint": "https://dataverse-importer.labs.dansdemo.nl", "github-release": "https://github.com/odissei-data/dataverse-importer/releases/tag/v0.1.0-alpha"}}
+        return {"workflow_orchestrator": None, "created_on": "26-11-2024 12:05:19", "DANS-transformer-service": {"name": "DANS-transformer-service", "version": "0.5.9", "docker-image": "ekoindarto/dans-transformer-service:0.5.9", "endpoint": "https://transformer.labs.dansdemo.nl/transform-xml-to-json/true"}, "dataverse-importer": {"name": "dataverse-importer", "version": None, "docker-image": "fjodorvr/dataverse-importer:0.1.1", "endpoint": "https://dataverse-importer.labs.dansdemo.nl", "github-release": "https://github.com/odissei-data/dataverse-importer/releases/tag/v0.1.0-alpha"}}
 
     def store_workflow_version(version_dict):
         """ Stores the workflow version dictionary.

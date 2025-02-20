@@ -1,11 +1,12 @@
 from __future__ import annotations
 
+import json
+import logging
 import os
 import urllib.parse
-import json
 
 from src.bridge import Bridge
-from src.commons import logger, settings
+from src.commons import settings
 from src.dbz import DepositStatus
 from src.models.bridge_output_model import TargetDataModel
 
@@ -28,7 +29,7 @@ class FileSystem(Bridge):
         Returns:
         BridgeOutputDataModel: The output model for the filesystem deposit process.
         """
-        logger(f'Depositing to File: {self.target.repo_name}', settings.LOG_LEVEL, self.app_name)
+        logging.info(f'Depositing to File: {self.target.repo_name}')
         metadata = json.loads(self.metadata_rec.md)
 
         parsed_url = urllib.parse.urlparse(self.target.target_url)

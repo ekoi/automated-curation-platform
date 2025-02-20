@@ -1,40 +1,41 @@
-FROM python:3.11.3-slim-bullseye
+FROM python:3.12.8-bookworm
+LABEL authors="Eko Indarto"
 
-ARG VERSION=0.5.1
-
-RUN  apt-get update -y && \
-     apt-get upgrade -y && \
-     apt-get dist-upgrade -y && \
-     apt-get install -y git && \
-     apt-get install -y curl
-#     useradd -ms /bin/bash eee
-
-RUN useradd -ms /bin/bash dans
-
-RUN apt-get update
-RUN apt-get install -y git
-
-USER dans
-WORKDIR /home/dans
-ENV PYTHONPATH=/home/dans/acp/src
-ENV BASE_DIR=/home/dans/acp
-
-COPY ./dist/*.* .
+# Combine apt-get commands to reduce layers
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get dist-upgrade -y && \
+    apt-get install -y --no-install-recommends git curl && \
+    apt-get clean && \
+    rm -rf /var/lib/apt/lists/*
 
 
-RUN mkdir -p ${BASE_DIR} && \
-    mkdir -p ${BASE_DIR}/data/db  && \
-    mkdir -p ${BASE_DIR}/data/tmp/tus-files  && \
-    pip install --no-cache-dir *.whl && rm -rf *.whl && \
-    tar xf automated_curation_platform-${VERSION}.tar.gz -C ${BASE_DIR} --strip-components 1 && \
-    chmod +x ${BASE_DIR}/resources/utils/ingest.sh
+# Install Poetry using the official installation script
+RUN curl -sSL https://install.python-poetry.org | python3 -
 
-#RUN mkdir -p ${BASE_DIR} && mkdir -p ${BASE_DIR}/data/tmp/bags ${BASE_DIR}/data/tmp/zips  && \
-#    pip install --no-cache-dir *.whl && rm -rf *.whl && \
-#    tar xf packaging_service-${VERSION}.tar.gz -C ${BASE_DIR} --strip-components 1 && \
-#    rm ${BASE_DIR}/conf/*
+# Add Poetry to the PATH
+ENV PATH="/root/.local/bin:$PATH"
+
+RUN useradd -ms /bin/bash akmi
+
+ENV PYTHONPATH=/home/akmi/acp/src
+ENV BASE_DIR=/home/akmi/acp
 
 WORKDIR ${BASE_DIR}
 
+COPY pyproject.toml .
+COPY README.md .
+COPY src ./src
+COPY resources ./resources
+
+
+RUN  poetry install
+RUN  poetry build
+RUN  pip install --no-cache-dir dist/*.whl && rm -rf dist/*.whl && chmod +x ${BASE_DIR}/resources/utils/ingest.sh
+
+RUN chown -R akmi:akmi ${BASE_DIR}
+
+
+USER akmi
 CMD ["python", "src/main.py"]
 #CMD ["tail", "-f", "/dev/null"]

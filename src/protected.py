@@ -2,29 +2,26 @@
 # Import necessary libraries and plugins
 import hashlib
 import json
+import logging
 import mimetypes
 import os
 import shutil
-import uuid
-from pathlib import Path
 import threading
 import time
+import uuid
 from datetime import datetime
+from pathlib import Path
 from typing import Callable, Awaitable, Optional
-from urllib.parse import unquote
 
 import httpx
-
 import jmespath
 import requests
-from aiohttp.web_fileresponse import content_type
-from fastapi import APIRouter, Request, UploadFile, Form, File, HTTPException
+from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.responses import FileResponse
-from werkzeug.http import HTTP_STATUS_CODES
 
-from src.commons import settings, logger, data, db_manager, get_class, assistant_repo_headers, handle_ps_exceptions, \
-    send_mail,  LOG_NAME_ACP, delete_symlink_and_target
+from src.commons import settings, data, db_manager, get_class, assistant_repo_headers, handle_ps_exceptions, \
+    send_mail, LOG_NAME_ACP, delete_symlink_and_target
 from src.dbz import TargetRepo, DataFile, Dataset, ReleaseVersion, DepositStatus, FilePermissions, \
     DatasetWorkState, DataFileWorkState, MetadataType
 from src.models.app_model import ResponseDataModel, InboxDatasetDataModel
@@ -59,7 +56,7 @@ async def register_plugin(name: str, bridge_file: Request, overwrite: bool | Non
         HTTPException: If the content type of the provided file is not 'text/x-python'.
         HTTPException: If the file type of the provided file is not 'text/x-python'.
     """
-    logger(f'Registering {name}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.error(f'Registering {name}')
     if not overwrite and name in data["bridge-plugins"]:
         raise HTTPException(status_code=400,
                             detail=f'The {name} is already exist. Consider /register-bridge-plugin/{name}/true')
@@ -131,7 +128,7 @@ async def process_inbox_dataset_submit(request: Request) -> {}:  # ReleaseVersio
     Raises:
         HTTPException: If there is an error during the processing of the dataset metadata.
     """
-    logger(f'Process inbox dataset metadata', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Process inbox dataset metadata')
     rdm = await process_inbox(ReleaseVersion.SUBMIT, request)
     return rdm.model_dump(by_alias=True)
 
@@ -152,8 +149,7 @@ async def process_inbox_dataset_metadata(request: Request, release_version: Opti
     Raises:
         HTTPException: If there is an error during the processing of the dataset metadata.
     """
-    logger(f'Process inbox dataset metadata for release version: {release_version}', settings.LOG_LEVEL,
-           LOG_NAME_ACP)
+    logging.info(f'Process inbox dataset metadata for release version: {release_version}')
     rdm = await process_inbox(release_version, request)
     return rdm.model_dump(by_alias=True)
 
@@ -186,8 +182,8 @@ async def process_inbox(release_version, request):
     else:
         dataset_id = uuid.uuid4().hex
 
-    logger(f'Start inbox for metadata id: {dataset_id} - release version: {release_version} - assistant name: '
-           f'{idh.assistant_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Start inbox for metadata id: {dataset_id} - release version: {release_version} - assistant name: '
+           f'{idh.assistant_name}')
     if db_manager.is_dataset_submitted(dataset_id):
         raise HTTPException(status_code=400, detail='Dataset is already submitted.')
 
@@ -202,13 +198,11 @@ async def process_inbox(release_version, request):
     db_record_metadata, registered_files = process_metadata_record(dataset_id, idh, repo_assistant, dataset_dir)
     process_db_records(dataset_id, db_record_metadata, db_recs_target_repo, registered_files)
     if db_manager.is_dataset_ready(dataset_id) and db_manager.are_files_uploaded(dataset_id):
-        logger(f'SUBMIT DATASET with version {release_version.name} is_dataset_ready {dataset_id}', settings.LOG_LEVEL,
-               LOG_NAME_ACP)
+        logging.info(f'SUBMIT DATASET with version {release_version.name} is_dataset_ready {dataset_id}')
         bridge_job(dataset_id, f"/inbox/dataset/{idh.release_version}")
     else:
-        logger(f'NOT READY to submit dataset with version {release_version.name} dataset_id: {dataset_id} '
-               f'\nNumber still registered: {len(db_manager.find_registered_files(dataset_id))}', settings.LOG_LEVEL,
-               LOG_NAME_ACP)
+        logging.info(f'NOT READY to submit dataset with version {release_version.name} dataset_id: {dataset_id} '
+               f'\nNumber still registered: {len(db_manager.find_registered_files(dataset_id))}')
     rdm = ResponseDataModel(status="OK")
     rdm.dataset_id = dataset_id
     rdm.start_process = db_manager.is_dataset_ready(dataset_id)
@@ -235,7 +229,7 @@ def delete_dataset_metadata(request: Request, dataset_id: str):
         HTTPException: If the dataset is not found for the given user ID.
         HTTPException: If the dataset cannot be deleted based on its deposit status.
     """
-    logger(f'Delete dataset: {dataset_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Delete dataset: {dataset_id}')
     user_id = request.headers.get('user-id')
     if not user_id:
         raise HTTPException(status_code=401, detail='No user id provided')
@@ -243,15 +237,14 @@ def delete_dataset_metadata(request: Request, dataset_id: str):
         raise HTTPException(status_code=404, detail='No Dataset found')
     target_repos = db_manager.find_target_repos_by_dataset_id(dataset_id)
     if not target_repos:
-        logger(f'Delete dataset: {dataset_id}, NOT target_repos', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Delete dataset: {dataset_id}, NOT target_repos')
         return delete_dataset_and_its_folder(dataset_id)
     if target_repos:
         can_be_deleted = False
         for target_repo in target_repos:
             if target_repo.deposit_status not in (DepositStatus.ACCEPTED, DepositStatus.DEPOSITED, DepositStatus.FINISH):
                 can_be_deleted = True
-                logger(f'Delete of {dataset_id} is allowed. Deposit status: {target_repo.deposit_status}', settings.LOG_LEVEL,
-                       LOG_NAME_ACP)
+                logging.info(f'Delete of {dataset_id} is allowed. Deposit status: {target_repo.deposit_status}')
                 break
         if can_be_deleted:
             return delete_dataset_and_its_folder(dataset_id)
@@ -275,17 +268,17 @@ def delete_dataset_and_its_folder(dataset_id):
     """
     dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, db_manager.find_app_name(dataset_id),
                                   dataset_id)
-    logger(f'Delete dataset folder: {dataset_folder}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Delete dataset folder: {dataset_folder}')
     if os.path.exists(dataset_folder):
         delete_symlink_and_target(dataset_folder)
     else:
-        logger(f'Dataset folder: {dataset_folder} not found', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Dataset folder: {dataset_folder} not found')
     db_manager.delete_by_dataset_id(dataset_id)
     if os.path.exists(dataset_folder):
-        logger(f'Delete dataset folder: {dataset_folder}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Delete dataset folder: {dataset_folder}')
         shutil.rmtree(dataset_folder)
     else:
-        logger(f'Dataset folder: {dataset_folder} not found', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Dataset folder: {dataset_folder} not found')
     return {"status": "ok", "metadata-id": dataset_id}
 
 
@@ -307,21 +300,20 @@ def process_db_records(datasetId, db_record_metadata, db_recs_target_repo, regis
         None
     """
     if not db_manager.is_dataset_exist(datasetId):
-        logger(f'Insert dataset and target repo records for {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Insert dataset and target repo records for {datasetId}')
         db_manager.insert_dataset_and_target_repo(db_record_metadata, db_recs_target_repo)
     else:
-        logger(f'Update dataset and target repo records for {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Update dataset and target repo records for {datasetId}')
         db_manager.update_metadata(db_record_metadata)
         db_manager.replace_targets_record(datasetId, db_recs_target_repo)
     if registered_files:
-        logger(f'Insert datafiles records for {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
-        logger(f'Number registered_files: {len(registered_files)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Insert datafiles records for {datasetId}')
+        logging.info(f'Number registered_files: {len(registered_files)}')
         try:
             db_manager.insert_datafiles(registered_files)
-            logger(f'SUCCESSFUL  INSERT datafiles records for {datasetId}, number of files: {len(registered_files)}',
-                   settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.info(f'SUCCESSFUL  INSERT datafiles records for {datasetId}, number of files: {len(registered_files)}')
         except ValueError as e:
-            logger(f'Error inserting datafiles: {e}', 'error', LOG_NAME_ACP)
+            logging.error(f'Error inserting datafiles: {e}')
 
 @handle_ps_exceptions
 def process_metadata_record(dataset_id, idh, repo_assistant, tmp_dir):
@@ -341,10 +333,10 @@ def process_metadata_record(dataset_id, idh, repo_assistant, tmp_dir):
     Returns:
         tuple: A tuple containing the dataset metadata record and a list of registered files.
     """
-    logger(f'Processing metadata record for {dataset_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Processing metadata record for {dataset_id}')
 
     if idh.metadata_type == MetadataType.JSON:
-        logger(f'Processing json metadata', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Processing json metadata')
         registered_files = []
         file_names = []
         file_names_from_input = jmespath.search('"file-metadata"[*].name', idh.metadata)
@@ -352,7 +344,7 @@ def process_metadata_record(dataset_id, idh, repo_assistant, tmp_dir):
             for file_name in file_names_from_input:
                 data_file = db_manager.find_file_by_name(dataset_id, file_name)
                 if data_file:
-                    logger(f'File {file_name} already exist', settings.LOG_LEVEL, LOG_NAME_ACP)
+                    logging.info(f'File {file_name} already exist')
                     escaped_file_name = file_name.replace('"', '\\"')
                     f_permission = jmespath.search(f'"file-metadata"[?name == `{escaped_file_name}`].private', idh.metadata)
                     permission = FilePermissions.PRIVATE if f_permission[0] else FilePermissions.PUBLIC
@@ -363,25 +355,23 @@ def process_metadata_record(dataset_id, idh, repo_assistant, tmp_dir):
         else:
             file_names_from_input = []
 
-        logger(f'Number of file_names: {len(file_names)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Number of file_names: {len(file_names)}')
         already_uploaded_files_name = db_manager.execute_l(dataset_id)
-        logger(f'Number of already_uploaded_files: {len(already_uploaded_files_name)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Number of already_uploaded_files: {len(already_uploaded_files_name)}')
 
         files_name_to_be_deleted = set(already_uploaded_files_name) - set(file_names_from_input)
-        logger(
-            f'Number of files_name_to_be_deleted: {len(files_name_to_be_deleted)} --LIST:  {files_name_to_be_deleted}',
-            settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(
+            f'Number of files_name_to_be_deleted: {len(files_name_to_be_deleted)} --LIST:  {files_name_to_be_deleted}')
         files_name_to_be_added = set(file_names) - set(already_uploaded_files_name)
-        logger(f'Number of files_name_to_be_added: {len(files_name_to_be_added)}', settings.LOG_LEVEL,
-               LOG_NAME_ACP)
+        logging.info(f'Number of files_name_to_be_added: {len(files_name_to_be_added)}')
 
         for f_name in files_name_to_be_deleted:
             file_path = os.path.join(tmp_dir, f_name)
             if os.path.exists(file_path):
                 delete_symlink_and_target(file_path)
-                logger(f'{file_path} is deleted', settings.LOG_LEVEL, LOG_NAME_ACP)
+                logging.info(f'{file_path} is deleted')
             else:
-                logger(f'{file_path} not found', settings.LOG_LEVEL, LOG_NAME_ACP)
+                logging.info(f'{file_path} not found')
             db_manager.delete_datafile(dataset_id, f_name)
 
         for f_name in files_name_to_be_added:
@@ -393,16 +383,16 @@ def process_metadata_record(dataset_id, idh, repo_assistant, tmp_dir):
             permission = FilePermissions.PRIVATE if f_permission[0] else FilePermissions.PUBLIC
             registered_files.append(DataFile(name=f_name, path=file_path, ds_id=dataset_id, permissions=permission))
 
-        logger(f'registered_files: {registered_files}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'registered_files: {registered_files}')
 
         # Update file permission
         already_uploaded_files = db_manager.find_uploaded_files(dataset_id)
-        logger(f'Number of already_uploaded_files: {len(already_uploaded_files)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Number of already_uploaded_files: {len(already_uploaded_files)}')
 
         dataset_state = DatasetWorkState.READY if not files_name_to_be_added else DatasetWorkState.NOT_READY
         metadata = json.dumps(idh.metadata)
     else:
-        logger(f'Processing xml metadata', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Processing xml metadata')
         dataset_state = DatasetWorkState.READY
         metadata = idh.metadata
         registered_files = None
@@ -439,7 +429,7 @@ def process_target_repos(repo_assistant, target_creds) -> [TargetRepo]:
             raise HTTPException(status_code=404, detail=f'Module "{repo_target.bridge_plugin_name}" not found.',
                                 headers={})
         target_repo_name = repo_target.repo_name
-        logger(f'target_repo_name: {target_repo_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'target_repo_name: {target_repo_name}')
         for depositor_cred in input_target_cred_model.targets_credentials:
             if (depositor_cred.target_repo_name == repo_target.repo_name and depositor_cred.credentials and
                     depositor_cred.credentials.username):
@@ -502,7 +492,7 @@ def list_files_with_suffix(directory: str, suffix: str) -> list:
 
 
 async def delete_file(file_id: str):
-    logger(f"Deleting file {file_id}", settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f"Deleting file {file_id}")
     url = f'{settings.TUS_BASE_URL}/files/{file_id}'
     headers = {
         "accept": "application/json",
@@ -512,14 +502,13 @@ async def delete_file(file_id: str):
         try:
             response = await client.delete(url, headers=headers, timeout=10)
             if response.status_code == 204:
-                logger(f"TUS File  successfully deleted. {file_id}", settings.LOG_LEVEL, LOG_NAME_ACP)
+                logging.info(f"TUS File  successfully deleted. {file_id}")
             else:
-                logger(f"File id: {file_id} Failed to delete file. Status code: {response.status_code}",
-                       settings.LOG_LEVEL, LOG_NAME_ACP)
+                logging.info(f"File id: {file_id} Failed to delete file. Status code: {response.status_code}")
 
             return response.status_code
         except Exception as e:
-            logger(f"File id: {file_id} Error deleting file: {e}", "error", LOG_NAME_ACP)
+            logging.error(f"File id: {file_id} Error deleting file: {e}")
 
         return 500
 
@@ -544,30 +533,29 @@ async def update_file_metadata(metadata_id: str, file_uuid: str) -> {}:
         HTTPException: If the file size is 0.
         HTTPException: If there is a file size mismatch.
     """
-    logger(f'PATCH file metadata for metadata_id: {metadata_id} and file_uuid: {file_uuid}', settings.LOG_LEVEL,
-           LOG_NAME_ACP)
+    logging.info(f'PATCH file metadata for metadata_id: {metadata_id} and file_uuid: {file_uuid}' )
     tus_file = os.path.join(settings.DATA_TMP_BASE_TUS_FILES_DIR, file_uuid)
     file_info_path = f'{tus_file}.info'
     if not os.path.exists(file_info_path):
-        logger(f'File info NOT FOUND for {file_uuid}: {file_info_path}', "error", LOG_NAME_ACP)
+        logging.error(f'File info NOT FOUND for {file_uuid}: {file_info_path}')
         raise HTTPException(status_code=404, detail='File not found')
     if not os.path.exists(tus_file):
-        logger(f'File NOT FOUND for {file_uuid}: {tus_file}', "error", LOG_NAME_ACP)
+        logging.error(f'File NOT FOUND for {file_uuid}: {tus_file}')
         raise HTTPException(status_code=404, detail='File not found')
     if os.path.getsize(tus_file) == 0:
-        logger(f'File SIZE IS 0 for {file_uuid}: {tus_file}', "error", LOG_NAME_ACP)
+        logging.error(f'File SIZE IS 0 for {file_uuid}: {tus_file}')
         raise HTTPException(status_code=400, detail='File size is 0')
 
     with open(file_info_path, "r") as file:
         file_metadata = json.load(file)
     file_name = file_metadata['metadata']['fileName']
     if file_metadata.get('size', 0) == 0:
-        logger(f'File SIZE IS 0 for {file_uuid}: {tus_file}', "error", LOG_NAME_ACP)
+        logging.error(f'File SIZE IS 0 for {file_uuid}: {tus_file}')
         raise HTTPException(status_code=400, detail='File size is 0')
 
-    logger(f'file_name: {file_name}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'file_name: {file_name}')
     if os.path.getsize(tus_file) != file_metadata.get('size', 0):
-        logger(f'FILE SIZE MISMATCH for {file_uuid}: {tus_file}', "error", LOG_NAME_ACP)
+        logging.error(f'FILE SIZE MISMATCH for {file_uuid}: {tus_file}')
         raise HTTPException(status_code=400, detail='File size mismatch')
 
     db_record_metadata = db_manager.find_dataset(metadata_id)
@@ -575,7 +563,7 @@ async def update_file_metadata(metadata_id: str, file_uuid: str) -> {}:
     source_file_path = os.path.join(settings.DATA_TMP_BASE_TUS_FILES_DIR, file_uuid)
     dest_file_path = os.path.join(dataset_folder, file_name)
     # Process the files
-    logger(f'Processing using symlink {source_file_path} to {dest_file_path}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Processing using symlink {source_file_path} to {dest_file_path}')
     target = source_file_path
     link_name = dest_file_path
     try:
@@ -597,34 +585,34 @@ async def update_file_metadata(metadata_id: str, file_uuid: str) -> {}:
         new_name = f'{target}-{metadata_id}.{db_record_metadata.app_name}'
         os.rename(target, new_name)
         os.symlink(new_name, link_name)
-        logger(f'Symlink created: {link_name} -> {target}', settings.LOG_LEVEL, LOG_NAME_ACP)
-        logger(f'Deleting {source_file_path}.info', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Symlink created: {link_name} -> {target}')
+        logging.info(f'Deleting {source_file_path}.info')
         deleted_status = await delete_file(file_uuid)
-        logger(f'Deleted status: {deleted_status}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Deleted status: {deleted_status}')
     except FileExistsError:
-        logger(f'The symlink {link_name} already exists.', "error", LOG_NAME_ACP)
+        logging.error(f'The symlink {link_name} already exists.')
     except FileNotFoundError:
-        logger(f'The target {target} does not exist.', "error", LOG_NAME_ACP)
+        logging.error(f'The target {target} does not exist.')
     except OSError as e:
-        logger(f'Error creating symlink: {e}', "error", LOG_NAME_ACP)
+        logging.error(f'Error creating symlink: {e}')
     all_files_uploaded = len(db_manager.find_registered_files(metadata_id)) == 0
     if all_files_uploaded:
-        logger(f'All files are UPLOADED for {metadata_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'All files are UPLOADED for {metadata_id}')
         db_manager.set_dataset_ready_for_ingest(metadata_id)
     else:
         db_manager.set_dataset_ready_for_ingest(metadata_id, DatasetWorkState.NOT_READY)
-        logger(f'Not all files uploaded for {metadata_id}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Not all files uploaded for {metadata_id}')
 
     start_process = db_manager.is_dataset_ready(metadata_id)
     if start_process:
-        logger(f'Start Bridge task for {metadata_id} from the PATCH file endpoint', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Start Bridge task for {metadata_id} from the PATCH file endpoint')
         bridge_job(metadata_id, f'/inbox/files/{metadata_id}/{file_uuid}')
-        logger(f'Bridge task for {metadata_id} started successfully', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Bridge task for {metadata_id} started successfully')
     else:
-        logger(f'Bridge task for {metadata_id} NOT started', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Bridge task for {metadata_id} NOT started')
 
     registerd_files = db_manager.find_registered_files(metadata_id)
-    logger(f'Number of registered files: {len(registerd_files)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Number of registered files: {len(registerd_files)}')
     rdm = ResponseDataModel(status="OK")
     rdm.dataset_id = metadata_id
     rdm.start_process = start_process
@@ -645,12 +633,12 @@ def bridge_job(datasetId: str, msg: str) -> None:
     Returns:
         None
     """
-    logger(f"Starting threading for {msg} with datasetId: {datasetId}", settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f"Starting threading for {msg} with datasetId: {datasetId}")
     try:
         threading.Thread(target=follow_bridge, args=(datasetId,)).start()
-        logger(f"Threading for {datasetId} started successfully.", settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f"Threading for {datasetId} started successfully.")
     except Exception as e:
-        logger(f"Error starting thread for {datasetId}: {e}", 'error', LOG_NAME_ACP)
+        logging.error(f"Error starting thread for {datasetId}: {e}")
 
 
 def follow_bridge(dataset_id) -> type(None):
@@ -668,10 +656,10 @@ def follow_bridge(dataset_id) -> type(None):
     """
     # Log the start time of the thread
     start_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    logger(f"Thread for datasetId: {dataset_id} started at {start_time}", settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f"Thread for datasetId: {dataset_id} started at {start_time}")
 
-    logger("Follow bridge", settings.LOG_LEVEL, LOG_NAME_ACP)
-    logger(f">>> EXECUTE follow_bridge for datasetId: {dataset_id}", settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info("Follow bridge")
+    logging.info(f">>> EXECUTE follow_bridge for datasetId: {dataset_id}")
     db_manager.submitted_now(dataset_id)
     target_repo_recs = db_manager.find_target_repos_by_dataset_id(dataset_id)
     execute_bridges(dataset_id, target_repo_recs)
@@ -691,11 +679,11 @@ def execute_bridges(datasetId, targets) -> None:
     Returns:
         None
     """
-    logger("execute_bridges", settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info("execute_bridges")
     results = []
     for target_repo_rec in targets:
         bridge_class = data[Target(**json.loads(target_repo_rec.config)).bridge_plugin_name]
-        logger(f'EXECUTING {bridge_class} for target_repo_id: {target_repo_rec.id}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'EXECUTING {bridge_class} for target_repo_id: {target_repo_rec.id}')
 
         start = time.perf_counter()
         bridge_instance = get_class(bridge_class)(dataset_id=datasetId,
@@ -703,7 +691,7 @@ def execute_bridges(datasetId, targets) -> None:
         deposit_result = bridge_instance.job()
         deposit_result.response.duration = round(time.perf_counter() - start, 2)
 
-        logger(f'Result from Deposit: {deposit_result.model_dump_json()}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Result from Deposit: {deposit_result.model_dump_json()}')
         bridge_instance.save_state(deposit_result)
 
         if deposit_result.deposit_status in [DepositStatus.FINISH, DepositStatus.ACCEPTED, DepositStatus.SUCCESS]:
@@ -715,16 +703,16 @@ def execute_bridges(datasetId, targets) -> None:
     if len(results) == len(targets):
         dataset_folder = os.path.join(settings.DATA_TMP_BASE_DIR, db_manager.find_dataset(ds_id=datasetId).app_name,
                                       datasetId)
-        logger(f'Ingest SUCCESSFULL, DELETE {dataset_folder}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Ingest SUCCESSFULL, DELETE {dataset_folder}')
 
         for file in Path(dataset_folder).glob('*'):
             if file.is_file():
                 delete_symlink_and_target(file)
         if os.path.exists(dataset_folder):
             shutil.rmtree(dataset_folder)
-        logger(f'DELETED successfully: {dataset_folder}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'DELETED successfully: {dataset_folder}')
     else:
-        logger(f'Ingest FAILED for datasetId: {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'Ingest FAILED for datasetId: {datasetId}')
 
 
 @handle_ps_exceptions
@@ -745,7 +733,7 @@ def retrieve_targets_configuration(assistant_config_name: str) -> str:
         HTTPException: If the configuration URL returns a status code other than 200.
     """
     repo_url = f'{settings.ASSISTANT_CONFIG_URL}/{assistant_config_name}'
-    logger(f'Retrieve targets configuration from {repo_url}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Retrieve targets configuration from {repo_url}')
     rsp = requests.get(repo_url, headers=assistant_repo_headers)
     if rsp.status_code != 200:
         raise HTTPException(status_code=404, detail=f"{repo_url} not found")
@@ -769,19 +757,19 @@ async def resubmit(datasetId: str):
     Raises:
         Exception: If there is an error starting the resubmission thread.
     """
-    logger(f'Resubmit {datasetId}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Resubmit {datasetId}')
     targets = db_manager.find_unfinished_target_repo(datasetId)
     if not targets:
         return 'No targets'
 
-    logger(f'Resubmitting {len(targets)}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Resubmitting {len(targets)}')
     try:
         execute_bridges_task = threading.Thread(target=execute_bridges, args=(datasetId, targets,))
         execute_bridges_task.start()
-        logger(f'follow_bridge_task {execute_bridges_task} started', settings.LOG_LEVEL, LOG_NAME_ACP)
+        logging.info(f'follow_bridge_task {execute_bridges_task} started')
     except Exception as e:
-        logger(f"ERROR: Follow bridge: {targets}. For datasetId: {datasetId}. Exception: "
-               f"{e.with_traceback(e.__traceback__)}", 'error', LOG_NAME_ACP)
+        logging.error(f"ERROR: Follow bridge: {targets}. For datasetId: {datasetId}. Exception: "
+               f"{e.with_traceback(e.__traceback__)}")
 
 
 #
@@ -816,10 +804,10 @@ def remove_files_and_directories(dir_path):
         item_path = os.path.join(dir_path, item)
         if os.path.isfile(item_path):
             os.remove(item_path)
-            logger(f"File {item_path} has been removed", settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.info(f"File {item_path} has been removed")
         elif os.path.isdir(item_path):
             shutil.rmtree(item_path)
-            logger(f"Directory {item_path} and all its contents have been removed", settings.LOG_LEVEL, LOG_NAME_ACP)
+            logging.info(f"Directory {item_path} and all its contents have been removed")
 
 
 @router.delete("/delete-dir/{dir}", include_in_schema=False)
@@ -841,7 +829,7 @@ def delete_inbox(dir: str):
     directory = f"{settings.DATA_TMP_BASE_DIR}/{dir}"
     if not os.path.exists(directory):
         return HTTPException(status_code=404, detail=f"{directory} not found")
-    logger(f'Delete directory: {directory}', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info(f'Delete directory: {directory}')
     remove_files_and_directories(directory)
     return {"Deleted": "OK", "directory": directory}
 
@@ -857,10 +845,10 @@ async def get_settings():
     Returns:
         dict: A dictionary containing the updated application settings.
     """
-    logger(f"Getting settings Before Load: {settings.as_dict()}", "debug", LOG_NAME_ACP)
-    logger("Reload settings", "debug", LOG_NAME_ACP)
+    logging.info(f"Getting settings Before Load: {settings.as_dict()}")
+    logging.info("Reload settings")
     settings.reload()
-    logger(f"Getting settings After Load: {settings.as_dict()}", "debug", LOG_NAME_ACP)
+    logging.info(f"Getting settings After Load: {settings.as_dict()}")
     return settings.as_dict()
 
 @router.get("/dataset/{datasetId}/md", include_in_schema=False)
@@ -901,7 +889,7 @@ def get_log(app_name: str):
     Logs:
         Logs the action of retrieving the log file.
     """
-    logger('logs', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info('logs')
     return FileResponse(path=f"{os.environ['BASE_DIR']}/logs/{app_name}.log", filename=f"{app_name}.log",
                         media_type='text/plain')
 
@@ -919,7 +907,7 @@ def get_log_list():
     Raises:
         FileNotFoundError: If the logs directory does not exist.
     """
-    logger('logs-list', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info('logs-list')
     return os.listdir(path=f"{os.environ['BASE_DIR']}/logs")
 
 
@@ -936,7 +924,7 @@ def get_db():
     Logs:
         Logs the action of downloading the database file.
     """
-    logger('db-download', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info('db-download')
     return FileResponse(path=settings.DB_URL, filename="acp.db",
                         media_type='application/octet-stream')
 
@@ -955,7 +943,7 @@ def delete_all_recs():
     Logs:
         Logs the action of deleting all records.
     """
-    logger('Deleting all', settings.LOG_LEVEL, LOG_NAME_ACP)
+    logging.info('Deleting all')
     return db_manager.delete_all()
 
 @router.get("/datasets", include_in_schema=False)
@@ -968,5 +956,5 @@ async def get_db():
     Returns:
         JSONResponse: A JSON response containing the datasets retrieved from the database.
     """
-    logger("Finding datasets", "debug", LOG_NAME_ACP)
+    logging.info("Finding datasets")
     return JSONResponse(content=db_manager.execute_raw_sql())

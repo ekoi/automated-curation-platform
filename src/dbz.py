@@ -1,5 +1,6 @@
 import base64
 import json
+import logging
 import sqlite3
 from contextlib import closing
 from datetime import datetime
@@ -7,13 +8,11 @@ from enum import StrEnum, auto
 from typing import List, Optional, Sequence, Any
 
 from cryptography.fernet import Fernet
-
-from pydantic import BaseModel
-from sqlalchemy import text, delete, inspect, UniqueConstraint, desc, asc
+from sqlalchemy import text, delete, inspect, UniqueConstraint
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 
-from src.models.app_model import OwnerAssetsModel, Asset, TargetApp
+from src.models.app_model import Asset, TargetApp
 
 '''
 import logging
@@ -199,8 +198,7 @@ class DatabaseManager:
         if not inspect(self.engine).has_table("Dataset"):
             SQLModel.metadata.create_all(self.engine, checkfirst=True)
         else:
-            from src.commons import logger
-            logger('TABLES ALREADY CREATED', "info", "acp")
+            logging.info('TABLES ALREADY CREATED')
 
     def insert_dataset_and_target_repo(self, ds_record: Dataset, repo_records: List[TargetRepo]) -> None:
         # Encrypt the md field of the Dataset
