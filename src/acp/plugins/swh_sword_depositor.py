@@ -9,9 +9,9 @@ import requests
 import sword2.deposit_receipt as dr
 from requests.auth import HTTPBasicAuth
 
-from src.bridge import Bridge
-from src.commons import settings, DepositStatus, transform, db_manager
-from src.models.bridge_output_model import TargetDataModel, TargetResponse
+from src.acp.bridge import Bridge
+from src.acp.commons import settings, DepositStatus, transform, db_manager
+from src.acp.models.bridge_output_model import TargetDataModel, TargetResponse
 
 
 class SwhSwordDepositor(Bridge):

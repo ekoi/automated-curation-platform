@@ -3,16 +3,13 @@ import importlib
 import inspect
 import logging
 import os
-import platform
 import re
 import shutil
 import smtplib
 import zipfile
-from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from functools import wraps
-from logging.handlers import TimedRotatingFileHandler
 from tempfile import NamedTemporaryFile
 from typing import Any, Callable
 
@@ -20,6 +17,7 @@ import boto3
 import psutil
 import requests
 import tomli
+from akmi_utils import commons as a_commons
 from dynaconf import Dynaconf
 from fastapi import HTTPException
 from hypothesis import settings
@@ -27,21 +25,16 @@ from jsoncomparison import Compare
 from requests_toolbelt.multipart.encoder import MultipartEncoder, MultipartEncoderMonitor
 from starlette import status
 
-from src.dbz import DatabaseManager, DepositStatus
-from src.models.assistant_datamodel import ProcessedMetadata
-from src.models.bridge_output_model import TargetDataModel, TargetResponse
-from akmi_utils import commons as a_commons
+from src.acp.dbz import DatabaseManager, DepositStatus
+from src.acp.models.assistant_datamodel import ProcessedMetadata
+from src.acp.models.bridge_output_model import TargetDataModel, TargetResponse
 
-LOG_NAME_ACP = 'acp'
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-print(f'base_dir: {base_dir}')
+base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
+
 settings = Dynaconf(root_path=f'{os.environ["BASE_DIR"]}/conf', settings_files=["*.toml"],
                     environments=True)
 data = {}
-
-base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-os.environ["BASE_DIR"] = os.getenv("BASE_DIR", base_dir)
 
 project_details = a_commons.get_project_details(os.getenv("BASE_DIR"), ['name', 'version', 'description', 'title'])
 

@@ -3,9 +3,9 @@ from __future__ import annotations
 import json
 import logging
 
-from src.bridge import Bridge
-from src.commons import settings, create_s3_client
-from src.models.bridge_output_model import TargetDataModel
+from src.acp.bridge import Bridge
+from src.acp.commons import settings, create_s3_client
+from src.acp.models.bridge_output_model import TargetDataModel
 
 
 class S3Depositor(Bridge):

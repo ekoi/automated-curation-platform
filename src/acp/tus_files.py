@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse
 from fastapi_tusd import TusRouter
 
-from src.commons import settings
+from src.acp.commons import settings
 
 if not os.path.exists(settings.DATA_TMP_BASE_TUS_FILES_DIR):
     os.makedirs(settings.DATA_TMP_BASE_TUS_FILES_DIR)

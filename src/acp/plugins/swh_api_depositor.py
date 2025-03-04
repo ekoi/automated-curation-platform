@@ -7,10 +7,10 @@ from time import sleep
 import jmespath
 import requests
 
-from src.bridge import Bridge
-from src.commons import settings
-from src.dbz import DepositStatus
-from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem, \
+from src.acp.bridge import Bridge
+from src.acp.commons import settings
+from src.acp.dbz import DepositStatus
+from src.acp.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType, IdentifierItem, \
     IdentifierProtocol
 
 

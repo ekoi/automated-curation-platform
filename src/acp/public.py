@@ -1,14 +1,13 @@
 import json
+import logging
 
 from fastapi import APIRouter, Request, HTTPException
 from starlette.responses import Response
 
 # from src import db
-from src.commons import data, db_manager, LOG_NAME_ACP, settings, fetch_dv_json
-from src.dbz import ReleaseVersion
-from src.models.app_model import OwnerAssetsModel, Asset, TargetApp
-
-import logging
+from src.acp.commons import data, db_manager, settings, fetch_dv_json
+from src.acp.dbz import ReleaseVersion
+from src.acp.models.app_model import OwnerAssetsModel, Asset, TargetApp
 
 router = APIRouter()
 

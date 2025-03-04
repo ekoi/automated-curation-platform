@@ -23,6 +23,10 @@ Dependencies:
 import logging
 # import importlib.metadata
 import os
+import sys
+
+# Add the src directory to the Python path
+sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from contextlib import asynccontextmanager
 from typing import Annotated
 
@@ -35,10 +39,10 @@ from keycloak import KeycloakOpenID, KeycloakAuthenticationError
 from starlette import status
 from starlette.middleware.cors import CORSMiddleware
 
-from src import public, protected
-from src.commons import settings, data, db_manager, inspect_bridge_plugin, \
+from src.acp import protected, public
+from src.acp.commons import settings, data, db_manager, inspect_bridge_plugin, \
     get_version, get_name, project_details
-from src.tus_files import upload_files
+from src.acp.tus_files import upload_files
 
 
 @asynccontextmanager
@@ -141,11 +145,11 @@ else:
 
 
 # register routers
-    app.include_router(public.router, tags=["Public"], prefix="")
-    app.include_router(protected.router, tags=["Protected"], prefix="", dependencies=[Depends(auth_header)])
+app.include_router(public.router, tags=["Public"], prefix="")
+app.include_router(protected.router, tags=["Protected"], prefix="", dependencies=[Depends(auth_header)])
 
-    app.include_router(upload_files, prefix="/files", include_in_schema=True, dependencies=[Depends(auth_header)])
-    # app.include_router(tus_files.router, prefix="", include_in_schema=False)
+app.include_router(upload_files, prefix="/files", include_in_schema=True, dependencies=[Depends(auth_header)])
+# app.include_router(tus_files.router, prefix="", include_in_schema=False)
 
 
 @app.get('/')

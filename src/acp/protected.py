@@ -20,14 +20,14 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import JSONResponse
 from starlette.responses import FileResponse
 
-from src.commons import settings, data, db_manager, get_class, assistant_repo_headers, handle_ps_exceptions, \
-    send_mail, LOG_NAME_ACP, delete_symlink_and_target
-from src.dbz import TargetRepo, DataFile, Dataset, ReleaseVersion, DepositStatus, FilePermissions, \
+from src.acp.commons import settings, data, db_manager, get_class, assistant_repo_headers, handle_ps_exceptions, \
+    send_mail, delete_symlink_and_target
+from src.acp.dbz import TargetRepo, DataFile, Dataset, ReleaseVersion, DepositStatus, FilePermissions, \
     DatasetWorkState, DataFileWorkState, MetadataType
-from src.models.app_model import ResponseDataModel, InboxDatasetDataModel
+from src.acp.models.app_model import ResponseDataModel, InboxDatasetDataModel
 # Import custom plugins and classes
-from src.models.assistant_datamodel import RepoAssistantDataModel, Target
-from src.models.bridge_output_model import TargetsCredentialsModel
+from src.acp.models.assistant_datamodel import RepoAssistantDataModel, Target
+from src.acp.models.bridge_output_model import TargetsCredentialsModel
 
 # Create an API router instance
 router = APIRouter()

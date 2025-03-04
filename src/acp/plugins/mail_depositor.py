@@ -3,10 +3,10 @@ from __future__ import annotations
 import logging
 import urllib
 
-from src.bridge import Bridge
-from src.commons import settings, send_mail
-from src.dbz import DepositStatus
-from src.models.bridge_output_model import TargetDataModel
+from src.acp.bridge import Bridge
+from src.acp.commons import send_mail
+from src.acp.dbz import DepositStatus
+from src.acp.models.bridge_output_model import TargetDataModel
 
 
 class Mail(Bridge):

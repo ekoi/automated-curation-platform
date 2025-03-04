@@ -2,8 +2,9 @@
 dynaconf_merge = true
 log_file = "@format {env[BASE_DIR]}/logs/acp.log"
 loggers = [{"name"="acp", "log_file"="@format {env[BASE_DIR]}/logs/acp.log", "log_level"=10, "log_format" = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s" }]
-log_level = 'debug'
-otlp_enable = true
+log_format = "%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s"
+log_level = 10
+otlp_enable = false
 #FastAPI
 fastapi_title = "Automated Curation Platform"
 fastapi_description = "The Automated Curation Platform is a Python-based application developed by DANS. It is designed to create deposit packages based on user input, which consist of metadata, files, and repository targets. The service streamlines and simplifies the creation of deposit packages by harmonizing user input, repository configurations, bridge plugins, and transformers to create deposit packages tailored to the specific needs of each repository target."
@@ -15,7 +16,7 @@ data_tmp_base_tus_files_dir = "@format {env[BASE_DIR]}/data/tmp/tus-files"
 tus_base_url = "http://localhost:10124"
 languages_path = "@format {env[BASE_DIR]}/resources/utils/languageList.json"
 
-plugins_dir = "@format {env[BASE_DIR]}/src/plugins"
+plugins_dir = "@format {env[BASE_DIR]}/src/acp/plugins"
 tus_files_dir = "@format {env[BASE_DIR]}/data/tmp/tus"
 
 jinja_template_dir =  "@format {env[BASE_DIR]}/resources/datastation/metadata"

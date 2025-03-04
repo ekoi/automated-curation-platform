@@ -1,6 +1,7 @@
 FROM python:3.12.8-bookworm
 LABEL authors="Eko Indarto"
 
+
 # Combine apt-get commands to reduce layers
 RUN apt-get update -y && \
     apt-get upgrade -y && \
@@ -9,13 +10,6 @@ RUN apt-get update -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-
-# Install Poetry using the official installation script
-RUN curl -sSL https://install.python-poetry.org | python3 -
-
-# Add Poetry to the PATH
-ENV PATH="/root/.local/bin:$PATH"
-
 RUN useradd -ms /bin/bash akmi
 
 ENV PYTHONPATH=/home/akmi/acp/src
@@ -23,19 +17,31 @@ ENV BASE_DIR=/home/akmi/acp
 
 WORKDIR ${BASE_DIR}
 
-COPY pyproject.toml .
-COPY README.md .
+
+# Install uv.
+COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
+
+# Copy the application into the container.
+
+
+# Create and activate virtual environment
+RUN python -m venv .venv
+ENV APP_NAME="Repository Asistant Service"
+ENV PATH="/home/akmi/acp/.venv/bin:$PATH"
+# Copy the application into the container.
 COPY src ./src
 COPY resources ./resources
+COPY pyproject.toml .
+COPY README.md .
+COPY uv.lock .
+RUN chmod +x ${BASE_DIR}/resources/utils/ingest.sh
 
+RUN uv venv .venv
+# Install dependencies
 
-RUN  poetry install
-RUN  poetry build
-RUN  pip install --no-cache-dir dist/*.whl && rm -rf dist/*.whl && chmod +x ${BASE_DIR}/resources/utils/ingest.sh
+RUN uv sync --frozen --no-cache
 
-RUN chown -R akmi:akmi ${BASE_DIR}
+# Run the application.
+CMD ["python", "-m", "src.main"]
 
-
-USER akmi
-CMD ["python", "src/main.py"]
 #CMD ["tail", "-f", "/dev/null"]

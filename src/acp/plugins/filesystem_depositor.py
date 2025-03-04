@@ -5,10 +5,9 @@ import logging
 import os
 import urllib.parse
 
-from src.bridge import Bridge
-from src.commons import settings
-from src.dbz import DepositStatus
-from src.models.bridge_output_model import TargetDataModel
+from src.acp.bridge import Bridge
+from src.acp.dbz import DepositStatus
+from src.acp.models.bridge_output_model import TargetDataModel
 
 
 class FileSystem(Bridge):

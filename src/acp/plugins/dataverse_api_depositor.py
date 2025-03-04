@@ -13,16 +13,16 @@ import requests
 from simple_file_checksum import get_checksum
 from starlette import status
 
-from src.bridge import Bridge, TargetDataModel
-from src.commons import (
+from src.acp.bridge import Bridge, TargetDataModel
+from src.acp.commons import (
     settings,
     db_manager,
     transform,
     handle_deposit_exceptions, dmz_dataverse_headers, zip_a_zipfile_with_progress, transform_xml,
     processed_metadata_handler,
 )
-from src.dbz import ReleaseVersion, DataFile, DepositStatus, FilePermissions, DataFileWorkState, MetadataType
-from src.models.bridge_output_model import IdentifierItem, IdentifierProtocol, TargetResponse, ResponseContentType
+from src.acp.dbz import ReleaseVersion, DataFile, DepositStatus, FilePermissions, DataFileWorkState, MetadataType
+from src.acp.models.bridge_output_model import IdentifierItem, IdentifierProtocol, TargetResponse, ResponseContentType
 
 
 class DataverseIngester(Bridge):

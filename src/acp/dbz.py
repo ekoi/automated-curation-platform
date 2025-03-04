@@ -12,7 +12,7 @@ from sqlalchemy import text, delete, inspect, UniqueConstraint
 from sqlalchemy.exc import IntegrityError
 from sqlmodel import SQLModel, Field, create_engine, Session, select
 
-from src.models.app_model import Asset, TargetApp
+from src.acp.models.app_model import Asset, TargetApp
 
 '''
 import logging

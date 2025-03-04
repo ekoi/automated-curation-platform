@@ -1,9 +1,9 @@
 import json
-
-import requests
 from datetime import datetime
 
-from src.models.assistant_datamodel import ProcessedMetadata
+import requests
+
+from src.acp.models.assistant_datamodel import ProcessedMetadata
 
 
 def dataverse_metadata_fetcher(record, pm: ProcessedMetadata):

@@ -6,7 +6,7 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
-from src.dbz import DepositStatus
+from src.acp.dbz import DepositStatus
 
 
 class ResponseContentType(StrEnum):

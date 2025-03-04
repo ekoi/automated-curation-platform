@@ -5,9 +5,9 @@ from datetime import datetime
 
 import requests
 
-from src.bridge import Bridge
-from src.dbz import DepositStatus
-from src.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType
+from src.acp.bridge import Bridge
+from src.acp.dbz import DepositStatus
+from src.acp.models.bridge_output_model import TargetDataModel, TargetResponse, ResponseContentType
 
 
 class DataverseDatasetDelete(Bridge):

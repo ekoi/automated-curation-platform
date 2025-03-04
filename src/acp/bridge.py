@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+import logging
 import os
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
-from src.commons import settings, db_manager, logger
-from src.dbz import TargetRepo, DepositStatus, DatabaseManager, Dataset, DataFile
-from src.models.assistant_datamodel import Target
-from src.models.bridge_output_model import TargetDataModel
+from src.acp.commons import settings, db_manager
+from src.acp.dbz import TargetRepo, DepositStatus, DatabaseManager, Dataset, DataFile
+from src.acp.models.assistant_datamodel import Target
+from src.acp.models.bridge_output_model import TargetDataModel
 
 
 @dataclass(frozen=True, kw_only=True, slots=True)
@@ -85,8 +86,7 @@ class Bridge(ABC):
         duration = output_data_model.response.duration if output_data_model else 0.0
         output = output_data_model.model_dump_json() if output_data_model else ''
         if output_data_model:
-            logger(f'Save state for dataset_id: {self.dataset_id}. Target: {self.target.repo_name}',
-                   settings.LOG_LEVEL, self.app_name)
+            logging.info(f'Save state for dataset_id: {self.dataset_id}. Target: {self.target.repo_name}')
         db_manager.update_target_repo_deposit_status(TargetRepo(ds_id=self.dataset_id, name=self.target.repo_name,
                                                                 deposit_status=deposit_status, target_output=output,
                                                                 duration=duration))
