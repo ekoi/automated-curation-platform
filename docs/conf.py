@@ -9,7 +9,7 @@ import os
 import sys
 sys.path.insert(0, os.path.abspath('../src'))
 project = 'Automated Curation Platform'
-copyright = '2024, Eko Indarto'
+copyright = '2025, DANS'
 author = 'Eko Indarto'
 release = '0.5.0'
 
